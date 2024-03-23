@@ -55,8 +55,6 @@ typedef struct Bytecode {
 } Bytecode;
 
 
-
-
 char const *lang_bytename(ByteName k) {
 	switch (k) {
 		case BYTE_RET: return "ret";

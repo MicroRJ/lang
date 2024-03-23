@@ -1,10 +1,9 @@
 /*
 ** See Copyright Notice In lang.h
-** ltable.c
-** (H) Table Object && Hash Tools
+** (H) ltable.c
+** Table Object && Hash Tools
 */
 
-/* very simple table implementation, probably very slow! */
 
 Table *langH_new2(Runtime *fs, Integer ntotal) {
 	/* todo: we could make this system a a bit more
@@ -241,9 +240,6 @@ int langH_insert_(Runtime *c) {
 	langH_insert(table,k,j);
 	return 0;
 }
-
-
-int langR_callfuncargs(Runtime *c, Closure *cl, int n, ...);
 
 
 int langH_foreach_(Runtime *c) {

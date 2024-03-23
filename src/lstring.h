@@ -27,4 +27,4 @@ Bool S_eq(char const *x, char const *y);
 unsigned int S_hashcontents (char const *contents, unsigned int length);
 
 
-#define S_tpf(format,...) (LCHECKPRINTF(format,__VA_ARGS__),S_tprintf_(format,__VA_ARGS__))
+#define S_tpf(format,...) (LCHECKPRINTF(format,__VA_ARGS__),S_tpf_(format,__VA_ARGS__))

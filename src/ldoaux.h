@@ -9,6 +9,7 @@ LAPI int langR_resume(Runtime *c);
 
 LAPI int langR_callfunc(Runtime *c, Closure *, int n);
 LAPI int langR_callCfunc(Runtime *c, CFunc , int n);
+LAPI int langR_callfuncargs(Runtime *c, Closure *cl, int n, ...);
 
 LAPI Integer langR_stacksize(Runtime *c);
 

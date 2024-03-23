@@ -11,6 +11,9 @@ NodeId langY_node3(FileState *fs, char * line, NodeName k, NodeId x, NodeId y, N
 	if (langA_varmin(fs->nodes) <= fs->nnodes) {
 		langA_variadd(fs->nodes,1);
 	}
+
+	if (fs->nodes == 0) -1;
+
 	Node *nd = fs->nodes + fs->nnodes;
 	nd->level = fs->level;
 	nd->line = line;

@@ -35,28 +35,6 @@ Bool langS_eq(String *x, String *y) {
 }
 
 
-char *S_printfv(Alloc *cator, char const *format, va_list v) {
-	int length = stbsp_vsnprintf(NULL,0,format,v);
-	char *contents = langM_alloc(cator,length+1);
-	stbsp_vsnprintf(contents,length+1,format,v);
-	return contents;
-}
-
-
-char *S_tprintfv(char const *format, va_list v) {
-	return S_printfv(lTLOC,format,v);
-}
-
-
-char *S_tprintf_(char const *format, ...) {
-	va_list v;
-	va_start(v,format);
-	char *contents = S_tprintfv(format,v);
-	va_end(v);
-	return contents;
-}
-
-
 int S_length(char const *s) {
 	int n = 0;
 	if (s != Null) {
@@ -116,6 +94,28 @@ int langS_match_(Runtime *c) {
 }
 
 
+char *S_pfv(Alloc *cator, char const *format, va_list v) {
+	int length = stbsp_vsnprintf(NULL,0,format,v);
+	char *contents = langM_alloc(cator,length+1);
+	stbsp_vsnprintf(contents,length+1,format,v);
+	return contents;
+}
+
+
+char *S_tpfv(char const *format, va_list v) {
+	return S_pfv(lTLOC,format,v);
+}
+
+
+char *S_tpf_(char const *format, ...) {
+	va_list v;
+	va_start(v,format);
+	char *contents = S_tpfv(format,v);
+	va_end(v);
+	return contents;
+}
+
+
 /*
 ** Simple pattern matcher utility.
 */
@@ -158,3 +158,5 @@ Bool S_match(char *p, char *s) {
 	without no pattern matches */
 	return *s == 0;
 }
+
+

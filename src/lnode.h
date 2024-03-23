@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
-** lnode.h
-** (Y) Expressing Parsing Stuff
+** (Y) lnode.h
+** Simple AST For Expressions
 */
 
 

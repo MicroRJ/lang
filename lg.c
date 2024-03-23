@@ -10,6 +10,8 @@
 int main(int n, char **c) {
 	(void) n;
 
+	printf(".");
+
 	langM_initmemory();
 
 	Module md = {0};

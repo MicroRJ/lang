@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
-** ltable.h
-** (H) Hashing Tools && Table Object
+** (H) ltable.h
+** Hashing Tools && Table Object
 */
 
 
@@ -14,6 +14,7 @@ typedef struct HashSlot {
 } HashSlot;
 
 
+#if 0
 /* this is is a simpler more generic construct
 that can be used in more permissive contexts */
 typedef struct Hash {
@@ -22,7 +23,7 @@ typedef struct Hash {
 	Integer  ntally;
 	int ncollisions;
 } Hash;
-
+#endif
 
 /* todo: split this into a hash and table */
 typedef struct Table {
@@ -30,7 +31,6 @@ typedef struct Table {
 	HashSlot *slots;
 	Integer  ntotal;
 	Integer  nslots;
-
 	int ncollisions;
 	/* array object */
 	Value        *v;

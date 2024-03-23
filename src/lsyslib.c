@@ -36,9 +36,9 @@ void syslib_pfv_(FILE *file, Value v, Bool quotes) {
 		case VALUE_TABLE: {
 			Table *t = v.t;
 			fprintf(file,"{");
-			langA_varfor (Value *, x, t->v) {
-				if (x != t->v) fprintf(file,", ");
-				syslib_pfv_(file,*x,True);
+			langA_varifor (t->v) {
+				if (i != 0) fprintf(file,", ");
+				syslib_pfv_(file,t->v[i],True);
 			}
 			fprintf(file,"}");
 		} break;
@@ -62,41 +62,41 @@ void syslib_pfv_(FILE *file, Value v, Bool quotes) {
 }
 
 
-int syslib_fpf(Runtime *c) {
-	FILE *file = (FILE *) langR_loadI(c,0);
-	for (int i = 1; i < c->f->n; i ++) {
-		syslib_pfv_(file,langR_loadV(c,i),False);
+int syslib_fpf(Runtime *rt) {
+	FILE *file = (FILE *) langR_loadI(rt,0);
+	for (int i = 1; i < rt->f->n; i ++) {
+		syslib_pfv_(file,langR_loadV(rt,i),False);
 	}
 	return 0;
 }
 
 
-int syslib_pf_(Runtime *c) {
-	for (int i = 0; i < c->f->n; i ++) {
-		syslib_pfv_(stdout,langR_loadV(c,i),False);
+int syslib_pf_(Runtime *rt) {
+	for (int i = 0; i < rt->f->n; i ++) {
+		syslib_pfv_(stdout,langR_loadV(rt,i),False);
 	}
 	fprintf(stdout,"\n");
 	return 0;
 }
 
 
-LAPI int syslib_sleep(Runtime *c) {
-	LASSERT(c->f->n == 1);
-	sys_sleep(langR_loadI(c,0));
+LAPI int syslib_sleep(Runtime *rt) {
+	LASSERT(rt->f->n == 1);
+	sys_sleep(langR_loadI(rt,0));
 	return 0;
 }
 
 
-LAPI int syslib_clocktime(Runtime *c) {
-	langR_pushI(c,sys_clocktime());
+LAPI int syslib_clocktime(Runtime *rt) {
+	langR_pushI(rt,sys_clocktime());
 	return 1;
 }
 
 
-LAPI int syslib_timediffs(Runtime *c) {
-	LASSERT(c->f->n == 1);
-	Integer i = langR_loadI(c,0);
-	langR_pushN(c,(sys_clocktime() - i) / (Number) sys_clockhz());
+LAPI int syslib_timediffs(Runtime *rt) {
+	LASSERT(rt->f->n == 1);
+	Integer i = langR_loadI(rt,0);
+	langR_pushN(rt,(sys_clocktime() - i) / (Number) sys_clockhz());
 	return 1;
 }
 

@@ -49,9 +49,12 @@ void *langGC_allocobj(Runtime *rt, ObjectType type, Integer length) {
 
 
 void langGC_remobj(Runtime *fs, Integer i) {
-	LASSERT(i >= 0 && i < langA_varlen(fs->gc));
-	fs->gc[i] = fs->gc[langA_varlen(fs->gc)-1];
-	((Array*)(fs->gc))[-1].min --;
+	Object **gc = fs->gc;
+	if (gc == 0) return;
+	Integer n = langA_varlen(gc);
+	LASSERT(i >= 0 && i < n);
+	gc[i] = gc[n-1];
+	((Array*)(gc))[-1].min --;
 }
 
 

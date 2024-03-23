@@ -115,7 +115,7 @@ TokenName langX_iskeyword(char const *name) {
 
 #define thischr() (file->thischar[0])
 #define thenchr() (file->thischar[1])
-#define movechr() (*file->thischar++)
+#define movechr() (*(file->thischar++))
 #define cmovchr(xx) ((thischr() == (xx)) ? movechr(), 1 : 0)
 
 
@@ -136,6 +136,7 @@ int langX_escapechr(FileState *file) {
 
 
 Token langX_yield(FileState *file) {
+
 	/* remove, not needed #todo */
 	lglobaldecl char buffer[0x100];
 
@@ -365,5 +366,6 @@ Token langX_yield(FileState *file) {
 	file->lasttk = file->tk;
 	file->tk = file->thentk;
 	file->thentk = tk;
+
 	return file->lasttk;
 }

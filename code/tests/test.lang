@@ -4,6 +4,8 @@ fpf(sysfile,"test scores:\n")
 local dir = "code/tests"
 local list = listdir(dir,fun(file,flags) ? {
 	if file.name == "test.lang" ? leave false
+	if file.name:match("*.test.lang") == false ? leave false
+
 	fpf(sysfile,"test: ", file.name, "\n")
 	local tmstart = clocktime()
 	load file.path

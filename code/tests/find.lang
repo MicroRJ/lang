@@ -1,0 +1,18 @@
+
+local sysfile = fopen("filefind.ignore","wb")
+fpf(sysfile,"found files:\n")
+local dir = "C:"
+pf("filtering files in: ",dir)
+local max = 2048
+local list = listdir(dir,fun(file,flags) ? {
+	if max < flags.n ? flags.n = flags.n + 1
+	if file.name == "lj_strfmt.c" ? {
+		fpf(sysfile,file,"\n")
+		pf("we've found the file")
+		leave false
+	}
+	// if file.name:match("*.h") || file.name:match("*.c") ? {
+	// 	fpf(sysfile,file.name,",\n")
+	// }
+	leave true
+})
