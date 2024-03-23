@@ -1,0 +1,46 @@
+
+fibcache = {}
+
+fibcached = fun (n) ? {
+	if n < 2 ? leave n
+	if fibcache:haskey(n) ? {
+		leave fibcache:lookup(n)
+	}
+	r = fibcached(n - 1) + fibcached(n - 2)
+	fibcache:hashin(n,r)
+	leave r
+}
+
+fib = fun (n) ? {
+	if n < 2 ? leave n
+	leave fib(n - 1) + fib(n - 2)
+}
+
+test = fun (x,y) ? {
+	// pf("fib(",x,"): ")
+	// time_ = clocktime()
+	local k = fibcached(x)
+	// pf("	=> ", k, " took: ", timediffs(time_), "s")
+
+	if k != y ? {
+		pf(" LFAILED: expected ", y)
+	}
+}
+
+test(0,0)
+test(1,1)
+test(2,1)
+test(3,2)
+test(4,3)
+test(10,55)
+test(25,75025)
+test(30,832040)
+test(35,9227465)
+test(40,102334155)
+test(47,2971215073)
+
+// fibcache:foreach(fun(x,y) ? {
+// 	pf("fibcache(",x,") => ",y)
+// })
+
+

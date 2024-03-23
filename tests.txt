@@ -1,0 +1,21 @@
+test scores:
+test: core.lang
+	elapsed: 0.000640
+test: fib.lang
+	elapsed: 0.000651
+test: fun.f
+	elapsed: 0.000736
+test: gc.f
+	elapsed: 0.000284
+test: hello.f
+	elapsed: 0.033829
+test: ifelse.f
+	elapsed: 0.000409
+test: j.f
+	elapsed: 0.006916
+test: load.lang
+	elapsed: 0.005647
+test: match.lang
+	elapsed: 0.000272
+test: range.f
+	elapsed: 0.000064

@@ -1,0 +1,284 @@
+Hash table benchmarks:
+elapsed: 25.232610
+items: 568835, hits: 1389842
+====================================
+Hash table benchmarks:
+elapsed: 23.865172
+items: 568830, hits: 1389748
+====================================
+Hash table benchmarks:
+elapsed: 24.596688
+items: 568830, hits: 1389748
+====================================
+Hash table benchmarks:
+elapsed: 23.934024
+items: 568831, hits: 1290830
+====================================
+Hash table benchmarks:
+elapsed: 24.354973
+items: 568833, hits: 719773
+====================================
+Hash table benchmarks:
+elapsed: 23.513271
+items: 568834, hits: 719833
+====================================
+Hash table benchmarks:
+elapsed: 32.388137
+items: 568834, hits: 719760
+====================================
+Hash table benchmarks:
+elapsed: 23.552282
+items: 568840, hits: 719776
+====================================
+Hash table benchmarks:
+elapsed: 23.528692
+items: 568840, hits: 719800
+====================================
+Hash table benchmarks:
+elapsed: 23.585639
+items: 568840, hits: 444870
+====================================
+Hash table benchmarks:
+elapsed: 37.325611
+items: 568845, hits: 444889
+====================================
+Hash table benchmarks:
+elapsed: 0.005419
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001895
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.004044
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001423
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001345
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.004365
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.010069
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.003212
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.009612
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.003166
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002589
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002590
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.005147
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.006065
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.006040
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002822
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.004792
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.005663
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002713
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.003612
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.005223
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.003855
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.004519
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002628
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.005637
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.004604
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.005277
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002868
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.182577
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.122329
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001413
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001172
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001886
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.003590
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001597
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002207
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001154
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001163
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001569
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002438
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001211
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001170
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.002083
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000390
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000398
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.001200
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000417
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000436
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000407
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000496
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000500
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.000486
+items: 1, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.027640
+items: 13, hits: 6
+====================================
+Hash table benchmarks:
+elapsed: 0.002289
+items: 13, hits: 6
+====================================
+Hash table benchmarks:
+elapsed: 0.000853
+items: 13, hits: 6
+====================================
+Hash table benchmarks:
+elapsed: 0.000346
+items: 0, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.013175
+items: 0, hits: 0
+====================================
+Hash table benchmarks:
+elapsed: 0.080087
+items: 513, hits: 390
+====================================
+Hash table benchmarks:
+elapsed: 0.017835
+items: 513, hits: 390
+====================================
+Hash table benchmarks:
+elapsed: 0.033121
+items: 513, hits: 390
+====================================

@@ -1,0 +1,6 @@
+.vs
+.vscode/*
+*.exe
+*.pdb
+*.obj
+*.asm

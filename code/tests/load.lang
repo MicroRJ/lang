@@ -1,0 +1,21 @@
+/* todo: experiment with name spaces */
+
+/* check include guard */
+core2 = load "code/tests/core.lang"
+core2 = load "code/tests/core.lang"
+core2 = load "code/tests/core.lang"
+core2 = load "code/tests/core.lang"
+core2 = load "code/tests/core.lang"
+
+
+load "code/tests/match.lang"
+
+pf(pc(), ": calling core functions")
+
+core2.xxx()
+core2.yyy()
+core2.zzz()
+
+pf(pc(), ": done...")
+
+

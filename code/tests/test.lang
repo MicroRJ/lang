@@ -1,0 +1,13 @@
+local sysfile = fopen("tests.txt","wb")
+fpf(sysfile,"test scores:\n")
+
+local dir = "code/tests"
+local list = listdir(dir,fun(file,flags) ? {
+	if file.name == "test.lang" ? leave false
+	fpf(sysfile,"test: ", file.name, "\n")
+	local tmstart = clocktime()
+	load file.path
+	local elapsed = timediffs(tmstart);
+	fpf(sysfile,"	elapsed: ", elapsed, "\n")
+	leave true
+})

@@ -1,0 +1,19 @@
+
+/* todo: how can we make this system better? */
+if core != 0 ? leave core
+core = {}
+
+pf(pc(), ": loading core.lang")
+
+core.xxx = fun(x) ? {
+	pf(pc(), ": you've called xxx")
+}
+core.yyy = fun(x) ? {
+	pf(pc(), ": you've called yyy")
+}
+core.zzz = fun(x) ? {
+	pf(pc(), ": you've called zzz")
+}
+
+pf(pc(), ": you've loaded core.lang")
+leave core
