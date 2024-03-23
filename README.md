@@ -45,7 +45,7 @@ typed language I've ever used is this one.
 - Help me port this, see lsys.h for list
 of functions that need porting.
 
-- Can we extend stdlib please?
+- Can we extend corelib please?
 
 - Figure out how we want to incorporate
 nodes into code generation, are nodes
