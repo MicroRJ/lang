@@ -24,25 +24,25 @@ void langGC_markpink(Object *obj) {
 }
 
 
-void *langGC_allocobj(Runtime *fs, ObjectType type, Integer length) {
-	if (fs != 0) {
-		if (!fs->isgcpaused) {
-			if (fs->gcthreshold <= 0) {
-				fs->gcthreshold = L_GC_THRESHOLD;
+void *langGC_allocobj(Runtime *rt, ObjectType type, Integer length) {
+	if (rt != 0) {
+		if (!rt->isgcpaused) {
+			if (rt->gcthreshold <= 0) {
+				rt->gcthreshold = L_GC_THRESHOLD;
 			}
-			if (langA_varlen(fs->gc) >= fs->gcthreshold) {
-				langGC_collect(fs);
-				fs->gcthreshold *= 2;
+			if (langA_varlen(rt->gc) >= rt->gcthreshold) {
+				langGC_collect(rt);
+				rt->gcthreshold *= 2;
 			}
 		}
 	}
 
 
-	Object *obj = langM_clearalloc(elHEAP,length);
+	Object *obj = langM_clearalloc(lHEAP,length);
 	obj->type = type;
 
-	if (fs != 0) {
-		langA_varadd(fs->gc,obj);
+	if (rt != 0) {
+		langA_varadd(rt->gc,obj);
 	}
 	return obj;
 }
@@ -78,7 +78,7 @@ void langGC_deallocobj(Object *j) {
 	if (j->type == OBJ_TABLE) {
 		langH_free((Table*)j);
 	}
-	langM_dealloc(elHEAP,j);
+	langM_dealloc(lHEAP,j);
 }
 
 

@@ -1,20 +1,23 @@
 /*
 ** See Copyright Notice In lang.h
-** lnode.c
-** (Y) Expressing Parsing Stuff
+** (Y) lnode.c
+** Simple AST For Expressions
 */
 
 
 NodeId langY_node3(FileState *fs, char * line, NodeName k, NodeId x, NodeId y, NodeId *z) {
 	LASSERT(x >= 0);
 	LASSERT(y >= 0);
-	/* todo: node recycler */
-	Node *v = langA_varnadd(fs->nodes,1);
-	v->line = line;
-	v->k = k;
-	v->x = x;
-	v->y = y;
-	v->z = z;
+	if (langA_varmin(fs->nodes) <= fs->nnodes) {
+		langA_variadd(fs->nodes,1);
+	}
+	Node *nd = fs->nodes + fs->nnodes;
+	nd->level = fs->level;
+	nd->line = line;
+	nd->k = k;
+	nd->x = x;
+	nd->y = y;
+	nd->z = z;
 	return fs->nnodes ++;
 }
 

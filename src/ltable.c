@@ -27,7 +27,7 @@ Table *langH_new2(Runtime *fs, Integer ntotal) {
 
 	table->ntotal = ntotal;
 	table->nslots = 0;
-	table->slots = langM_clearalloc(elHEAP,ntotal * sizeof(HashSlot));
+	table->slots = langM_clearalloc(lHEAP,ntotal * sizeof(HashSlot));
 	return table;
 }
 
@@ -38,8 +38,8 @@ Table *langH_new(Runtime *fs) {
 
 
 void langH_free(Table *t) {
-	langM_dealloc(elHEAP,t->slots);
-	langM_dealloc(elHEAP,t->v);
+	langM_dealloc(lHEAP,t->slots);
+	langM_dealloc(lHEAP,t->v);
 }
 
 
@@ -73,12 +73,12 @@ Integer langH_hashin(Table *table, Value k) {
 	Integer hash = langH_hashvalue(k);
 	Integer head = hash % ntotal;
 	Integer tail = head;
-	HashSize step = langH_rehash(hash)|1;
+	HashSize walk = langH_rehash(hash)|1;
 	do {
 		Value x = slots[tail].k;
 		if (x.tag == VALUE_NONE) return tail;
 		if (langH_valueeq(&x,&k)) return tail;
-		tail = (tail+step) % ntotal;
+		tail = (tail+walk) % ntotal;
 		LDODEBUG( table->ncollisions ++ );
 	} while(head != tail);
 	return -1;
@@ -116,7 +116,7 @@ void langH_checkthreshold(Table *table) {
 		Table newtable = * table;
 		newtable.ntotal = table->ntotal << 2;
 		if (newtable.ntotal < table->ntotal) LNOCHANCE;
-		newtable.slots = langM_clearalloc(elHEAP,newtable.ntotal * sizeof(HashSlot));
+		newtable.slots = langM_clearalloc(lHEAP,newtable.ntotal * sizeof(HashSlot));
 
 		for (int i = 0; i < table->ntotal; ++ i) {
 			HashSlot slot = table->slots[i];
@@ -129,7 +129,7 @@ void langH_checkthreshold(Table *table) {
 			newtable.slots[newslot] = slot;
 		}
 
-		langM_dealloc(elHEAP,table->slots);
+		langM_dealloc(lHEAP,table->slots);
 
 		table->ntotal = newtable.ntotal;
 		table->slots = newtable.slots;

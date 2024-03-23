@@ -65,7 +65,7 @@ char *gccolor2s(GCColor c) {
 }
 
 
-LAPI void testlib_open(Runtime *rt) {
+LAPI void tstlib_load(Runtime *rt) {
 	Module *md = rt->md;
 	/* todo: ugly */
 	lang_addglobal(md,langR_pushnewS(rt,"gc"),lang_C(testlib_gc));

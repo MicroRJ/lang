@@ -42,6 +42,9 @@ typed language I've ever used is this one.
 
 ### TODO:
 
+- Can we figure out a name for this
+language? Ideally 3-5 letters.
+
 - Help me port this, see lsys.h for list
 of functions that need porting.
 
@@ -50,6 +53,10 @@ of functions that need porting.
 - Figure out how we want to incorporate
 nodes into code generation, are nodes
 purely AST or slightly higher level IR?
+
+- Make store codes safer, how do we know
+when a function returns a value or not,
+how many values does it return?
 
 - Manual 'register' allocations to allow
 for fancier operations. I don't want to

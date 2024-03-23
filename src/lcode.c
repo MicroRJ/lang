@@ -11,7 +11,8 @@ int langC_isjump(ByteName n) {
 
 
 int langC_byte(FileState *fs, char *loc, ByteName k, Integer i) {
-	// lang_loginfo("%i: byte: %s, %lli",fs->md->nbytes,lang_bytename(k),i);
+	// lang_loginfo("%s %lli: byte: %s, %lli"
+	// , fs->filename,fs->md->nbytes,lang_bytename(k),i);
 	Bytecode *b = langA_varnadd(fs->md->bytes,1);
 	b->k = k;
 	b->i = i;
@@ -114,14 +115,16 @@ int langC_jumpiftrue(FileState *fs, Boolean *js, int x) {
 }
 
 
-void langC_load(FileState *fs, char *line, int x) {
+void langC_load(FileState *fs, char *line, NodeId x) {
 	LASSERT(x != -1);
 
 	Node v = fs->nodes[x];
-
-	if (line == 0) {
-		line = v.line;
+	if (v.level > fs->level) {
+		langX_error(fs,v.line,"node was freed");
 	}
+	LASSERT(v.level <= fs->level);
+
+	if (line == 0) line = v.line;
 
 
 	switch (v.k) {
@@ -227,6 +230,7 @@ void langC_load(FileState *fs, char *line, int x) {
 
 void langC_store(FileState *fs, char *line, int x, int y) {
 	Node v = fs->nodes[x];
+	LASSERT(v.level <= fs->level);
 	if (line == 0) {
 		line = v.line;
 	}

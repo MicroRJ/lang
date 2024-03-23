@@ -4,7 +4,6 @@
 ** Error Codes
 */
 
-
 #if !defined(ERROR_XITEM)
 
 #define LFAILED(err) ((err) != Error_None)
@@ -22,7 +21,7 @@ typedef enum Error {
 } Error;
 
 
-lglobal char const *lErrorNames[] = {
+lglobaldecl char const *lErrorNames[] = {
 	"No Error",
 
 #define ERROR_XITEM(NAME,DESC) DESC,

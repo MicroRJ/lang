@@ -148,8 +148,8 @@ LAPI int syslib_listdir(Runtime *c) {
 	Closure *f = langR_loadF(c,1);
 
 	/* push these keys temporarily so they won't
-	be garbage collected but also to to avoid
-	creating them so often  */
+	be gc'd but also to to avoid creating them
+	 so often  */
 	keyname = langR_pushnewS(c,"name");
 	keypath = langR_pushnewS(c,"path");
 	keyisdir = langR_pushnewS(c,"isdir");
@@ -167,7 +167,7 @@ LAPI int syslib_listdir(Runtime *c) {
 }
 
 
-LAPI void syslib_open(Runtime *rt) {
+LAPI void syslib_load(Runtime *rt) {
 	Module *md = rt->md;
 	lang_addglobal(md,langR_pushnewS(rt,"fopen"),lang_C(syslib_fopen));
 	lang_addglobal(md,langR_pushnewS(rt,"fsize"),lang_C(syslib_fsize));

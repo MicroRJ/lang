@@ -137,7 +137,7 @@ int langX_escapechr(FileState *file) {
 
 Token langX_yield(FileState *file) {
 	/* remove, not needed #todo */
-	lglobal char buffer[0x100];
+	lglobaldecl char buffer[0x100];
 
 	retry:
 
@@ -157,7 +157,7 @@ Token langX_yield(FileState *file) {
 				tk.type = langX_iskeyword(buffer);
 				if (tk.type == TK_WORD) {
 					/* todo: string interner, or arena? */
-					tk.s = S_ncopy(elHEAP,length,buffer);
+					tk.s = S_ncopy(lHEAP,length,buffer);
 				}
 			}
 		} break;
@@ -216,8 +216,8 @@ Token langX_yield(FileState *file) {
 				langX_error(file,tk.loc,"invalid string");
 			}
 			tk.type = TK_STRING;
-			tk.s = S_ncopy(elHEAP,length,buffer);
-			// tk.string = S_ncopy(elHEAP,length,buffer);
+			tk.s = S_ncopy(lHEAP,length,buffer);
+			// tk.string = S_ncopy(lHEAP,length,buffer);
 			// lang_loginfo("string %s",tk.string);
 		} break;
 		case '.': {
@@ -362,8 +362,8 @@ Token langX_yield(FileState *file) {
 	}
 
 	leave: ;
-	Token last_tk = file->tk;
-	file->tk = file->tkthen;
-	file->tkthen = tk;
-	return last_tk;
+	file->lasttk = file->tk;
+	file->tk = file->thentk;
+	file->thentk = tk;
+	return file->lasttk;
 }

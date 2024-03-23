@@ -1,8 +1,6 @@
 
-// core = load "code/tests/core.l"
-// k()
-
 call = fun(x) ? { leave x() }
+
 a = fun () ? {
 	pf("a")
 	b = fun () ? {

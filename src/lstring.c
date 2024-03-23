@@ -44,7 +44,7 @@ char *S_printfv(Alloc *cator, char const *format, va_list v) {
 
 
 char *S_tprintfv(char const *format, va_list v) {
-	return S_printfv(elTEMP,format,v);
+	return S_printfv(lTLOC,format,v);
 }
 
 

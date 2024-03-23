@@ -59,7 +59,7 @@ LAPI int sys_getmyname(int length, char *buffer) {
 }
 
 
-LAPI int sys_workdirname(int length, char *buffer) {
+LAPI int sys_pwd(int length, char *buffer) {
 #if defined(_WIN32)
 	return GetCurrentDirectory(length,buffer);
 #endif

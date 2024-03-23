@@ -40,7 +40,7 @@ Integer langA_varadd_(void **var, Integer per, Integer res, Integer com) {
 		if(min + res > max) {
 			max = min + res;
 		}
-		arr = langM_realloc(elHEAP,sizeof(Array)+per*max,arr);
+		arr = langM_realloc(lHEAP,sizeof(Array)+per*max,arr);
 	}
 	if (arr != 0) {
 		arr->max = max;

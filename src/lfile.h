@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
-** lfile.h
-** (Y) Parsing Structures
+** (Y) lfile.h
+** Parsing Structures
 */
 
 
@@ -11,27 +11,25 @@ typedef int LocalId;
 #define NO_LOC 0
 
 
-/* maps a name to a node.  */
-typedef struct FuncLocal {
+/* maps a name to a local node.  */
+typedef struct FileLocal {
 	char *name;
 	/* todo: remove these two */
 	int  level;
 	char  *loc;
 	/* the node itself */
 	NodeId   n;
-} FuncLocal;
+} FileLocal;
 
 
-typedef struct FuncState FuncState;
-typedef struct FuncState {
-	FuncState *enclosing;
-	char *loc;
-	/* the level in which this function
-	was created in. */
-	int level;
-	/* index to first local within locals
-	in file. */
-	int locals;
+typedef struct FileFunc FileFunc;
+typedef struct FileFunc {
+	FileFunc *enclosing;
+	char *line;
+	/* Index to first local within locals
+	in file. We use this to also determine
+	whether a local should be cached or not. */
+	NodeId locals;
 
 	/* todo: not quite yet,
 	array of cache nodes that are to be
@@ -44,7 +42,7 @@ typedef struct FuncState {
 	/* this is needed to emit instructions
 	relative to the current function we're parsing */
 	int bytes;
-} FuncState;
+} FileFunc;
 
 
 typedef struct FileState {
@@ -58,8 +56,7 @@ typedef struct FileState {
 	char *contents;
 	char *thischar;
 	int linenumber;
-	Token tk;
-	Token tkthen;
+	Token lasttk,tk,thentk;
 	/* buffer for nodes */
 	Node *nodes;
 	int nnodes;
@@ -67,21 +64,22 @@ typedef struct FileState {
 	int level;
 	/* Stack of locals for current function stack,
 	each function points to a local defined here,
-	when a function is finished parsing, deallocates
+	when a function is finished parsing, it deallocates
 	its locals by restoring nlocals to what it
 	was when it entered. Remaining locals are file
-	locals level, when calling this file, use
+	locals, at file level, when calling this file, use
 	nlocals to create a prototype. */
-	FuncLocal *locals;
+	FileLocal *locals;
 	int nlocals;
 	int bytes;
 	int nbytes;
 	/* stack of currently being parsed functions,
 	allocated in C stack by caller function. */
-	FuncState *fn;
+	FileFunc *fn;
 	char *lhsname;
 } FileState;
 
 
 NodeId langY_loadexpr(FileState *fs);
-NodeId langY_parsestat(FileState *fs);
+NodeId langY_loadstat(FileState *fs);
+NodeId langY_loadunary(FileState *fs);

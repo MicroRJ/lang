@@ -1,6 +1,6 @@
-local sysfile = fopen("tests.txt","wb")
-fpf(sysfile,"test scores:\n")
 
+local sysfile = fopen("tests.ignore","wb")
+fpf(sysfile,"test scores:\n")
 local dir = "code/tests"
 local list = listdir(dir,fun(file,flags) ? {
 	if file.name == "test.lang" ? leave false

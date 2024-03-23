@@ -11,7 +11,7 @@ LAPI Integer sys_clockhz();
 LAPI Integer sys_clocktime();
 
 LAPI int sys_getmyname(int length, char *buffer);
-LAPI int sys_workdirname(int length, char *buffer);
+LAPI int sys_pwd(int length, char *buffer);
 
 LAPI Handle sys_loaddll(char const *name);
 LAPI void *sys_finddllfn(Handle lib, char const *name);

@@ -5,7 +5,7 @@
 */
 
 
-lglobal int (*lang_globalassertionhook)(Debugloc);
+lglobaldecl int (*lang_globalassertionhook)(Debugloc);
 
 
 void lang_setasserthook(int (*hook)(Debugloc)) {

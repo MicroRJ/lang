@@ -16,16 +16,21 @@ int main(int n, char **c) {
 
 	Runtime rt = {&md};
 	rt.z = 4096;
-	rt.s = langM_clearalloc(elHEAP,sizeof(Value) * rt.z);
+	rt.s = langM_clearalloc(lHEAP,sizeof(Value) * rt.z);
 	rt.v = rt.s;
 
 	md.g = langH_new(&rt);
 	langGC_markpink((Object*)md.g);
 
-	syslib_open(&rt);
-	testlib_open(&rt);
+	syslib_load(&rt);
+	tstlib_load(&rt);
 
-	langR_loadfile(&rt,langS_new(0,c[1]));
+	char pwd[0x100];
+	sys_pwd(sizeof(pwd),pwd);
+	printf("working in: %s\n",pwd);
+
+	String *filename = langR_pushnewS(&rt,c[1]);
+	langR_loadfile(&rt,filename);
 
 	printf("exited\n");
 	return 0;

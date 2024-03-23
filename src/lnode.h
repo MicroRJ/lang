@@ -61,6 +61,7 @@ typedef enum NodeName {
 typedef struct Node {
 	NodeName k;
 	char *line;
+	int level;
 
 	union {
 		/* Node inputs, if variable number of inputs

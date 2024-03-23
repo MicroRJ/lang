@@ -112,7 +112,7 @@ int langR_callfunc(Runtime *c, Closure *cl, int n) {
 int langR_loadfile(Runtime *rt, String *filename) {
 
 	char *contents;
-	Error error = sys_loadfilebytes(elHEAP,&contents,filename->string);
+	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
 	if (LFAILED(error)) {
 		return -1;
 	}
@@ -142,7 +142,7 @@ int langR_loadfile(Runtime *rt, String *filename) {
 	loading its data and calling its function,
 	which is a function that encloses all of
 	the bytes within that file. */
-	FuncState fn = {0};
+	FileFunc fn = {0};
 	fn.bytes = fs.bytes;
 
 	fs.fn = &fn;
@@ -153,7 +153,7 @@ int langR_loadfile(Runtime *rt, String *filename) {
 	langX_yield(&fs);
 	langX_yield(&fs);
 	while (!langY_testtk(&fs,0)) {
-		if (langY_parsestat(&fs) < 0) break;
+		if (langY_loadstat(&fs) < 0) break;
 	}
 	// langY_leavelevel(&fs);
 
@@ -167,7 +167,7 @@ int langR_loadfile(Runtime *rt, String *filename) {
 	int nleft = langR_callfunc(rt,&cl,0);
 
 	/* free stuff */
-	langM_dealloc(elHEAP,contents);
+	langM_dealloc(lHEAP,contents);
 
 	return nleft;
 }
@@ -184,7 +184,6 @@ int langR_resume(Runtime *cs) {
 		Bytecode b = md->bytes[bc];
 
 		// lang_loginfo("%lli: %s, %lli",c->j-1,lang_bytename(b.k),b.i);
-		// langX_error(fs,md->lineinfo[bc],"%lli: %s, %lli",c->j-1,lang_bytename(b.k),b.i);
 
 		switch (b.k) {
 			case BYTE_RET: {
