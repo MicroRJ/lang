@@ -22,7 +22,7 @@ int syslib_fsize(Runtime *c) {
 }
 
 
-void syslib_pfv_(FILE *file, Value v, Bool quotes) {
+void syslib_fpfv_(FILE *file, Value v, Bool quotes) {
 	switch (v.tag) {
 		case VALUE_NONE: {
 			fprintf(file,"nil");
@@ -38,7 +38,7 @@ void syslib_pfv_(FILE *file, Value v, Bool quotes) {
 			fprintf(file,"{");
 			langA_varifor (t->v) {
 				if (i != 0) fprintf(file,", ");
-				syslib_pfv_(file,t->v[i],True);
+				syslib_fpfv_(file,t->v[i],True);
 			}
 			fprintf(file,"}");
 		} break;
@@ -65,7 +65,7 @@ void syslib_pfv_(FILE *file, Value v, Bool quotes) {
 int syslib_fpf(Runtime *rt) {
 	FILE *file = (FILE *) langR_loadI(rt,0);
 	for (int i = 1; i < rt->f->n; i ++) {
-		syslib_pfv_(file,langR_loadV(rt,i),False);
+		syslib_fpfv_(file,langR_loadV(rt,i),False);
 	}
 	return 0;
 }
@@ -73,7 +73,7 @@ int syslib_fpf(Runtime *rt) {
 
 int syslib_pf_(Runtime *rt) {
 	for (int i = 0; i < rt->f->n; i ++) {
-		syslib_pfv_(stdout,langR_loadV(rt,i),False);
+		syslib_fpfv_(stdout,langR_loadV(rt,i),False);
 	}
 	fprintf(stdout,"\n");
 	return 0;

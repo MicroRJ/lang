@@ -1,4 +1,6 @@
-
+main = fun() ? {
+	pf("Hello, World!")
+}
 local sysfile = fopen("tests.ignore","wb")
 fpf(sysfile,"test scores:\n")
 local dir = "code/tests"

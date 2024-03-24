@@ -19,7 +19,7 @@ typedef struct CodeFile {
 
 
 /* Symbols
-** 	Bytecode and globals can be added dynamically
+** 	Bytecode and globals can be added dynamically and
 ** safely, in fact, multiple files will reference the
 ** same global by name, no matter the order in which
 ** they were loaded, or the means, runtime/compiletime.
@@ -29,6 +29,7 @@ typedef struct CodeFile {
 ** process finds the global symbol and maps it to the
 ** target index. Lookups are effectively done at compile
 ** time.
+**
 */
 typedef struct Module {
 	Table *g;

@@ -34,6 +34,9 @@ int main(int n, char **c) {
 	String *filename = langR_pushnewS(&rt,c[1]);
 	langR_loadfile(&rt,filename);
 
+	lang_dumpmodule(&md,".module.lang");
+
+
 	printf("exited\n");
 	return 0;
 }
