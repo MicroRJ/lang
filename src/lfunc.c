@@ -5,12 +5,12 @@
 */
 
 
-LAPI Closure *langF_newclosure(Runtime *fs, Proto fn) {
+lapi Closure *langF_newclosure(Runtime *rt, Proto fn) {
 	LASSERT(fn.ncaches >= 0);
 
-	Integer length = sizeof(Closure) + sizeof(Value) * (fn.ncaches-1);
+	llong length = sizeof(Closure) + sizeof(Value) * (fn.ncaches-1);
 
-	Closure *cl = langGC_allocobj(fs,OBJ_CLOSURE,length);
+	Closure *cl = langGC_allocobj(rt,OBJ_CLOSURE,length);
 	cl->fn = fn;
 	return cl;
 }

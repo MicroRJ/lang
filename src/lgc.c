@@ -4,18 +4,18 @@
 ** Garbage Collector
 */
 
-#define L_GC_THRESHOLD (Integer) (8192)
+#define L_GC_THRESHOLD (llong) (8192)
 
 void langGC_collect(Runtime *fs);
 
 
 void langGC_pause(Runtime *fs) {
-	fs->isgcpaused = True;
+	fs->isgcpaused = ltrue;
 }
 
 
 void langGC_unpause(Runtime *fs) {
-	fs->isgcpaused = False;
+	fs->isgcpaused = lfalse;
 }
 
 
@@ -24,7 +24,12 @@ void langGC_markpink(Object *obj) {
 }
 
 
-void *langGC_allocobj(Runtime *rt, ObjectType type, Integer length) {
+void langGC_markwhite(Object *obj) {
+	obj->gccolor = GC_WHITE;
+}
+
+
+void *langGC_allocobj(Runtime *rt, ObjectType type, llong length) {
 	if (rt != 0) {
 		if (!rt->isgcpaused) {
 			if (rt->gcthreshold <= 0) {
@@ -48,21 +53,22 @@ void *langGC_allocobj(Runtime *rt, ObjectType type, Integer length) {
 }
 
 
-void langGC_remobj(Runtime *fs, Integer i) {
+void langGC_remobj(Runtime *fs, llong i) {
 	Object **gc = fs->gc;
 	if (gc == 0) return;
-	Integer n = langA_varlen(gc);
+	llong n = langA_varlen(gc);
 	LASSERT(i >= 0 && i < n);
 	gc[i] = gc[n-1];
 	((Array*)(gc))[-1].min --;
 }
 
 
-Bool ttisobj(ValueName tag) {
-	if (tag == VALUE_STRING) return True;
-	if (tag == VALUE_TABLE) return True;
-	if (tag == VALUE_FUNC) return True;
-	return False;
+lbool ttisobj(ValueName tag) {
+	if (tag == VALUE_STRING) return ltrue;
+	if (tag == VALUE_TABLE) return ltrue;
+	if (tag == VALUE_FUNC) return ltrue;
+	if (tag == VALUE_CUSTOM) return ltrue;
+	return lfalse;
 }
 
 
@@ -92,12 +98,22 @@ void langGC_deallocvalue(Value v) {
 }
 
 
-Bool langGC_markvalue(Value *v);
-Integer langGC_marktable(Table *table);
+lbool langGC_markvalue(Value *v);
+llong langGC_marktable(Table *table);
 
 
-Integer langGC_marktable(Table *table) {
-	Integer n = 0, k = 0;
+int langGC_markclosure(Closure *cl) {
+	int n = 0;
+	int k;
+	for (k=0; k<cl->fn.ncaches; ++k) {
+		n += langGC_markvalue(&cl->caches[k]);
+	}
+	return n;
+}
+
+
+llong langGC_marktable(Table *table) {
+	llong n = 0, k = 0;
 	for (k=0; k<table->ntotal; ++k) {
 		n += langGC_markvalue(&table->slots[k].k);
 	}
@@ -108,7 +124,7 @@ Integer langGC_marktable(Table *table) {
 }
 
 
-Bool langGC_markobj(Object *obj) {
+lbool langGC_markobj(Object *obj) {
 	/* Red and green objects are not collectable,
 	and thus cannot be marked black or white,
 	only white objects can be marked black,
@@ -119,6 +135,9 @@ Bool langGC_markobj(Object *obj) {
 
 	obj->gccolor = GC_BLACK;
 
+	if (obj->type == OBJ_CLOSURE) {
+		return 1 + langGC_markclosure((Closure*)obj);
+	}
 	if (obj->type == OBJ_TABLE) {
 		return 1 + langGC_marktable((Table*)obj);
 	}
@@ -127,15 +146,15 @@ Bool langGC_markobj(Object *obj) {
 }
 
 
-Bool langGC_markvalue(Value *v) {
+lbool langGC_markvalue(Value *v) {
 	if (!ttisobj(v->tag)) return 0;
 	return langGC_markobj(v->j);
 }
 
 
-Integer langGC_mark(Runtime *fs) {
+llong langGC_mark(Runtime *fs) {
 	/* mark global table first */
-	Integer n = langGC_marktable(fs->md->g);
+	llong n = langGC_marktable(fs->md->g);
 	Value *v;
 	for (v = fs->s; v < fs->v; ++ v) {
 		n += langGC_markvalue(v);
@@ -145,11 +164,11 @@ Integer langGC_mark(Runtime *fs) {
 
 
 void langGC_collect(Runtime *fs) {
-	Integer n = langGC_mark(fs);
+	llong n = langGC_mark(fs);
 	(void) n;
 	lang_loginfo("marked: %lli/%lli",langA_varlen(fs->gc),n);
 
-	Integer d = 0;
+	llong d = 0;
 	langA_varifor(fs->gc) {
 		Object *it = fs->gc[i];
 		if (it == 0) continue;

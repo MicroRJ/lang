@@ -1,0 +1,42 @@
+/* global */
+
+failed = false
+
+test = fun(x) ? {
+	iff x ? failed = true
+}
+
+if __a ? pf("cannot conduct test")
+if __b ? pf("cannot conduct test")
+if __c ? pf("cannot conduct test")
+
+fun () ? {
+	__a = true
+	fun () ? { __b = true
+		fun () ? { __c = true
+			test(__a == true)
+			test(__b == true)
+			test(__c == true)
+		}()
+	}()
+}()
+
+
+call = fun (x) ? {
+	x()
+}
+
+
+fun(x,y,z) ? {
+	test(x == 1)
+	test(y == 2)
+	test(z == 3)
+	call(fun () ? {
+		test(x == 1)
+		test(y == 2)
+		test(z == 3)
+	})
+} (1,2,3)
+
+
+leave failed

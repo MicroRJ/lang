@@ -5,39 +5,26 @@
 */
 
 
-typedef unsigned int HashSize;
 
 
 typedef struct HashSlot {
-	Value   k;
-	Integer i;
+	Value k;
+	llong i;
 } HashSlot;
 
 
-#if 0
-/* this is is a simpler more generic construct
-that can be used in more permissive contexts */
-typedef struct Hash {
-	HashSlot *slots;
-	Integer  ntotal;
-	Integer  ntally;
-	int ncollisions;
-} Hash;
-#endif
-
-/* todo: split this into a hash and table */
 typedef struct Table {
 	Object      obj;
 	HashSlot *slots;
-	Integer  ntotal;
-	Integer  nslots;
+	llong    ntotal;
+	llong    nslots;
 	int ncollisions;
 	/* array object */
 	Value        *v;
 } Table;
 
 
-Table *langH_new2(Runtime *fs, Integer);
+Table *langH_new2(Runtime *fs, llong);
 Table *langH_new(Runtime *fs);
 
 
@@ -50,12 +37,12 @@ int langH_sort_(Runtime *c);
 int langH_collisions_(Runtime *c);
 
 
-Integer langH_take(Table *table, Value k);
+llong langH_take(Table *table, Value k);
 void langH_free(Table *t);
 
 
-HashSize langH_rehash(HashSize hash);
-HashSize langH_hashS(char *bytes);
-HashSize langH_hashPtr(Ptr *p);
-Bool langH_valueeq(Value *x, Value *y);
-Integer langH_hashvalue(Value v);
+lhash langH_rehash(lhash hash);
+lhash langH_hashS(char *bytes);
+lhash langH_hashPtr(Ptr *p);
+lbool langH_valueeq(Value *x, Value *y);
+llong langH_hashvalue(Value v);

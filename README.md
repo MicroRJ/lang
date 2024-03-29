@@ -50,17 +50,13 @@ of functions that need porting.
 
 - Can we extend corelib please?
 
-- Figure out how we want to incorporate
-nodes into code generation, are nodes
-purely AST or slightly higher level IR?
+- Explicit stack state in code generation,
+both for safety and future optimizations...
 
-- Make store codes safer, how do we know
-when a function returns a value or not,
-how many values does it return?
-
-- Manual 'register' allocations to allow
-for fancier operations. I don't want to
-rely on stack order for everything.
+- Can we borrow some features of SSA to
+figure out the types of expressions at
+compile time to generate slightly more
+optimized bytecode?
 
 - Figure out the garbage collector
 and memory stuff, spurious code alert.

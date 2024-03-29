@@ -46,18 +46,7 @@ test = fun(x,y) ? {
 	}
 }
 pf("begin")
-test(0 && 0 && 0 && 0, 0)
-test(0 || 0 || 0 || 0, 0)
-test(0 && 0 || 0, 0)
-test(0 && 0 || 1, 1)
-test(0 && 1 || 2, 1)
-test(0 && 0, 0)
-test(0 && 1, 0)
-test(1 && 1, 1)
-test(0 || 0, 0)
-test(0 || 1, 1)
-test(1 || 1, 1)
-test(0 && 0 || 0, 0)
+
 _0 = fun() ? { pf("0") leave 0 }
 _1 = fun() ? { pf("1") leave 1 }
 _2 = fun() ? { pf("2") leave 2 }

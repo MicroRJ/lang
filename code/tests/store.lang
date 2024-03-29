@@ -1,0 +1,8 @@
+
+let sampletable = {}
+sampletable.j ?= 1
+sampletable.j ?= 77
+sampletable.j ?= 777
+sampletable.j ?= 777
+sampletable.j ?= 777
+leave sampletable == 1

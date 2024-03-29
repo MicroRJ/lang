@@ -27,20 +27,35 @@
 	#include <stb/stb_sprintf.h>
 #endif
 
+
 #define XSTRINGIFY_(xx) #xx
 #define XSTRINGIFY(xx) XSTRINGIFY_(xx)
 
 #define XFUSE_(xx,yy) xx##yy
 #define XFUSE(xx,yy) XFUSE_(xx,yy)
 
-#if !defined(LAPI)
-	#define LAPI static
+
+#if !defined(lapi)
+	#define lapi static
 #endif
 
 
 /* todo: porting */
 #define lglobaldecl static
 #define lthreaddecl static __declspec(thread)
+#define llibfn __declspec(dllexport)
+
+
+#define lfalse ("false",(lbool)(0))
+#define ltrue ("true",(lbool)(1))
+#define lnil ("nil",(Ptr)(0))
+
+
+typedef struct Runtime Runtime;
+typedef struct FileState FileState;
+typedef struct Table Table;
+typedef struct String String;
+typedef struct Object Object;
 
 
 #include <src/ltype.h>
@@ -49,13 +64,9 @@
 #include <src/llog.h>
 #include <src/lmem.h>
 #include <src/lsys.h>
-
-typedef struct Runtime Runtime;
-typedef struct Table Table;
-typedef struct FileState FileState;
-
 #include <src/llexer.h>
 #include <src/lbyte.h>
+
 #include <src/lobject.h>
 #include <src/lmodule.h>
 #include <src/lruntime.h>
@@ -65,7 +76,6 @@ typedef struct FileState FileState;
 #include <src/lnode.h>
 #include <src/lcode.h>
 #include <src/lfile.h>
-#include <src/ldoaux.h>
 
 
 #if defined(_WIN32)
@@ -96,19 +106,19 @@ typedef struct FileState FileState;
 #include <src/lfile.c>
 #include <src/ltest.c>
 #include <src/lsyslib.c>
-#include <src/ldoaux.c>
 #include <src/lruntime.c>
 
 
-Integer lang_clocktime() {
+llong lang_clocktime() {
 	return sys_clocktime();
 }
 
 
-Number lang_timediffs(Integer begin) {
+lnumber lang_timediffs(llong begin) {
 	/* todo: clockhz can be cached */
-	return (sys_clocktime() - begin) / (Number) sys_clockhz();
+	return (sys_clocktime() - begin) / (lnumber) sys_clockhz();
 }
+
 
 #pragma warning(pop)
 #endif

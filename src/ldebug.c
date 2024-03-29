@@ -5,18 +5,18 @@
 */
 
 
-lglobaldecl int (*lang_globalassertionhook)(Debugloc);
+lglobaldecl int (*lang_globalassertionhook)(ldebugloc);
 
 
-void lang_setasserthook(int (*hook)(Debugloc)) {
+void lang_setasserthook(int (*hook)(ldebugloc)) {
 	lang_globalassertionhook = hook;
 }
 
 
-void lang_assertfn(Debugloc ind, char const *name, Bool expr) {
+void lang_assertfn(ldebugloc ind, char const *name, lbool expr) {
 	if (!expr) {
 		printf("%s[%i] %s(): '%s' triggered assertion\n",ind.fileName,ind.lineNumber,ind.func,name);
-		if (lang_globalassertionhook != Null) {
+		if (lang_globalassertionhook != lnil) {
 			lang_globalassertionhook(ind);
 		} else {
 			__debugbreak();

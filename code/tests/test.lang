@@ -1,17 +1,40 @@
-main = fun() ? {
-	pf("Hello, World!")
-}
-local sysfile = fopen("tests.ignore","wb")
+let _globaltime = clocktime()
+finally pf(" total elapsed: ", timediffs(_globaltime))
+
+
+let prevdir = pwd()
+let workdir = pwd()
+pf("workdir: ", workdir)
+workdir = "code/tests"
+pf("switching to: ", workdir)
+setpwd(workdir)
+
+// load "fib.test.lang"
+
+let sysfile = fopen("tests.ignore","wb")
 fpf(sysfile,"test scores:\n")
-local dir = "code/tests"
-local list = listdir(dir,fun(file,flags) ? {
+finally fpf(sysfile,"end of test run");
+
+let list = listdir(".",fun(file,flags) ? {
+	let _time = clocktime()
+	let istest = false
+
+	finally if istest ? pf(" => took: ", timediffs(_time))
+
 	if file.name == "test.lang" ? leave false
 	if file.name:match("*.test.lang") == false ? leave false
+	pf("============== test: ", file.name)
+	istest = true
 
-	fpf(sysfile,"test: ", file.name, "\n")
-	local tmstart = clocktime()
-	load file.path
-	local elapsed = timediffs(tmstart);
-	fpf(sysfile,"	elapsed: ", elapsed, "\n")
+	/* global */
+	failed = false
+
+	let failed = load file.path
+	if failed ? {
+		pf("	 #FAILED: ")
+	}
 	leave true
 })
+
+pf("prevdir: ", prevdir)
+setpwd(prevdir)

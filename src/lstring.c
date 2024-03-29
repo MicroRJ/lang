@@ -5,31 +5,31 @@
 */
 
 
-String *langS_new(Runtime *fs, char const *contents) {
+String *langS_new(Runtime *fs, char const *junk) {
 	static MetaFunc _m[] = {
 		{"length",langS_length_},
 		{"match",langS_match_},
 	};
 
-	int length = S_length(contents);
+	int length = S_length(junk);
 
-	String *string = langGC_allocobj(fs,OBJ_STRING,sizeof(String)+length);
-	string->obj._m = _m;
-	string->obj._n = _countof(_m);
+	String *obj = langGC_allocobj(fs,OBJ_STRING,sizeof(String)+length);
+	obj->obj._m = _m;
+	obj->obj._n = _countof(_m);
 
 	/* todo: allocate this along with the header */
-	langM_copy(string->string,contents,length);
-	string->hash = langH_hashS((char*)contents);
-	return string;
+	langM_copy(obj->string,junk,length);
+	obj->hash = langH_hashS((char*)junk);
+	return obj;
 }
 
 
-Bool langS_eq(String *x, String *y) {
-	if (x == y) return True;
+lbool langS_eq(String *x, String *y) {
+	if (x == y) return ltrue;
 	/* assuming we use the same hash function */
-	if (x->hash != y->hash) return False;
+	if (x->hash != y->hash) return lfalse;
 
-	if (x->length != y->length) return False;
+	if (x->length != y->length) return lfalse;
 
 	return S_eq(x->string,y->string);
 }
@@ -37,7 +37,7 @@ Bool langS_eq(String *x, String *y) {
 
 int S_length(char const *s) {
 	int n = 0;
-	if (s != Null) {
+	if (s != lnil) {
 		while (*s ++ != 0) {
 			n += 1;
 		}
@@ -46,17 +46,17 @@ int S_length(char const *s) {
 }
 
 
-Bool S_eql(char const *x, char const *y, int n) {
+lbool S_eql(char const *x, char const *y, int n) {
 	for (int i = 0; i < n; i += 1) {
 		if (x[i] != y[i]) {
-			return False;
+			return lfalse;
 		}
 	}
-	return True;
+	return ltrue;
 }
 
 
-Bool S_eq(char const *x, char const *y) {
+lbool S_eq(char const *x, char const *y) {
 	int lx = S_length(x);
 	int ly = S_length(y);
 	return (lx == ly) && S_eql(x,y,lx);
@@ -81,15 +81,15 @@ char *S_copy(Alloc *allocator, char const *string) {
 
 
 int langS_length_(Runtime *c) {
-	langR_pushI(c,((String*)c->f->obj)->length);
+	lang_pushlong(c,((String*)c->f->obj)->length);
 	return 1;
 }
 
 
 int langS_match_(Runtime *c) {
 	String *s = (String*) c->f->obj;
-	String *p = langR_loadS(c,0);
-	langR_pushI(c,S_match(p->string,s->string));
+	String *p = lang_loadS(c,0);
+	lang_pushlong(c,S_match(p->string,s->string));
 	return 1;
 }
 
@@ -118,44 +118,59 @@ char *S_tpf_(char const *format, ...) {
 
 /*
 ** Simple pattern matcher utility.
+** Pattern, String
 */
-Bool S_match(char *p, char *s) {
-	while (*p != 0) {
+lbool S_matchsingle(char *p, char *s);
+
+
+lbool S_match(char *p, char *s) {
+	char *b = s;
+	while (!S_matchsingle(p,s)) {
+
+		while (*p != 0 && *p != '|') ++p;
+		if (*p == 0) return lfalse;
+
+		++ p, s = b;
+	}
+	return ltrue;
+}
+
+
+lbool S_matchsingle(char *p, char *s) {
+	while (*p != 0 && *p != '|') {
 		if (*p == '?') {
-			/* Matches any character except null
-			terminator */
-			if (*s == 0) return False;
+			/* matches any character except terminator. */
+			if (*s == 0) return lfalse;
 			++ p, ++ s;
 		} else
 		if (*p == '*') {
-			/* Unlikely the user will do this */
+			/* unlikely the user will do this. */
 			while (p[1] == '*') ++ p;
 
-			/* Got to end of string, do we still
+			/* got to end of string, do we still
 			have a pattern after epsilon? If so
 			then no match. */
-			if (*s == 0) return p[1] == 0;
+			if (*s == 0) return p[1] == 0 || p[1] == '|';
 
-			/* Epsilon operator causes matcher branch
-			to split, we can either match the sub-pattern
-			or delay the match for later. */
-			if (S_match(p+1,s)) {
-				return True;
+			/* '*' operator causes matcher to split branches,
+			we can either match the next pattern after '*' or
+			delay the match by skipping this char and remaining
+			in this pattern char. */
+			if (S_matchsingle(p+1,s)) {
+				return ltrue;
 			}
-			/* No match, move on to next string,
-			remain in this pattern char and to
-			keep matching on this branch. */
+			/* no match, move on to next char, remain in
+			this branch and keep checking for matches. */
 			++ s;
 		} else
-		/* Check literal */
+		/* otherwise, match literal fail if no match. */
 		if (*p != *s) {
-			return False;
+			return lfalse;
 		} else {
 			++ p, ++ s;
 		}
 	}
-	/* Have we consumed the whole string
-	without no pattern matches */
+	/* did we match the whole string */
 	return *s == 0;
 }
 

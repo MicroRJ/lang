@@ -5,20 +5,12 @@
 */
 
 
-typedef int LocalId;
-
-
-#define NO_LOC 0
-
-
-/* maps a name to a local node.  */
+/* maps a name to a local  */
 typedef struct FileLocal {
-	char *name;
-	/* todo: remove these two */
-	int  level;
-	char  *loc;
-	/* the node itself */
-	NodeId   n;
+	char   *name;
+	char   *line;
+	lnodeid node;
+	int    level;
 } FileLocal;
 
 
@@ -26,22 +18,26 @@ typedef struct FileFunc FileFunc;
 typedef struct FileFunc {
 	FileFunc *enclosing;
 	char *line;
-	/* Index to first local within locals
-	in file. We use this to also determine
-	whether a local should be cached or not. */
-	NodeId locals;
-
-	/* todo: not quite yet,
-	array of cache nodes that are to be
-	retreived from enclosing function.
-	each cached local level and index
-	should be higher than that of this
-	function's level and starting local index. */
-
-	LocalId *caches;
+	/* index to first local within locals in file,
+	we use this to also determine whether a local
+	should be cached (captured) or not. locals
+	refer to specifically named values. */
+	llocalid locals;
+	llocalid nlocals;
+	/* array of locals from enclosing function
+	that are to be cached */
+	llocalid *caches;
 	/* this is needed to emit instructions
 	relative to the current function we're parsing */
-	int bytes;
+	lbyteid bytes;
+
+	int nyield;
+	/* list of yield jumps to be patched */
+	lbyteid *yj;
+	/* list of all defer targets */
+	lbyteid *lt;
+	/* last defer jump */
+	lbyteid lj;
 } FileFunc;
 
 
@@ -56,30 +52,29 @@ typedef struct FileState {
 	char *contents;
 	char *thischar;
 	int linenumber;
-	Token lasttk,tk,thentk;
+	ltoken lasttk,tk,thentk;
 	/* buffer for nodes */
 	Node *nodes;
-	int nnodes;
-	/* the current level, 0 is for file. */
+	lnodeid nnodes;
+	/* the current level, level is incremented
+	per level, block or statement or whenever
+	it makes sense, represents a visibility
+	layer, 0 is for file. */
 	int level;
-	/* Stack of locals for current function stack,
-	each function points to a local defined here,
-	when a function is finished parsing, it deallocates
-	its locals by restoring nlocals to what it
-	was when it entered. Remaining locals are file
-	locals, at file level, when calling this file, use
-	nlocals to create a prototype. */
+	/* hierarchical list of locals for current
+	for all loading functions, each function points
+	to a local defined here by index. remaining
+	locals are file locals, at file level,
+	when calling this file, use nlocals to create
+	a prototype. */
 	FileLocal *locals;
-	int nlocals;
-	int bytes;
-	int nbytes;
-	/* stack of currently being parsed functions,
-	allocated in C stack by caller function. */
+	llocalid nlocals;
+	/* hierarchical list of loading functions,
+	each allocated in C stack by caller function */
 	FileFunc *fn;
-	char *lhsname;
 } FileState;
 
 
-NodeId langY_loadexpr(FileState *fs);
-NodeId langY_loadstat(FileState *fs);
-NodeId langY_loadunary(FileState *fs);
+lnodeid langY_loadexpr(FileState *fs);
+lnodeid langY_loadunary(FileState *fs);
+void langY_loadstat(FileState *fs);

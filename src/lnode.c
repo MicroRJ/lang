@@ -5,14 +5,10 @@
 */
 
 
-NodeId langY_node3(FileState *fs, char * line, NodeName k, NodeId x, NodeId y, NodeId *z) {
-	LASSERT(x >= 0);
-	LASSERT(y >= 0);
+lnodeid langY_nodexyz(FileState *fs, char *line, NodeType k, lnodeid x, lnodeid y, lnodeid *z) {
 	if (langA_varmin(fs->nodes) <= fs->nnodes) {
 		langA_variadd(fs->nodes,1);
 	}
-
-	if (fs->nodes == 0) -1;
 
 	Node *nd = fs->nodes + fs->nnodes;
 	nd->level = fs->level;
@@ -25,75 +21,108 @@ NodeId langY_node3(FileState *fs, char * line, NodeName k, NodeId x, NodeId y, N
 }
 
 
-NodeId langY_node2(FileState *fs, char *loc, int k, int x, int y) {
-	return langY_node3(fs,loc,k,x,y,0);
+lnodeid langY_nodexy(FileState *fs, char *line, NodeType k, lnodeid x, lnodeid y) {
+	return langY_nodexyz(fs,line,k,x,y,lnil);
 }
 
 
-NodeId langY_nodeI(FileState *fs, char *loc, Integer i) {
-	int v = langY_node3(fs,loc,NODE_INTEGER,0,0,0);
+lnodeid langY_nodex(FileState *fs, char *line, NodeType k, lnodeid x) {
+	return langY_nodexy(fs,line,k,x,NO_NODE);
+}
+
+
+lnodeid langY_node(FileState *fs, char *line, int k) {
+	return langY_nodex(fs,line,k,NO_NODE);
+}
+
+
+lnodeid langY_groupnode(FileState *fs, char *line, lnodeid x) {
+	return langY_nodex(fs,line,NODE_GROUP,x);
+}
+
+
+lnodeid langY_nodeI(FileState *fs, char *line, llong i) {
+	int v = langY_node(fs,line,NODE_INTEGER);
 	fs->nodes[v].lit.i = i;
 	return v;
 }
 
 
-NodeId langY_nodeS(FileState *fs, char *loc, char const *s) {
-	int v = langY_node3(fs,loc,NODE_STRING,0,0,0);
+lnodeid langY_nodeN(FileState *fs, char *line, lnumber n) {
+	int v = langY_node(fs,line,NODE_NUMBER);
+	fs->nodes[v].lit.n = n;
+	return v;
+}
+
+
+lnodeid langY_nodeS(FileState *fs, char *line, char *s) {
+	int v = langY_node(fs,line,NODE_STRING);
 	fs->nodes[v].lit.s = s;
 	return v;
 }
 
 
-NodeId langY_nodeH(FileState *fs, char *loc, NodeId *z) {
-	return langY_node3(fs,loc,NODE_TABLE,0,0,z);
+lnodeid langY_nodeH(FileState *fs, char *line, lnodeid *z) {
+	return langY_nodexyz(fs,line,NODE_TABLE,NO_NODE,NO_NODE,z);
 }
 
 
-NodeId langY_nodeF(FileState *fs, char *loc, NodeId x, NodeId *z) {
-	return langY_node3(fs,loc,NODE_FUNCTION,x,0,z);
+lnodeid langY_nodeF(FileState *fs, char *line, lnodeid x, lnodeid *z) {
+	return langY_nodexyz(fs,line,NODE_FUNCTION,x,NO_NODE,z);
 }
 
 
-NodeId langY_cachenode(FileState *fs, char *loc, NodeId i) {
-	return langY_node3(fs,loc,NODE_CACHE,i,0,0);
+lnodeid langY_nodeZ(FileState *fs, char *line) {
+	return langY_node(fs,line,NODE_NIL);
 }
 
 
-NodeId langY_localnode(FileState *fs, char *loc, NodeId i) {
-	return langY_node3(fs,loc,NODE_LOCAL,i,0,0);
+lnodeid langY_cachenode(FileState *fs, char *line, lnodeid i) {
+	return langY_nodex(fs,line,NODE_CACHE,i);
 }
 
 
-NodeId langY_globalnode(FileState *fs, char *loc, NodeId i) {
-	return langY_node3(fs,loc,NODE_GLOBAL,i,0,0);
+lnodeid langY_localnode(FileState *fs, char *line, lnodeid i) {
+	// langX_error(fs,line,"locanode %i",i);
+	return langY_nodex(fs,line,NODE_LOCAL,i);
 }
 
 
-NodeId langY_fieldnode(FileState *fs, char *loc, NodeId x, NodeId y) {
-	return langY_node2(fs,loc,NODE_FIELD,x,y);
+lnodeid langY_globalnode(FileState *fs, char *line, lnodeid i) {
+	return langY_nodex(fs,line,NODE_GLOBAL,i);
 }
 
 
-NodeId langY_designode(FileState *fs, char *loc, NodeId x, NodeId y) {
-	return langY_node2(fs,loc,NODE_DESIG,x,y);
+lnodeid langY_fieldnode(FileState *fs, char *line, lnodeid x, lnodeid y) {
+	return langY_nodexy(fs,line,NODE_FIELD,x,y);
 }
 
 
-NodeId langY_rangeindexnode(FileState *fs, char *loc, NodeId x, NodeId y) {
-	return langY_node3(fs,loc,NODE_RANGE_INDEX,x,y,0);
+lnodeid langY_indexnode(FileState *fs, char *line, lnodeid x, lnodeid y) {
+	return langY_nodexy(fs,line,NODE_INDEX,x,y);
 }
 
 
-NodeId langY_metacallnode(FileState *fs, char *loc, NodeId x, NodeId y, NodeId *z) {
-	return langY_node3(fs,loc,NODE_MCALL,x,y,z);
+lnodeid langY_designode(FileState *fs, char *line, lnodeid x, lnodeid y) {
+	return langY_nodexy(fs,line,NODE_DESIG,x,y);
 }
 
 
-NodeId langY_callnode(FileState *fs, char *loc, NodeId x, NodeId *z) {
-	return langY_node3(fs,loc,NODE_CALL,x,0,z);
+lnodeid langY_rangeindexnode(FileState *fs, char *line, lnodeid x, lnodeid y) {
+	return langY_nodexy(fs,line,NODE_RANGE_INDEX,x,y);
 }
 
 
-NodeId langY_loadfilenode(FileState *fs, char *loc, NodeId x) {
-	return langY_node2(fs,loc,NODE_LOADFILE,x,0);
+lnodeid langY_metacallnode(FileState *fs, char *line, lnodeid x, lnodeid y, lnodeid *z) {
+	return langY_nodexyz(fs,line,NODE_MCALL,x,y,z);
+}
+
+
+lnodeid langY_callnode(FileState *fs, char *line, lnodeid x, lnodeid *z) {
+	return langY_nodexyz(fs,line,NODE_CALL,x,NO_NODE,z);
+}
+
+
+lnodeid langY_loadfilenode(FileState *fs, char *line, lnodeid x) {
+	return langY_nodex(fs,line,NODE_LOADFILE,x);
 }

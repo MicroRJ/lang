@@ -16,15 +16,12 @@ fib = fun (n) ? {
 	leave fib(n - 1) + fib(n - 2)
 }
 
-test = fun (x,y) ? {
-	// pf("fib(",x,"): ")
-	// time_ = clocktime()
-	local k = fibcached(x)
-	// pf("	=> ", k, " took: ", timediffs(time_), "s")
+failed = false
 
-	if k != y ? {
-		pf(" LFAILED: expected ", y)
-	}
+let test = fun (x,y) ? {
+	let k = fibcached(x)
+	failed ?= k != y
+	if k != y ? pf("	failed: got ", x, " instead of ", y)
 }
 
 test(0,0)
@@ -37,10 +34,8 @@ test(25,75025)
 test(30,832040)
 test(35,9227465)
 test(40,102334155)
-test(47,2971215073)
+test(65,17167680177565)
 
-// fibcache:foreach(fun(x,y) ? {
-// 	pf("fibcache(",x,") => ",y)
-// })
+leave failed
 
 

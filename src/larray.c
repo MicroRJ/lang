@@ -6,7 +6,7 @@
 
 #if 0
 /* todo?: will we have arrays or not? */
-Array *langA_new(Module *fs, Integer n) {
+Array *langA_new(Module *fs, llong n) {
 	// static MetaFunc _m[] = {
 		// {"length",langA_length_},
 		// {"slice",langA_slice_},
@@ -21,9 +21,9 @@ Array *langA_new(Module *fs, Integer n) {
 #endif
 
 
-Integer langA_varadd_(void **var, Integer per, Integer res, Integer com) {
-	Integer max = 0;
-	Integer min = 0;
+llong langA_varadd_(void **var, llong per, llong res, llong com) {
+	llong max = 0;
+	llong min = 0;
 	Array *arr = 0;
 	if (*var != 0) {
 		arr = ((Array*)(*var)) - 1;

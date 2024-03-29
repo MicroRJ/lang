@@ -5,29 +5,35 @@
 */
 
 
-typedef struct Token {
-	enum TokenName type;
-	char *loc;
+typedef struct ltoken {
+	enum ltokentype type;
+	char *line;
 	union {
 		char const *s;
-		Integer   i;
-		Number    n;
+		llong   i;
+		lnumber    n;
 	};
-} Token;
+} ltoken;
 
 
 #define KEYWORD_XLIST \
 KEYWORD_XITEM(FUN, "fun")\
+KEYWORD_XITEM(NIL, "nil")\
 KEYWORD_XITEM(LOCAL, "local")\
+KEYWORD_XITEM(LET, "let")\
+KEYWORD_XITEM(FINALY, "finally")\
 KEYWORD_XITEM(IN, "in")\
 KEYWORD_XITEM(FOR, "for")\
 KEYWORD_XITEM(WHILE, "while")\
+KEYWORD_XITEM(DO, "do")\
 KEYWORD_XITEM(BREAK, "break")\
 KEYWORD_XITEM(CONTINUE, "continue")\
 KEYWORD_XITEM(LEAVE, "leave")\
 KEYWORD_XITEM(IF, "if")\
-KEYWORD_XITEM(ELSE, "else")\
+KEYWORD_XITEM(IFF, "iff")\
 KEYWORD_XITEM(ELIF, "elif")\
+KEYWORD_XITEM(THEN, "then")\
+KEYWORD_XITEM(ELSE, "else")\
 KEYWORD_XITEM(LOAD, "load")\
 KEYWORD_XITEM(TRUE, "true")\
 KEYWORD_XITEM(FALSE, "false")
@@ -58,6 +64,7 @@ TK_XITEM(LETTER,              TK_RANK_NONE,   "literal-letter")\
 TK_XITEM(WORD,                TK_RANK_NONE,   "identifier")\
 TK_XITEM(QMARK,               TK_RANK_NONE,   "?")\
 TK_XITEM(NEGATE,              TK_RANK_NONE,   "!")\
+TK_XITEM(ASSIGN_QUESTION,     TK_RANK_NONE,   "?=")\
 TK_XITEM(ASSIGN,              TK_RANK_NONE,   "=")\
 TK_XITEM(COLON,               TK_RANK_NONE,   ":")\
 TK_XITEM(SEMI_COLON,          TK_RANK_NONE,   ";")\
@@ -90,7 +97,7 @@ TK_XITEM(LOG_OR,              TK_RANK_OR,     "||")\
 TK_XITEM(DOT_DOT,             TK_RANK_RANGE,  "..")
 
 
-typedef enum TokenName {
+typedef enum ltokentype {
 	TK_NONE = 0,
 #define TK_XITEM(NAME,PREC,RENDERING) XFUSE(TK_,NAME),
 	TK_XLIST
@@ -98,10 +105,10 @@ typedef enum TokenName {
 #define KEYWORD_XITEM(NAME,RENDERING) XFUSE(TK_,NAME),
 	KEYWORD_XLIST
 #undef KEYWORD_XITEM
-} TokenName;
+} ltokentype;
 
 
-char const *langX_tokenname(TokenName k) {
+char const *langX_tokenname(ltokentype k) {
 	switch (k) {
 #define TK_XITEM(NAME,PREC,RENDERING) \
 		case XFUSE(TK_,NAME): {         \
@@ -121,7 +128,7 @@ char const *langX_tokenname(TokenName k) {
 }
 
 
-int langX_tokenprec(TokenName k) {
+int langX_tokenprec(ltokentype k) {
 	switch (k) {
 #define TK_XITEM(NAME,PREC,RENDERING) \
 		case XFUSE(TK_,NAME): {         \

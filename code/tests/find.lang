@@ -1,18 +1,28 @@
+setpwd("code/tests")
 
-local sysfile = fopen("filefind.ignore","wb")
+
+let sysfile = fopen("filefind.web2.ignore","wb")
+finally fclose(sysfile)
+
+let _time = clocktime()
+finally pf(" => took: ", timediffs(_time))
+finally fpf(sysfile,"\n\n\n\n => took: ", timediffs(_time), "\n")
+
 fpf(sysfile,"found files:\n")
-local dir = "C:"
+let dir = "C:"
 pf("filtering files in: ",dir)
-local max = 2048
-local list = listdir(dir,fun(file,flags) ? {
-	if max < flags.n ? flags.n = flags.n + 1
-	if file.name == "lj_strfmt.c" ? {
-		fpf(sysfile,file,"\n")
-		pf("we've found the file")
-		leave false
+
+let list = listdir(dir,fun(file,flags) ? {
+	if 0 ?
+	elif file.name:match("*.js|*.html|*.css|*.xml|*.php|*.ts") ?
+	// elif file.name:match("*.cpp")  ?
+	// elif file.name:match("*.hpp")  ?
+	// elif file.name:match("*.c")    ?
+	// elif file.name:match("*.h")    ?
+	// elif file.name:match("*.swift") ?
+	// elif file.name:match("*.obj|*.dll|*.lib|*.exp|*.pdb|*.exe|*.so") ?
+	then {
+		fpf(sysfile,file.name,", ",file.path, "\n")
 	}
-	// if file.name:match("*.h") || file.name:match("*.c") ? {
-	// 	fpf(sysfile,file.name,",\n")
-	// }
 	leave true
 })

@@ -4,18 +4,7 @@
 ** Object/Bytecode Module
 */
 
-typedef int Symbol;
-
-
-#if 0
-typedef struct CodeFile {
-	char *name;
-	char *diskname;
-	int  bytes;
-	int nbytes;
-	int nfuncs;
-} CodeFile;
-#endif
+typedef int lglobalid;
 
 
 /* Symbols
@@ -35,14 +24,14 @@ typedef struct Module {
 	Table *g;
 	Proto *p;
 	Bytecode *bytes;
-	Integer nbytes;
-	char **lineinfo;
+	llong nbytes;
+	char **lines;
 } Module;
 
 
-Symbol lang_addsymbol(Module *md, String *name);
-Symbol lang_addglobal(Module *md, String *name, Value v);
-Symbol lang_addproto(Module *md, Proto p);
+lglobalid lang_addsymbol(Module *md, String *name);
+lglobalid lang_addglobal(Module *md, String *name, Value v);
+lglobalid lang_addproto(Module *md, Proto p);
 
 /*
 	Module\r: runtime is stored here

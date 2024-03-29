@@ -5,19 +5,25 @@
 */
 
 
-LAPI void *sys_valloc(Integer length);
+lapi void *sys_valloc(llong length);
 
-LAPI Integer sys_clockhz();
-LAPI Integer sys_clocktime();
+lapi llong sys_clockhz();
+lapi llong sys_clocktime();
 
-LAPI int sys_getmyname(int length, char *buffer);
-LAPI int sys_pwd(int length, char *buffer);
+lapi int sys_getmyname(int length, char *buffer);
 
-LAPI Handle sys_loaddll(char const *name);
-LAPI void *sys_finddllfn(Handle lib, char const *name);
+lapi int sys_workdir(int length, char *buffer);
+lapi int sys_setworkdir(char *buffer);
 
-LAPI Error sys_loadfilebytes(Alloc *allocator, void **lppOut, char const *fileName);
-LAPI Error sys_savefilebytes(char const *buffer, Integer length, char const *fileName);
+lapi void sys_fclose(Handle file);
+lapi Handle sys_fopen(char *name, char *flags);
 
-LAPI int sys_getlasterror();
-LAPI void sys_geterrormsg(int error, char *buff, int len);
+
+lapi Handle sys_loadlib(char const *name);
+lapi void *sys_libfn(Handle lib, char const *name);
+
+lapi Error sys_loadfilebytes(Alloc *allocator, void **lppOut, char const *fileName);
+lapi Error sys_savefilebytes(char const *buffer, llong length, char const *fileName);
+
+lapi int sys_getlasterror();
+lapi void sys_geterrormsg(int error, char *buff, int len);

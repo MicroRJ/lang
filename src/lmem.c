@@ -13,7 +13,7 @@ lglobaldecl Alloc langM_globalalloc = {"default-heap-allocator",langM_defglobala
 
 /* todo: should prob migrate to using something
 like stb leak */
-void *langM_clear(void *target, Integer length) {
+void *langM_clear(void *target, llong length) {
 #if defined(_WIN32)
 	ZeroMemory(target,length);
 #else
@@ -23,7 +23,7 @@ void *langM_clear(void *target, Integer length) {
 }
 
 
-void *langM_copy(void *target, void const *source, Integer length) {
+void *langM_copy(void *target, void const *source, llong length) {
 #if defined(_WIN32)
 	CopyMemory(target,source,length);
 #else
@@ -33,14 +33,14 @@ void *langM_copy(void *target, void const *source, Integer length) {
 }
 
 
-void langM_dealloc_(Alloc *c, const void *memory, Debugloc loca) {
+void langM_dealloc_(Alloc *c, const void *memory, ldebugloc loca) {
 
 	Error error = c->fn(c,0,0,0,(void **)&memory,loca);
 	LASSERT(LPASSED(error));
 }
 
 
-void *langM_alloc_(Alloc *c, Integer length, Debugloc loca) {
+void *langM_alloc_(Alloc *c, llong length, ldebugloc loca) {
 	void *memory = 0;
 	Error error = c->fn(c,0,0,length,&memory,loca);
 	LASSERT(LPASSED(error));
@@ -48,7 +48,7 @@ void *langM_alloc_(Alloc *c, Integer length, Debugloc loca) {
 }
 
 
-void *langM_realloc_(Alloc *c, Integer length, void *memory, Debugloc loca) {
+void *langM_realloc_(Alloc *c, llong length, void *memory, ldebugloc loca) {
 
 	Error error = c->fn(c,0,0,length,&memory,loca);
 	LASSERT(LPASSED(error));
@@ -56,7 +56,7 @@ void *langM_realloc_(Alloc *c, Integer length, void *memory, Debugloc loca) {
 }
 
 
-void *langM_clearalloc_(Alloc *c, Integer size, Debugloc loca) {
+void *langM_clearalloc_(Alloc *c, llong size, ldebugloc loca) {
 	return langM_clear(langM_alloc_(c,size,loca),size);
 }
 
@@ -64,9 +64,9 @@ void *langM_clearalloc_(Alloc *c, Integer size, Debugloc loca) {
 #if 0
 #if defined(_DEBUG)
 MemBlock *M_free;
-Integer M_nfree;
-Integer M_length;
-Integer M_cursor;
+llong M_nfree;
+llong M_length;
+llong M_cursor;
 unsigned char *M_memory;
 #endif
 #endif
@@ -148,7 +148,7 @@ void langM_checkmemptr(void *mem) {
 	MemBlock *then;
 	for (then = M_free; then != 0; then = then->then) {
 		if (then == file) {
-			Debugloc loca = file->freeloca;
+			ldebugloc loca = file->freeloca;
 			lang_logerror("%s %s(), %i: memory file was already freed here"
 			, loca.fileName,loca.func,loca.lineNumber);
 			break;
@@ -156,14 +156,14 @@ void langM_checkmemptr(void *mem) {
 	}
 
 	if (file->headtrap != FLYTRAP || file->foottrap != FLYTRAP) {
-		Debugloc loca = file->loca;
+		ldebugloc loca = file->loca;
 		lang_logerror("%s %s(), %i: invalid file, %x, %x"
 		, loca.fileName,loca.func,loca.lineNumber
 		, file->headtrap, file->foottrap);
 	}
 
-	Integer contentssize = file->contentssize;
-	Integer chunkcatedsize = CHUNKCATE(contentssize,CHUNKSIZE);
+	llong contentssize = file->contentssize;
+	llong chunkcatedsize = CHUNKCATE(contentssize,CHUNKSIZE);
 	for (int i = contentssize; i < chunkcatedsize; ++i) {
 		LASSERT(((unsigned char *)mem)[i] == (FLYTRAP & 0xFF));
 	}
@@ -171,7 +171,7 @@ void langM_checkmemptr(void *mem) {
 }
 
 
-void langM_debugdealloc(void *mem, Debugloc loca) {
+void langM_debugdealloc(void *mem, ldebugloc loca) {
 	if (mem == 0) return;
 	langM_checkmemptr(mem);
 
@@ -183,7 +183,7 @@ void langM_debugdealloc(void *mem, Debugloc loca) {
 }
 
 
-void *langM_debugalloc(Integer contentssize, Debugloc loca) {
+void *langM_debugalloc(llong contentssize, ldebugloc loca) {
 	#if 0
 	MemBlock *then;
 	for (then = M_free; then != 0; then = then->then) {
@@ -194,11 +194,11 @@ void *langM_debugalloc(Integer contentssize, Debugloc loca) {
 	}
 	#endif
 
-	Integer chunkcatedsize = CHUNKCATE(contentssize+256,CHUNKSIZE);
+	llong chunkcatedsize = CHUNKCATE(contentssize+256,CHUNKSIZE);
 	LASSERT(chunkcatedsize >= 512);
 	// lang_loginfo("alloc %lli",contentssize);
 
-	Integer totalsize = sizeof(MemBlock)+chunkcatedsize;
+	llong totalsize = sizeof(MemBlock)+chunkcatedsize;
 
 	LASSERT(M_cursor + totalsize <= M_length);
 
@@ -222,7 +222,7 @@ void *langM_debugalloc(Integer contentssize, Debugloc loca) {
 }
 
 
-void *langM_debugrealloc(void *mem, Integer contentssize, Debugloc loca) {
+void *langM_debugrealloc(void *mem, llong contentssize, ldebugloc loca) {
 	if (mem == 0) return langM_debugalloc(contentssize,loca);
 
 	MemBlock *file = (MemBlock *) mem - 1;

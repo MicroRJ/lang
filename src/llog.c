@@ -5,8 +5,8 @@
 */
 
 
-char *S_indexoffilename(char *s) {
-	char *r = s;
+char *S_filename(char *s) {
+	char *r;
 
 	for(r = s; *s != 0; s += 1) {
 		if (*s=='/' || *s=='\\') {
@@ -17,7 +17,7 @@ char *S_indexoffilename(char *s) {
 }
 
 
-LAPI void lang_log_(int type, Debugloc source, const char *fmt, ...) {
+lapi void lang_log_(int type, ldebugloc source, const char *fmt, ...) {
 	static const char *toString[] = {
 		"FATAL", "ERROR", "WARNING", "INFO", "DEBUG"
 	};
@@ -34,7 +34,7 @@ LAPI void lang_log_(int type, Debugloc source, const char *fmt, ...) {
 	char *file = (char*) source.fileName;
 	char *func = (char*) source.func;
 
-	printf("%s %s[%i] %s(): %s\n",toString[type],S_indexoffilename(file),line,func,b);
+	printf("%s %s[%i] %s(): %s\n",toString[type],S_filename(file),line,func,b);
 }
 
 

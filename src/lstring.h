@@ -6,10 +6,13 @@
 
 
 typedef struct String {
-	Object     obj;
-	Integer   hash;
+	Object  obj;
+	lhash   hash;
 	int     length;
-	char   string[1];
+	union {
+		char   string[1];
+		char   c[1];
+	};
 } String;
 
 
@@ -20,10 +23,10 @@ int langS_length_(Runtime *c);
 int langS_match_(Runtime *c);
 
 
-Bool S_match(char *p, char *s);
+lbool S_match(char *p, char *s);
 char *S_copy(Alloc *cator, char const *contents);
 int S_length(char const *contents);
-Bool S_eq(char const *x, char const *y);
+lbool S_eq(char const *x, char const *y);
 unsigned int S_hashcontents (char const *contents, unsigned int length);
 
 

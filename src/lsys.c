@@ -5,14 +5,14 @@
 */
 
 
-LAPI int sys_getlasterror() {
+lapi int sys_getlasterror() {
 #if defined(_WIN32)
 	return GetLastError();
 #endif
 }
 
 
-LAPI void sys_geterrormsg(int error, char *buff, int len) {
+lapi void sys_geterrormsg(int error, char *buff, int len) {
 #if defined(_WIN32)
 	if (error == 0) error = GetLastError();
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,0x00,error,LANG_USER_DEFAULT,buff,len,NULL);
@@ -20,21 +20,21 @@ LAPI void sys_geterrormsg(int error, char *buff, int len) {
 }
 
 
-LAPI void *sys_valloc(Integer length) {
+lapi void *sys_valloc(llong length) {
 #if defined(_WIN32)
 	return VirtualAlloc(NULL,length,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
 #endif
 }
 
 
-LAPI void sys_sleep(Integer ms) {
+lapi void sys_sleep(llong ms) {
 #if defined(_WIN32)
 	Sleep((DWORD) ms);
 #endif
 }
 
 
-LAPI Integer sys_clockhz() {
+lapi llong sys_clockhz() {
 #if defined(_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceFrequency(&largeInt);
@@ -43,7 +43,7 @@ LAPI Integer sys_clockhz() {
 }
 
 
-LAPI Integer sys_clocktime() {
+lapi llong sys_clocktime() {
 #if defined(_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceCounter(&largeInt);
@@ -52,28 +52,35 @@ LAPI Integer sys_clocktime() {
 }
 
 
-LAPI int sys_getmyname(int length, char *buffer) {
+lapi int sys_getmyname(int length, char *buffer) {
 #if defined(_WIN32)
 	return GetModuleFileName(NULL,buffer,length);
 #endif
 }
 
 
-LAPI int sys_pwd(int length, char *buffer) {
+lapi int sys_workdir(int length, char *buffer) {
 #if defined(_WIN32)
 	return GetCurrentDirectory(length,buffer);
 #endif
 }
 
 
-LAPI Handle sys_loaddll(char const *name) {
+lapi int sys_setworkdir(char *buffer) {
+#if defined(_WIN32)
+	return SetCurrentDirectory(buffer);
+#endif
+}
+
+
+lapi Handle sys_loadlib(char const *name) {
 #if defined(_WIN32)
 	return (Handle) LoadLibraryA(name);
 #endif
 }
 
 
-LAPI void *sys_finddllfn(Handle dll, char const *name) {
+lapi void *sys_libfn(Handle dll, char const *name) {
 #if defined(_WIN32)
 	return (void *) GetProcAddress(dll,name);
 #endif
@@ -81,27 +88,32 @@ LAPI void *sys_finddllfn(Handle dll, char const *name) {
 
 
 /* todo: convert this to windows version */
-LAPI Handle sys_fopen(char *name, char *flags) {
-	FILE *file = Null;
+lapi Handle sys_fopen(char *name, char *flags) {
+	FILE *file = lnil;
 	fopen_s(&file,name,flags);
 	return (Handle) file;
 }
 
 
-LAPI Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
+lapi void sys_fclose(Handle file) {
+	fclose(file);
+}
+
+
+lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 
 	Error error = Error_None;
 
-	if (name == Null) {
+	if (name == lnil) {
 		error = Error_FileNameIsInvalid;
 		goto leave;
 	}
-	if (data == Null) {
+	if (data == lnil) {
 		error = Error_InvalidArguments;
 		goto leave;
 	}
 
-	*data = Null;
+	*data = lnil;
 #if defined(_WIN32)
 	HANDLE hfile = CreateFileA(name,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,0x00,NULL);
 	if (hfile != INVALID_HANDLE_VALUE) {
@@ -131,7 +143,7 @@ LAPI Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 	}
 #else
 	FILE *file = fopen(name,"rb");
-	if (file == Null) {
+	if (file == lnil) {
 		error = Error_FileNotFound;
 		goto leave;
 	}
@@ -155,17 +167,17 @@ LAPI Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 }
 
 
-LAPI Error sys_savefilebytes(char const *buffer, Integer length, char const *fileName) {
+lapi Error sys_savefilebytes(char const *buffer, llong length, char const *fileName) {
 
 	FILE *file;
 	fopen_s(&file,fileName,"wb");
 
-	if (file == Null) {
+	if (file == lnil) {
 		return Error_CouldNotOpenFile;
 	}
 
 	Error error = Error_None;
-	Integer lengthWritten = fwrite(buffer, 1, length, file);
+	llong lengthWritten = fwrite(buffer, 1, length, file);
 
 	if (lengthWritten != length) {
 		error = Error_CouldNotWriteEntireFile;

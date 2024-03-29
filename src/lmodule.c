@@ -7,7 +7,7 @@
 
 /* todo: ensure that we don't have replace
 symbols */
-Symbol lang_addsymbol(Module *md, String *name) {
+lglobalid lang_addsymbol(Module *md, String *name) {
 	if (name == 0) {
 		return langA_variadd(md->g->v,1);
 	}
@@ -15,28 +15,29 @@ Symbol lang_addsymbol(Module *md, String *name) {
 }
 
 
-Symbol lang_addglobal(Module *md, String *name, Value v) {
-	Symbol i = lang_addsymbol(md,name);
+lglobalid lang_addglobal(Module *md, String *name, Value v) {
+	lglobalid i = lang_addsymbol(md,name);
 	md->g->v[i] = v;
 	return i;
 }
 
 
-Symbol lang_addproto(Module *md, Proto p) {
-	Symbol i = langA_variadd(md->p,1);
+lglobalid lang_addproto(Module *md, Proto p) {
+	lglobalid i = langA_variadd(md->p,1);
 	md->p[i] = p;
 	return i;
 }
 
 
-void syslib_fpfv_(FILE *file, Value v, Bool quotes);
+/* this is silly */
+void syslib_fpfv_(FILE *file, Value v, lbool quotes);
 void lang_dumpmodule(Module *md, char *name) {
 	Handle file = sys_fopen(name,"wb");
 	fprintf(file,"Module:\n");
 	fprintf(file,"Globals:\n");
 	langA_varifor(md->g->v) {
 		fprintf(file,"%lli: ", i);
-		syslib_fpfv_(file,md->g->v[i],True);
+		syslib_fpfv_(file,md->g->v[i],ltrue);
 		fprintf(file,"\n");
 	}
 
@@ -48,8 +49,8 @@ void lang_dumpmodule(Module *md, char *name) {
 			Bytecode b = md->bytes[p.bytes+j];
 			fprintf(file,"+%i: %s, %lli ;  "
 			, j, lang_bytename(b.k), b.i);
-			if (b.k == BYTE_GGET) {
-				syslib_fpfv_(file,md->g->v[b.i],True);
+			if (b.k == BYTE_GLOBAL) {
+				syslib_fpfv_(file,md->g->v[b.i],ltrue);
 			}
 			fprintf(file,"\n");
 		}

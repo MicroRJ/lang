@@ -10,14 +10,75 @@ void sets(Runtime *c, Table *table, char const *k) {
 }
 
 
-int testlib_stkid(Runtime *c) {
-	langR_pushI(c,c->v-c->s);
+int testlib_logging(Runtime *c) {
+	llong logging = lang_loadlong(c,0);
+	c->logging = logging;
+	return 0;
+}
+
+
+int testlib_debugbreak(Runtime *c) {
+	__debugbreak();
+	return 0;
+}
+
+
+
+#define BUFFER 0x10000
+
+
+/* todo: this is so unsafe is good */
+void strcatf(char *buffer, char *fmt, ...) {
+	char *cursor = buffer;
+	while (*cursor != 0) ++ cursor;
+	va_list v;
+	va_start(v,fmt);
+	stbsp_vsnprintf(cursor,BUFFER-(cursor-buffer),fmt,v);
+	va_end(v);
+}
+
+
+int testlib_disasm(Runtime *c) {
+	Module *md = c->md;
+	Closure *cl = lang_loadcl(c,0);
+	Proto p = cl->fn;
+	char file[BUFFER];
+	langM_clear(file,sizeof(file));
+	int j;
+	for (j = 0; j < p.nbytes; ++j) {
+		if (j != 0) strcatf(file,"\n");
+		Bytecode b = md->bytes[p.bytes+j];
+		switch (b.k) {
+			case BYTE_LOADFILE:
+			case BYTE_METACALL:
+			case BYTE_CALL: {
+				strcatf(file,"%s(%i,%i)", lang_bytename(b.k), b.x,b.y);
+			} break;
+			default: {
+				strcatf(file,"%s(%lli)", lang_bytename(b.k), b.i);
+			} break;
+		}
+	}
+	lang_pushnewS(c,file);
+	return 1;
+}
+
+
+int testlib_absslot(Runtime *c) {
+	llocalid slot = lang_loadlong(c,0);
+	lang_pushvalue(c,c->s[slot]);
+	return 1;
+}
+
+
+int testlib_absslotid(Runtime *c) {
+	lang_pushlong(c,c->v-c->s);
 	return 1;
 }
 
 
 int testlib_pc(Runtime *c) {
-	langR_pushI(c,c->f->j);
+	lang_pushlong(c,c->f->j);
 	return 1;
 }
 
@@ -51,7 +112,7 @@ int _gidof(Module *fs, Object *j) {
 
 
 int _gtable(Runtime *c) {
-	langR_pushH(c,c->md->g);
+	lang_pushtable(c,c->md->g);
 	return 1;
 }
 
@@ -65,14 +126,18 @@ char *gccolor2s(GCColor c) {
 }
 
 
-LAPI void tstlib_load(Runtime *rt) {
+lapi void tstlib_load(Runtime *rt) {
 	Module *md = rt->md;
 	/* todo: ugly */
-	lang_addglobal(md,langR_pushnewS(rt,"gc"),lang_C(testlib_gc));
-	lang_addglobal(md,langR_pushnewS(rt,"gcpause"),lang_C(testlib_gcpause));
-	lang_addglobal(md,langR_pushnewS(rt,"gcunpause"),lang_C(testlib_gcunpause));
+	lang_addglobal(md,lang_pushnewS(rt,"gc"),lang_C(testlib_gc));
+	lang_addglobal(md,lang_pushnewS(rt,"gcpause"),lang_C(testlib_gcpause));
+	lang_addglobal(md,lang_pushnewS(rt,"gcunpause"),lang_C(testlib_gcunpause));
+	lang_addglobal(md,lang_pushnewS(rt,"__disasm"),lang_C(testlib_disasm));
+	lang_addglobal(md,lang_pushnewS(rt,"__logging"),lang_C(testlib_logging));
 
-	lang_addglobal(md,langR_pushnewS(rt,"stkid"),lang_C(testlib_stkid));
-	lang_addglobal(md,langR_pushnewS(rt,"pc"),lang_C(testlib_pc));
-	lang_addglobal(md,langR_pushnewS(rt,"_gtable"),lang_C(_gtable));
+	lang_addglobal(md,lang_pushnewS(rt,"__debugbreak"),lang_C(testlib_debugbreak));
+	lang_addglobal(md,lang_pushnewS(rt,"absslotid"),lang_C(testlib_absslotid));
+	lang_addglobal(md,lang_pushnewS(rt,"absslot"),lang_C(testlib_absslot));
+	lang_addglobal(md,lang_pushnewS(rt,"pc"),lang_C(testlib_pc));
+	lang_addglobal(md,lang_pushnewS(rt,"_gtable"),lang_C(_gtable));
 }

@@ -1,0 +1,3 @@
+[submodule "lgi"]
+	path = lgi
+	url = https://github.com/MicroRJ/lgi

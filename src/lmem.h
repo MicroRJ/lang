@@ -17,10 +17,10 @@ typedef struct Alloc Alloc;
 #define GIGABYTES(x) ((x)*1024llu*1024llu*1024llu)
 
 
-#define ALLOCFN(NAME) Error NAME (Alloc *allocator, int flags, Integer oldSize, Integer newSize, void **oldAndNewMemory, Debugloc loca)
+#define ALLOCFN(NAME) Error NAME (Alloc *allocator, int flags, llong oldSize, llong newSize, void **oldAndNewMemory, ldebugloc loca)
 
 
-typedef Error (* AllocFn)(Alloc *allocator, int flags, Integer oldSize, Integer newSize, void **oldAndNewMemory, Debugloc loca);
+typedef Error (* AllocFn)(Alloc *allocator, int flags, llong oldSize, llong newSize, void **oldAndNewMemory, ldebugloc loca);
 
 
 typedef struct Alloc {
@@ -34,23 +34,23 @@ typedef struct MemBlock MemBlock;
 typedef struct MemBlock {
 	unsigned int headtrap;
 	MemBlock *then;
-	Debugloc loca;
-	Debugloc freeloca;
-	Integer contentssize;
+	ldebugloc loca;
+	ldebugloc freeloca;
+	llong contentssize;
 	unsigned int foottrap;
 } MemBlock;
 #endif
 
 
-void langM_debugdealloc(void *mem, Debugloc loca);
-void *langM_debugrealloc(void *mem, Integer contentssize, Debugloc loca);
-void *langM_debugalloc(Integer contentssize, Debugloc loca);
+void langM_debugdealloc(void *mem, ldebugloc loca);
+void *langM_debugrealloc(void *mem, llong contentssize, ldebugloc loca);
+void *langM_debugalloc(llong contentssize, ldebugloc loca);
 
 
-LAPI void langM_dealloc_(Alloc *allocator, void const *memory, Debugloc loca);
-LAPI void *langM_realloc_(Alloc *allocator, Integer size, void *memory, Debugloc loca);
-LAPI void *langM_alloc_(Alloc *allocator, Integer size, Debugloc loca);
-LAPI void *langM_clearalloc_(Alloc *allocator, Integer size, Debugloc loca);
+lapi void langM_dealloc_(Alloc *allocator, void const *memory, ldebugloc loca);
+lapi void *langM_realloc_(Alloc *allocator, llong size, void *memory, ldebugloc loca);
+lapi void *langM_alloc_(Alloc *allocator, llong size, ldebugloc loca);
+lapi void *langM_clearalloc_(Alloc *allocator, llong size, ldebugloc loca);
 
 
 #define langM_dealloc(cator,mem) langM_dealloc_(cator,mem,LHERE)
@@ -59,8 +59,8 @@ LAPI void *langM_clearalloc_(Alloc *allocator, Integer size, Debugloc loca);
 #define langM_clearalloc(cator,sze) langM_clearalloc_(cator,sze,LHERE)
 
 
-LAPI ALLOCFN(langM_deftlocalallocfn);
-LAPI ALLOCFN(langM_defglobalallocfn);
+lapi ALLOCFN(langM_deftlocalallocfn);
+lapi ALLOCFN(langM_defglobalallocfn);
 
 
 /* todo: better names */

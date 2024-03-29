@@ -21,20 +21,19 @@ int main(int n, char **c) {
 	rt.s = langM_clearalloc(lHEAP,sizeof(Value) * rt.z);
 	rt.v = rt.s;
 
-	md.g = langH_new(&rt);
-	langGC_markpink((Object*)md.g);
+	md.g = lang_pushnewtable(&rt);
 
 	syslib_load(&rt);
 	tstlib_load(&rt);
 
 	char pwd[0x100];
-	sys_pwd(sizeof(pwd),pwd);
+	sys_workdir(sizeof(pwd),pwd);
 	printf("working in: %s\n",pwd);
 
-	String *filename = langR_pushnewS(&rt,c[1]);
-	langR_loadfile(&rt,filename);
+	String *filename = lang_pushnewS(&rt,c[1]);
+	lang_loadfile(&rt,filename,0);
 
-	lang_dumpmodule(&md,".module.lang");
+	// lang_dumpmodule(&md,".module.ignore");
 
 
 	printf("exited\n");

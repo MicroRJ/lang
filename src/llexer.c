@@ -7,7 +7,7 @@
 */
 
 
-Bool langX_islineend(char x) {
+lbool langX_islineend(char x) {
 	return x == '\r' || x == '\n' || x == '\0';
 }
 
@@ -76,32 +76,32 @@ void langX_error(FileState *fs, char *loc, char const *fmt, ...) {
 }
 
 
-Bool langX_isdigit(char x) {
+lbool langX_isdigit(char x) {
 	return x >= '0' && x <= '9';
 }
 
 
-Bool langX_islowercase(char x) {
+lbool langX_islowercase(char x) {
 	return x >= 'a' && x <= 'z';
 }
 
 
-Bool langX_isuppercase(char x) {
+lbool langX_isuppercase(char x) {
 	return x >= 'A' && x <= 'Z';
 }
 
 
-Bool langX_isletter(char x) {
+lbool langX_isletter(char x) {
 	return langX_isuppercase(x) || langX_islowercase(x);
 }
 
 
-Bool langX_isalphanum(char x) {
+lbool langX_isalphanum(char x) {
 	return langX_isletter(x) || langX_isdigit(x) || (x) == '_';
 }
 
 
-TokenName langX_iskeyword(char const *name) {
+ltokentype langX_iskeyword(char const *name) {
 	/* todo: hashing! */
 #define KEYWORD_XITEM(NAME,STRING) \
 	if (S_eq(name,STRING)) {        \
@@ -135,14 +135,15 @@ int langX_escapechr(FileState *file) {
 }
 
 
-Token langX_yield(FileState *file) {
+ltoken langX_yield(FileState *file) {
 
 	/* remove, not needed #todo */
 	lglobaldecl char buffer[0x100];
 
 	retry:
 
-	Token tk = {TK_NONE,file->thischar};
+	char *line = file->thischar;
+	ltoken tk = {TK_NONE,file->thischar};
 
 	/* we could put all of the ascii codes in the switch
 	statement, but that just makes it look incredibly silly  */
@@ -166,19 +167,41 @@ Token langX_yield(FileState *file) {
 		case '5':case '6':case '7':case '8':case '9': {
 			tk.type = TK_INTEGER;
 
-			Integer i = 0;
-			do {
-				i = i * 10 + (movechr() - '0');
-			} while (isdigit(thischr()));
+			llong base = 10;
+			if (thischr() == '0') {
+				if (thenchr() == 'x') {
+					movechr();
+					movechr();
+					base = 16;
+				}
+			}
 
+			llong i = 0;
+			if (base == 10) {
+				do {
+					i = i * 10 + (movechr() - '0');
+				} while (isdigit(thischr()));
+			} else {
+				for (;;) {
+					if (thischr() >= 'A' && thischr() <= 'Z') {
+						i = i * base + 10 + (movechr() - 'A');
+					} else
+					if (thischr() >= 'a' && thischr() <= 'z') {
+						i = i * base + 10 + (movechr() - 'a');
+					} else
+					if (thischr() >= '0' && thischr() <= '9') {
+						i = i * base + (movechr() - '0');
+					} else break;
+				}
+			}
 			if (thischr() == '.') {
 				// x{..}
 				if (thenchr() != '.') {
 					movechr();
 					tk.type = TK_NUMBER;
 
-					Number p = 1;
-					Number n = 0;
+					lnumber p = 1;
+					lnumber n = 0;
 					if (isdigit(thischr())) {
 						do  {
 							n = n * 10 + (movechr() - '0');
@@ -201,7 +224,7 @@ Token langX_yield(FileState *file) {
 			} while(0);
 
 			if (!cmovchr('\'')) {
-				langX_error(file,tk.loc,"invalid character constant, expected \"'\"");
+				langX_error(file,tk.line,"invalid character constant, expected \"'\"");
 			}
 		} break;
 		case '"': {
@@ -214,7 +237,7 @@ Token langX_yield(FileState *file) {
 			buffer[length] = 0;
 
 			if (!cmovchr('"')) {
-				langX_error(file,tk.loc,"invalid string");
+				langX_error(file,tk.line,"invalid string");
 			}
 			tk.type = TK_STRING;
 			tk.s = S_ncopy(lHEAP,length,buffer);
@@ -229,8 +252,8 @@ Token langX_yield(FileState *file) {
 			} else
 			if (isdigit(thischr())) {
 				tk.type = TK_NUMBER;
-				Number n = 0;
-				Number p = 1;
+				lnumber n = 0;
+				lnumber p = 1;
 				do {
 					n = n * 10 + (movechr() - '0');
 					p *= 10;
@@ -287,44 +310,44 @@ Token langX_yield(FileState *file) {
 			}
 		} break;
 
-		#define CASE2(C0,T0,C1,T1) \
-		case C0: {                 \
-			movechr();              \
-			tk.type = T0;           \
-			if (cmovchr(C1)) {      \
-				tk.type = T1;        \
-			}                       \
+		#define TK_XCASE2(C0,T0,C1,T1) \
+		case C0: {                     \
+			movechr();                  \
+			tk.type = T0;               \
+			if (cmovchr(C1)) {          \
+				tk.type = T1;            \
+			}                           \
 		} break;
 
-		CASE2('|',TK_BIT_OR,'|',TK_LOG_OR);
-		CASE2('&',TK_BIT_AND,'&',TK_LOG_AND);
-		CASE2('!',TK_NEGATE,'=',TK_NOT_EQUALS);
-		CASE2('=',TK_ASSIGN,'=',TK_EQUALS);
+		TK_XCASE2('|',TK_BIT_OR,'|',TK_LOG_OR);
+		TK_XCASE2('&',TK_BIT_AND,'&',TK_LOG_AND);
+		TK_XCASE2('!',TK_NEGATE,'=',TK_NOT_EQUALS);
+		TK_XCASE2('=',TK_ASSIGN,'=',TK_EQUALS);
+		TK_XCASE2('?',TK_QMARK,'=',TK_ASSIGN_QUESTION);
 
-		#undef CASE2
+		#undef TK_XCASE2
 
-		#define CASE1(C,T) \
-		case C: {          \
-			movechr();      \
-			tk.type = T;    \
+		#define TK_XCASE1(C,T) \
+		case C: {              \
+			movechr();          \
+			tk.type = T;        \
 		} break
 
-		CASE1('[',TK_SQUARE_LEFT);
-		CASE1(']',TK_SQUARE_RIGHT);
-		CASE1('(',TK_PAREN_LEFT);
-		CASE1(')',TK_PAREN_RIGHT);
-		CASE1('{',TK_CURLY_LEFT);
-		CASE1('}',TK_CURLY_RIGHT);
-		CASE1(',',TK_COMMA);
-		CASE1('?',TK_QMARK);
-		CASE1('*',TK_MUL);
-		CASE1('%',TK_MODULUS);
-		CASE1('+',TK_ADD);
-		CASE1('-',TK_SUB);
-		CASE1(':',TK_COLON);
-		CASE1('^',TK_BIT_XOR);
+		TK_XCASE1('[',TK_SQUARE_LEFT);
+		TK_XCASE1(']',TK_SQUARE_RIGHT);
+		TK_XCASE1('(',TK_PAREN_LEFT);
+		TK_XCASE1(')',TK_PAREN_RIGHT);
+		TK_XCASE1('{',TK_CURLY_LEFT);
+		TK_XCASE1('}',TK_CURLY_RIGHT);
+		TK_XCASE1(',',TK_COMMA);
+		TK_XCASE1('*',TK_MUL);
+		TK_XCASE1('%',TK_MODULUS);
+		TK_XCASE1(':',TK_COLON);
+		TK_XCASE1('^',TK_BIT_XOR);
+		TK_XCASE1('-',TK_SUB);
+		TK_XCASE1('+',TK_ADD);
 
-		#undef CASE1
+		#undef TK_XCASE1
 
 		case '/': {
 			movechr();
