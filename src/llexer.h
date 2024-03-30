@@ -15,7 +15,9 @@ typedef struct ltoken {
 	};
 } ltoken;
 
+#include <src/ltoken.h>
 
+#if 0
 #define KEYWORD_XLIST \
 KEYWORD_XITEM(FUN, "fun")\
 KEYWORD_XITEM(NIL, "nil")\
@@ -35,6 +37,8 @@ KEYWORD_XITEM(ELIF, "elif")\
 KEYWORD_XITEM(THEN, "then")\
 KEYWORD_XITEM(ELSE, "else")\
 KEYWORD_XITEM(LOAD, "load")\
+KEYWORD_XITEM(STKGET, "stkget")\
+KEYWORD_XITEM(STKLEN, "stklen")\
 KEYWORD_XITEM(TRUE, "true")\
 KEYWORD_XITEM(FALSE, "false")
 
@@ -139,6 +143,7 @@ int langX_tokenprec(ltokentype k) {
 	}
 	return TK_RANK_NONE;
 }
+#endif
 
 
 

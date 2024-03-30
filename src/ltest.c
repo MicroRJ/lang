@@ -27,7 +27,7 @@ int testlib_debugbreak(Runtime *c) {
 #define BUFFER 0x10000
 
 
-/* todo: this is so unsafe is good */
+/* todo: this is so unsafe is crazy */
 void strcatf(char *buffer, char *fmt, ...) {
 	char *cursor = buffer;
 	while (*cursor != 0) ++ cursor;
@@ -40,7 +40,7 @@ void strcatf(char *buffer, char *fmt, ...) {
 
 int testlib_disasm(Runtime *c) {
 	Module *md = c->md;
-	Closure *cl = lang_loadcl(c,0);
+	lClosure *cl = lang_loadcl(c,0);
 	Proto p = cl->fn;
 	char file[BUFFER];
 	langM_clear(file,sizeof(file));
@@ -101,7 +101,7 @@ int testlib_gc(Runtime *c) {
 }
 
 
-int _gidof(Module *fs, Object *j) {
+int _gidof(Module *fs, lObject *j) {
 	langA_varifor(fs->g->v) {
 		if (fs->g->v[i].j == j) {
 			return i;
@@ -126,7 +126,7 @@ char *gccolor2s(GCColor c) {
 }
 
 
-lapi void tstlib_load(Runtime *rt) {
+void tstlib_load(Runtime *rt) {
 	Module *md = rt->md;
 	/* todo: ugly */
 	lang_addglobal(md,lang_pushnewS(rt,"gc"),lang_C(testlib_gc));

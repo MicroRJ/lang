@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** (Y) lnode.h
-** Simple AST For Expressions
+** Simple AST/IR
 */
 
 
@@ -10,27 +10,31 @@ typedef int lnodeid;
 
 #define NO_NODE (-1)
 
-/* Nodes are mainly for storing expressions
-temporarily and then generating bytecode from
-them, effectively a very simple intermediate
-representation, this step isn't necessary but
-it makes things easier to understand and
-tends to be a little bit more flexible.
-Nodes are stored in a linear buffer and
-deallocated naturally as they become inaccessible. */
+/*
+** Nodes are mainly for storing expression like
+** instructions temporarily and then generating
+** bytecode from that, effectively a very
+** simple intermediate representation.
+** This step isn't necessary but it makes
+** things easier to understand and tends to be
+** a little bit more flexible when targetting
+** other instruction sets.
+** Nodes are stored in a linear buffer and
+** deallocated naturally as they become
+** inaccessible.
+*/
 typedef enum NodeType {
 	NODE_NONE = 0,
 
 	NODE_GROUP,
-	/* literals */
-	NODE_INTEGER,
-	NODE_NUMBER,
-	NODE_STRING,
-	NODE_NIL,
 
 	NODE_FUNCTION,
-	NODE_TABLE,
 	NODE_LOADFILE,
+	NODE_STRING,
+	NODE_TABLE,
+	NODE_INTEGER,
+	NODE_NUMBER,
+	NODE_NIL,
 
 	NODE_GLOBAL,
 	NODE_LOCAL,
@@ -48,9 +52,21 @@ typedef enum NodeType {
 	NODE_CALL,
 	// {x}:({x})
 	NODE_MCALL,
+	/* Some builtin instruction node, x is the
+	builtin id, (the token type) and z the
+	inputs */
+	NODE_BUILTIN,
+	/* Common meta functions */
+	NODE_MCALL_CLONE,
+	NODE_MCALL_SPLIT,
+	NODE_MCALL_MATCH,
+	NODE_MCALL_REPLACE,
+	NODE_MCALL_INDEXOF,
+	NODE_MCALL_LENGTH,
+	NODE_MCALL_INSERT,
+	NODE_MCALL_LOOKUP,
 
-	/* binary nodes which use x,y, we could have used
-	the token id too instead... */
+	/* binary nodes use x,y */
 	NODE_RANGE,
 	NODE_LOG_AND,
 	NODE_LOG_OR,
@@ -76,16 +92,16 @@ typedef struct Node {
 	char *line;
 	int level;
 
-	/* Node inputs, if variable number of inputs
-	are required, use z. */
+	/* x,y,z represent node inputs, if more
+	than 2 are required, use z */
 	struct {
 		lnodeid x,y,*z;
 	};
 	/* todo?: don't quite union these two for debugging? */
 	union {
 		char const *s;
-		llong     i;
-		lnumber      n;
+		llong       i;
+		lnumber     n;
 	} lit;
 } Node;
 
@@ -119,6 +135,7 @@ lnodeid langY_loadfilenode(FileState *fs, char *line, lnodeid x);
 
 lnodeid langY_rangeindexnode(FileState *fs, char *line, lnodeid x, lnodeid y);
 
+lnodeid langY_builtinnode(FileState *fs, char *line, ltokentype k, lnodeid *z);
 lnodeid langY_metacallnode(FileState *fs, char *line, lnodeid x, lnodeid y, lnodeid *z);
 lnodeid langY_callnode(FileState *fs, char *line, lnodeid x, lnodeid *z);
 

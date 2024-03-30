@@ -126,3 +126,8 @@ lnodeid langY_callnode(FileState *fs, char *line, lnodeid x, lnodeid *z) {
 lnodeid langY_loadfilenode(FileState *fs, char *line, lnodeid x) {
 	return langY_nodex(fs,line,NODE_LOADFILE,x);
 }
+
+
+lnodeid langY_builtinnode(FileState *fs, char *line, ltokentype k, lnodeid *z) {
+	return langY_nodexyz(fs,line,NODE_BUILTIN,k,NO_NODE,z);
+}

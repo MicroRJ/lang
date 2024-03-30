@@ -1,11 +1,11 @@
 /*
 ** See Copyright Notice In lang.h
 ** lstring.c
-** String Object and String Tools
+** String lObject and String Tools
 */
 
 
-String *langS_new(Runtime *fs, char const *junk) {
+lString *langS_new(Runtime *fs, char const *junk) {
 	static MetaFunc _m[] = {
 		{"length",langS_length_},
 		{"match",langS_match_},
@@ -13,7 +13,7 @@ String *langS_new(Runtime *fs, char const *junk) {
 
 	int length = S_length(junk);
 
-	String *obj = langGC_allocobj(fs,OBJ_STRING,sizeof(String)+length);
+	lString *obj = langGC_allocobj(fs,OBJ_STRING,sizeof(lString)+length);
 	obj->obj._m = _m;
 	obj->obj._n = _countof(_m);
 
@@ -24,7 +24,7 @@ String *langS_new(Runtime *fs, char const *junk) {
 }
 
 
-lbool langS_eq(String *x, String *y) {
+lbool langS_eq(lString *x, lString *y) {
 	if (x == y) return ltrue;
 	/* assuming we use the same hash function */
 	if (x->hash != y->hash) return lfalse;
@@ -81,14 +81,14 @@ char *S_copy(Alloc *allocator, char const *string) {
 
 
 int langS_length_(Runtime *c) {
-	lang_pushlong(c,((String*)c->f->obj)->length);
+	lang_pushlong(c,((lString*)c->f->obj)->length);
 	return 1;
 }
 
 
 int langS_match_(Runtime *c) {
-	String *s = (String*) c->f->obj;
-	String *p = lang_loadS(c,0);
+	lString *s = (lString*) c->f->obj;
+	lString *p = lang_loadS(c,0);
 	lang_pushlong(c,S_match(p->string,s->string));
 	return 1;
 }
@@ -118,7 +118,7 @@ char *S_tpf_(char const *format, ...) {
 
 /*
 ** Simple pattern matcher utility.
-** Pattern, String
+** Pattern, lString
 */
 lbool S_matchsingle(char *p, char *s);
 

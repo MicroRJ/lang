@@ -1,12 +1,12 @@
 /*
 ** See Copyright Notice In lang.h
 ** larray.h
-** (A) Array Object and Array Tools
+** (A) Array lObject and Array Tools
 */
 
 
 typedef struct Array {
-	Object  obj;
+	lObject  obj;
 	llong max;
 	llong min;
    /* contents are allocated past this point */

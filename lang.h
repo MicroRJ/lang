@@ -54,11 +54,14 @@
 typedef struct Runtime Runtime;
 typedef struct FileState FileState;
 typedef struct Table Table;
-typedef struct String String;
-typedef struct Object Object;
+typedef struct lString lString;
+typedef struct lObject lObject;
+typedef struct lClosure lClosure;
 
 
 #include <src/ltype.h>
+#include <src/lobject.h>
+#include <src/lapi.h>
 #include <src/lerror.h>
 #include <src/ldebug.h>
 #include <src/llog.h>
@@ -66,8 +69,6 @@ typedef struct Object Object;
 #include <src/lsys.h>
 #include <src/llexer.h>
 #include <src/lbyte.h>
-
-#include <src/lobject.h>
 #include <src/lmodule.h>
 #include <src/lruntime.h>
 #include <src/lstring.h>

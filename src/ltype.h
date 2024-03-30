@@ -18,6 +18,9 @@ typedef void *Ptr;
 typedef void *Handle;
 
 
+typedef int (* lBinding)(Runtime *);
+
+
 /*
 ** Function Prototype
 */

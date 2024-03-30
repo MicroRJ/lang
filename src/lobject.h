@@ -5,10 +5,10 @@
 */
 
 
-typedef struct String String;
-typedef struct Object Object;
-typedef struct Value Value;
-typedef struct Closure Closure;
+typedef struct lString lString;
+typedef struct lObject lObject;
+typedef struct lClosure lClosure;
+typedef struct lValue lValue;
 
 
 typedef enum GCColor {
@@ -29,22 +29,19 @@ typedef enum ObjectType {
 } ObjectType;
 
 
-typedef int (* Binding)(Runtime *);
-
-
 typedef struct MetaFunc {
-	char *name;
-	Binding    c;
+	char    *name;
+	lBinding    c;
 } MetaFunc;
 
 
-typedef struct Object {
+typedef struct lObject {
 	ObjectType type;
 	GCColor gccolor;
 	/* todo: this should only be for custom objects */
 	int       _n;
 	MetaFunc *_m;
-} Object;
+} lObject;
 
 
 typedef enum ValueName {
@@ -61,86 +58,86 @@ typedef enum ValueName {
 } ValueName;
 
 
-typedef struct Value {
+typedef struct lValue {
 	ValueName tag;
 	union {
-		Ptr      p;
-		Handle   h;
-		llong  i;
+		Ptr       p;
+		Handle    h;
+		llong     i;
 		lnumber   n;
-		Binding    c;
-		Object  *j;
-		Table   *t;
-		String  *s;
-		Closure *f;
+		lBinding   c;
+		lObject   *j;
+		Table     *t;
+		lString   *s;
+		lClosure  *f;
 	};
-} Value;
+} lValue;
 
 
-typedef struct Closure {
-	Object obj;
+typedef struct lClosure {
+	lObject obj;
 	/* todo: we don't need to store the whole
 	thing here */
 	Proto   fn;
 	/* allocated past this point */
-	Value caches[1];
-} Closure;
+	lValue caches[1];
+} lClosure;
 
 
-lapi Value lang_T(Table *t);
-lapi Value lang_C(Binding c);
-lapi Value lang_S(String *s);
-lapi Value lang_F(Closure *f);
-lapi Value lang_I(llong i);
-lapi Value lang_N(lnumber n);
+lapi lValue lang_T(Table *t);
+lapi lValue lang_C(lBinding c);
+lapi lValue lang_S(lString *s);
+lapi lValue lang_F(lClosure *f);
+lapi lValue lang_I(llong i);
+lapi lValue lang_N(lnumber n);
 
 
 
 
-lapi Value lang_T(Table *t) {
-	Value v = (Value){VALUE_TABLE};
+lapi lValue lang_T(Table *t) {
+	lValue v = (lValue){VALUE_TABLE};
 	v.t = t;
 	return v;
 }
 
 
-lapi Value lang_C(Binding c) {
-	Value v = (Value){VALUE_BINDING};
+lapi lValue lang_C(lBinding c) {
+	lValue v = (lValue){VALUE_BINDING};
 	v.c = c;
 	return v;
 }
 
 
-lapi Value lang_H(Handle h) {
-	Value v = (Value){VALUE_HANDLE};
+lapi lValue lang_H(Handle h) {
+	lValue v = (lValue){VALUE_HANDLE};
 	v.h = h;
 	return v;
 }
 
 
-lapi Value lang_S(String *s) {
-	Value v = (Value){VALUE_STRING};
+lapi lValue lang_S(lString *s) {
+	lValue v = (lValue){VALUE_STRING};
 	v.s = s;
 	return v;
 }
 
 
-lapi Value lang_F(Closure *f) {
-	Value v = (Value){VALUE_FUNC};
+lapi lValue lang_F(lClosure *f) {
+	lValue v = (lValue){VALUE_FUNC};
 	v.f = f;
 	return v;
 }
 
 
-lapi Value lang_I(llong i) {
-	Value v = (Value){VALUE_LONG};
+lapi lValue lang_I(llong i) {
+	lValue v = (lValue){VALUE_LONG};
 	v.i = i;
 	return v;
 }
 
 
-lapi Value lang_N(lnumber n) {
-	Value v = (Value){VALUE_REAL};
+lapi lValue lang_N(lnumber n) {
+	lValue v = (lValue){VALUE_REAL};
 	v.n = n;
 	return v;
 }

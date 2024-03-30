@@ -1,0 +1,12 @@
+
+failed = false
+main = fun(x,y,z) ? {
+	iff stkget(0) == "x" ? failed = true
+	iff stkget(1) == "y" ? failed = true
+	iff stkget(2) == "z" ? failed = true
+	iff stkget(3) ==   1 ? failed = true
+	iff stkget(4) ==   2 ? failed = true
+	iff stkget(5) ==   3 ? failed = true
+}
+main("x","y","z",1,2,3)
+leave failed

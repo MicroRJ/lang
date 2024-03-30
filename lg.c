@@ -18,7 +18,7 @@ int main(int n, char **c) {
 
 	Runtime rt = {&md};
 	rt.z = 4096;
-	rt.s = langM_clearalloc(lHEAP,sizeof(Value) * rt.z);
+	rt.s = langM_clearalloc(lHEAP,sizeof(lValue) * rt.z);
 	rt.v = rt.s;
 
 	md.g = lang_pushnewtable(&rt);
@@ -30,7 +30,7 @@ int main(int n, char **c) {
 	sys_workdir(sizeof(pwd),pwd);
 	printf("working in: %s\n",pwd);
 
-	String *filename = lang_pushnewS(&rt,c[1]);
+	lString *filename = lang_pushnewS(&rt,c[1]);
 	lang_loadfile(&rt,filename,0);
 
 	// lang_dumpmodule(&md,".module.ignore");

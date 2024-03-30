@@ -30,7 +30,7 @@ llibfn int lgilib_deltatime(Runtime *rt) {
 llibfn int lgilib_initWindowed(Runtime *rt) {
 	int windowWidth = (int) lang_loadlong(rt,0);
 	int windowHeight = (int) lang_loadlong(rt,1);
-	String *name = lang_loadS(rt,2);
+	lString *name = lang_loadS(rt,2);
 	lgi_initWindowed(windowWidth,windowHeight,name->c);
 	return 0;
 }

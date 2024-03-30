@@ -1,13 +1,13 @@
 /*
 ** See Copyright Notice In lang.h
 ** lmodule.c
-** Object/Bytecode Module
+** lObject/Bytecode Module
 */
 
 
 /* todo: ensure that we don't have replace
 symbols */
-lglobalid lang_addsymbol(Module *md, String *name) {
+lglobalid lang_addsymbol(Module *md, lString *name) {
 	if (name == 0) {
 		return langA_variadd(md->g->v,1);
 	}
@@ -15,7 +15,7 @@ lglobalid lang_addsymbol(Module *md, String *name) {
 }
 
 
-lglobalid lang_addglobal(Module *md, String *name, Value v) {
+lglobalid lang_addglobal(Module *md, lString *name, lValue v) {
 	lglobalid i = lang_addsymbol(md,name);
 	md->g->v[i] = v;
 	return i;
@@ -30,7 +30,7 @@ lglobalid lang_addproto(Module *md, Proto p) {
 
 
 /* this is silly */
-void syslib_fpfv_(FILE *file, Value v, lbool quotes);
+void syslib_fpfv_(FILE *file, lValue v, lbool quotes);
 void lang_dumpmodule(Module *md, char *name) {
 	Handle file = sys_fopen(name,"wb");
 	fprintf(file,"Module:\n");

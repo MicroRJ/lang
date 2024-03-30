@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** lmodule.h
-** Object/Bytecode Module
+** lObject/Bytecode Module
 */
 
 typedef int lglobalid;
@@ -29,8 +29,8 @@ typedef struct Module {
 } Module;
 
 
-lglobalid lang_addsymbol(Module *md, String *name);
-lglobalid lang_addglobal(Module *md, String *name, Value v);
+lglobalid lang_addsymbol(Module *md, lString *name);
+lglobalid lang_addglobal(Module *md, lString *name, lValue v);
 lglobalid lang_addproto(Module *md, Proto p);
 
 /*

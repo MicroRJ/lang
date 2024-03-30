@@ -1,22 +1,22 @@
 /*
 ** See Copyright Notice In lang.h
 ** lstring.h
-** String Object and String Tools
+** String lObject and String Tools
 */
 
 
-typedef struct String {
-	Object  obj;
+typedef struct lString {
+	lObject  obj;
 	lhash   hash;
 	int     length;
 	union {
 		char   string[1];
 		char   c[1];
 	};
-} String;
+} lString;
 
 
-String *langS_new(Runtime *fs, char const *contents);
+lString *langS_new(Runtime *fs, char const *contents);
 
 
 int langS_length_(Runtime *c);

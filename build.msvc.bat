@@ -12,6 +12,6 @@
 @SET myGenFlags=%myDebugFlags%
 @PUSHD build
 @CALL cl %myCommon% %myGenFlags% ../lg.c /link %myLinkerOptions% /SUBSYSTEM:CONSOLE
-@CALL cl %myCommon% %myGenFlags% ../lgilib.c /link %myLinkerOptions% /DLL
+@REM @CALL cl %myCommon% %myGenFlags% ../lgilib.c /link %myLinkerOptions% /DLL
 @POPD
 @ENDLOCAL

@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** larray.c
-** Array Object and Array Tools
+** Array lObject and Array Tools
 */
 
 #if 0
@@ -13,7 +13,7 @@ Array *langA_new(Module *fs, llong n) {
 		// {"clone",langA_clone_},
 	// };
 
-	Array *array = langGC_allocobj(fs,OBJ_ARRAY,sizeof(Array) + sizeof(Value) * n);
+	Array *array = langGC_allocobj(fs,OBJ_ARRAY,sizeof(Array) + sizeof(lValue) * n);
 	// array->obj._m = _m;
 	// array->obj._n = _countof(_m);
 	return array;

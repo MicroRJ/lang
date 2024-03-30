@@ -5,7 +5,7 @@
 */
 
 
-Binding lfndmetafn(Object *j, String *name) {
+lBinding lfndmetafn(lObject *j, lString *name) {
 	for (int i = 0; i < j->_n; i ++) {
 		if (S_eq(j->_m[i].name,name->c)) {
 			return j->_m[i].c;
@@ -15,11 +15,11 @@ Binding lfndmetafn(Object *j, String *name) {
 }
 
 
-int lang_callargs(Runtime *c, Closure *cl, int x, int y, ...) {
+int lang_callargs(Runtime *c, lClosure *cl, int x, int y, ...) {
 	va_list v;
 	va_start(v,y);
 	for (int i = 0; i < x; ++i) {
-		lang_pushvalue(c,va_arg(v,Value));
+		lang_pushvalue(c,va_arg(v,lValue));
 	}
 	va_end(v);
 	return lang_call(c,0,cl,x,y);
@@ -31,7 +31,7 @@ int lang_callargs(Runtime *c, Closure *cl, int x, int y, ...) {
 ** object for meta functions, x and y are the
 ** number of in and out values respectively.
 */
-int lang_bind(Runtime *c, Object *obj, Binding b, int x, int y) {
+int lang_bind(Runtime *c, lObject *obj, lBinding b, int x, int y) {
 	LASSERT(lang_leftover(c) >= x + y);
 	CallFrame s = {0};
 	s.obj = obj;
@@ -48,7 +48,6 @@ int lang_bind(Runtime *c, Object *obj, Binding b, int x, int y) {
 	}
 	c->f = f;
 	c->v = s.l;
-	LASSERT(lang_leftover(c) >= r);
 	return r;
 }
 
@@ -58,7 +57,7 @@ int lang_bind(Runtime *c, Object *obj, Binding b, int x, int y) {
 ** object for meta functions, x and y are the
 ** number of in and out values respectively.
 */
-int lang_call(Runtime *c, Object *obj, Closure *cl, int x, int y) {
+int lang_call(Runtime *c, lObject *obj, lClosure *cl, int x, int y) {
 	LASSERT((c->v-c->s) >= x + y);
 	/* clear the locals? */
 	for (; x < cl->fn.nlocals; ++ x) {
@@ -87,7 +86,7 @@ int lang_call(Runtime *c, Object *obj, Closure *cl, int x, int y) {
 ** Loads a file and calls its function,
 ** returns the number of results.
 */
-int lang_loadfile(Runtime *rt, String *filename, int y) {
+int lang_loadfile(Runtime *rt, lString *filename, int y) {
 
 	char *contents;
 	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
@@ -115,7 +114,7 @@ int lang_loadfile(Runtime *rt, String *filename, int y) {
 	while (!langX_test(&fs,0)) langY_loadstat(&fs);
 	langY_closefn(&fs);
 
-	Closure cl = {0};
+	lClosure cl = {0};
 	cl.fn.nlocals = fn.nlocals;
 	cl.fn.bytes = fn.bytes;
 	cl.fn.nbytes = md->nbytes - fn.bytes;
@@ -132,7 +131,7 @@ int lang_loadfile(Runtime *rt, String *filename, int y) {
 int lang_exec(Runtime *cs) {
 	Module *md = cs->md;
 	CallFrame *c = cs->f;
-	Closure *cl = c->cl;
+	lClosure *cl = c->cl;
 	Proto fn = cl->fn;
 
 	while (c->j < fn.nbytes) {
@@ -170,7 +169,6 @@ int lang_exec(Runtime *cs) {
 			}
 			case BYTE_YIELD: {
 				LASSERT(b.x >= 0);
-
 				/* move return values to hosted return registers,
 				discarding any excess returns. */
 				int y = b.y < c->y ? b.y : c->y;
@@ -180,13 +178,29 @@ int lang_exec(Runtime *cs) {
 				c->y = y;
 				c->j = b.x;
 			} break;
+			case BYTE_STKGET: {
+				LASSERT(b.x == 1);
+				LASSERT(b.y <= 1);
+				llong i = ltolong(*-- cs->v);
+				if (b.y != 0) {
+					cs->v[-b.y] = c->l[i];
+				}
+			} break;
+			case BYTE_STKLEN: {
+				LASSERT(b.x == 0);
+				LASSERT(b.y <= 1);
+				if (b.y != 0) {
+					cs->v[-b.y].tag = VALUE_LONG;
+					cs->v[-b.y].i   = cs->v - c->l;
+				}
+			} break;
 			case BYTE_LOADFILE: {
 				LASSERT(lang_leftover(cs) >= 1);
 				LASSERT(cs->v[-1].tag == VALUE_STRING);
-				String *name = (--cs->v)->s;
-				langGC_markpink((Object*)name);
+				lString *name = (--cs->v)->s;
+				langGC_markpink((lObject*)name);
 				lang_loadfile(cs,name,b.y);
-				langGC_markwhite((Object*)name);
+				langGC_markwhite((lObject*)name);
 			} break;
 			case BYTE_J: {
 				LASSERT(b.i >= 0);
@@ -235,7 +249,6 @@ int lang_exec(Runtime *cs) {
 				LASSERT(b.i >= 0 && b.i < langA_varlen(md->p));
 				lang_pushnewcl(cs,md->p[b.i]);
 			} break;
-
 			case BYTE_LOCAL: {
 				*cs->v ++ = c->l[b.i];
 			} break;
@@ -243,23 +256,20 @@ int lang_exec(Runtime *cs) {
 				LASSERT(lang_leftover(cs) >= 1);
 				c->l[b.i] = *(-- cs->v);
 			} break;
-
 			case BYTE_GLOBAL: {
 				*cs->v ++ = md->g->v[b.i];
 			} break;
-
 			case BYTE_SETGLOBAL: {
 				LASSERT(lang_leftover(cs) >= 1);
 				md->g->v[b.i] = *(-- cs->v);
 			} break;
-
 			case BYTE_TABLE: {
 				lang_pushtable(cs,langH_new(cs));
 			} break;
 			case BYTE_SETFIELD: {
-				Value t = cs->v[-3];
-				Value k = cs->v[-2];
-				Value v = cs->v[-1];
+				lValue t = cs->v[-3];
+				lValue k = cs->v[-2];
+				lValue v = cs->v[-1];
 				cs->v -= 2;
 				if (t.tag == VALUE_TABLE) {
 					langH_insert(t.t,k,v);
@@ -268,9 +278,9 @@ int lang_exec(Runtime *cs) {
 				}
 			} break;
 			case BYTE_SETINDEX: {
-				Value t = cs->v[-3];
-				Value k = cs->v[-2];
-				Value v = cs->v[-1];
+				lValue t = cs->v[-3];
+				lValue k = cs->v[-2];
+				lValue v = cs->v[-1];
 				cs->v -= 2;
 
 				if (t.tag == VALUE_STRING) {
@@ -288,14 +298,14 @@ int lang_exec(Runtime *cs) {
 			} break;
 			case BYTE_FIELD: {
 				cs->v -= 2;
-				Value t,k;
+				lValue t,k;
 				t = cs->v[0];
 				k = cs->v[1];
 				lang_pushvalue(cs,langH_lookup(t.t,k));
 			} break;
 			case BYTE_INDEX: {
 				cs->v -= 2;
-				Value t,k;
+				lValue t,k;
 				t = cs->v[0];
 				k = cs->v[1];
 				if (t.tag == VALUE_STRING) {
@@ -314,18 +324,18 @@ int lang_exec(Runtime *cs) {
 
 			case BYTE_METACALL: {
 				cs->v -= 2;
-				Value o = cs->v[0];
-				Value m = cs->v[1];
+				lValue o = cs->v[0];
+				lValue m = cs->v[1];
 
 				LASSERT(m.tag == VALUE_STRING);
 				LASSERT(ttisobj(o.tag));
-				Binding d = lfndmetafn(o.j,m.s);
+				lBinding d = lfndmetafn(o.j,m.s);
 				if (d != lnil) {
 					lang_bind(cs,o.j,d,b.x,b.y);
 				}
 			} break;
 			case BYTE_CALL: {
-				Value v = *(-- cs->v);
+				lValue v = *(-- cs->v);
 				if (v.tag == VALUE_FUNC) {
 					lang_call(cs,0,v.f,b.x,b.y);
 				} else
@@ -339,7 +349,7 @@ int lang_exec(Runtime *cs) {
 			} break;
 			case BYTE_ISNIL: {
 				cs->v -= 1;
-				Value x = cs->v[0];
+				lValue x = cs->v[0];
 				if (x.tag == VALUE_LONG || x.tag == VALUE_REAL) {
 					lang_pushlong(cs,0);
 				} else {
@@ -349,8 +359,8 @@ int lang_exec(Runtime *cs) {
 			case BYTE_EQ:
 			case BYTE_NEQ: {
 				cs->v -= 2;
-				Value x = cs->v[0];
-				Value y = cs->v[1];
+				lValue x = cs->v[0];
+				lValue y = cs->v[1];
 
 				cs->v->tag = VALUE_LONG;
 				cs->v->i = lfalse;
@@ -373,8 +383,8 @@ int lang_exec(Runtime *cs) {
 			#define CASE_IBOP(OPNAME,OP) \
 			case OPNAME : {\
 				cs->v -= 2;\
-				Value x = cs->v[0];\
-				Value y = cs->v[1];\
+				lValue x = cs->v[0];\
+				lValue y = cs->v[1];\
 				lang_pushlong(cs, ltolong(x) OP ltolong(y));\
 			} break
 
@@ -382,8 +392,8 @@ int lang_exec(Runtime *cs) {
 			#define CASE_BOP(OPCODE,OP) \
 			case OPCODE : {\
 				cs->v -= 2;\
-				Value x = cs->v[0];\
-				Value y = cs->v[1];\
+				lValue x = cs->v[0];\
+				lValue y = cs->v[1];\
 				if (x.tag == VALUE_REAL || y.tag == VALUE_REAL) {\
 					lnumber xx = ltoreal(x);\
 					lnumber yy = ltoreal(y);\
@@ -397,8 +407,8 @@ int lang_exec(Runtime *cs) {
 
 			case BYTE_LTEQ: {
 				cs->v -= 2;
-				Value x = cs->v[0];
-				Value y = cs->v[1];
+				lValue x = cs->v[0];
+				lValue y = cs->v[1];
 				if (x.tag == VALUE_REAL || y.tag == VALUE_REAL) {
 					lang_pushlong(cs, ltoreal(x) <= ltoreal(y));
 				} else {
@@ -407,8 +417,8 @@ int lang_exec(Runtime *cs) {
 			} break;
 			case BYTE_LT: {
 				cs->v -= 2;
-				Value x = cs->v[0];
-				Value y = cs->v[1];
+				lValue x = cs->v[0];
+				lValue y = cs->v[1];
 				if (x.tag == VALUE_REAL || y.tag == VALUE_REAL) {
 					lang_pushlong(cs, ltoreal(x) < ltoreal(y));
 				} else {
@@ -442,7 +452,7 @@ int lang_exec(Runtime *cs) {
 
 
 lapi llong lang_poplong(Runtime *c) {
-	Value v = *(-- c->v);
+	lValue v = *(-- c->v);
 	LASSERT(v.tag == VALUE_LONG);
 	return v.i;
 }
@@ -453,27 +463,27 @@ lapi llong lang_leftover(Runtime *c) {
 }
 
 
-lapi Value lang_load(Runtime *c, int x) {
+lapi lValue lang_load(Runtime *c, int x) {
 	return c->f->l[x];
 }
 
 
-lapi String *lang_loadS(Runtime *c, int x) {
-	Value v = c->f->l[x];
+lapi lString *lang_loadS(Runtime *c, int x) {
+	lValue v = c->f->l[x];
 	LASSERT(v.tag == VALUE_STRING);
 	return v.s;
 }
 
 
-lapi Closure *lang_loadcl(Runtime *c, int x) {
-	Value v = c->f->l[x];
+lapi lClosure *lang_loadcl(Runtime *c, int x) {
+	lValue v = c->f->l[x];
 	LASSERT(v.tag == VALUE_FUNC);
 	return v.f;
 }
 
 
 lapi llong lang_loadlong(Runtime *c, int x) {
-	Value v = c->f->l[x];
+	lValue v = c->f->l[x];
 	if (v.tag == VALUE_REAL) {
 		return (llong) v.n;
 	}
@@ -483,7 +493,7 @@ lapi llong lang_loadlong(Runtime *c, int x) {
 
 
 lapi lnumber lang_loadnum(Runtime *c, llocalid x) {
-	Value v = c->f->l[x];
+	lValue v = c->f->l[x];
 	if (v.tag == VALUE_LONG) return (lnumber) v.i;
 	LASSERT(v.tag == VALUE_REAL);
 	return v.n;
@@ -491,13 +501,13 @@ lapi lnumber lang_loadnum(Runtime *c, llocalid x) {
 
 
 lapi Handle lang_loadhandle(Runtime *c, llocalid x) {
-	Value v = c->f->l[x];
+	lValue v = c->f->l[x];
 	LASSERT(v.tag == VALUE_HANDLE);
 	return v.h;
 }
 
 
-void lang_pushvalue(Runtime *c, Value v) {
+void lang_pushvalue(Runtime *c, lValue v) {
 	LASSERT(c->v - c->s < c->z);
 	*(c->v ++) = v;
 }
@@ -530,14 +540,14 @@ void lang_pushhandle(Runtime *c, Handle h) {
 }
 
 
-void lang_pushString(Runtime *c, String *s) {
+void lang_pushString(Runtime *c, lString *s) {
 	c->v->tag = VALUE_STRING;
 	c->v->s = s;
 	++ c->v;
 }
 
 
-void lang_pushclosure(Runtime *c, Closure *f) {
+void lang_pushclosure(Runtime *c, lClosure *f) {
 	c->v->tag = VALUE_FUNC;
 	c->v->f = f;
 	++ c->v;
@@ -551,7 +561,7 @@ void lang_pushtable(Runtime *c, Table *t) {
 }
 
 
-void lang_pushbinding(Runtime *c, Binding b) {
+void lang_pushbinding(Runtime *c, lBinding b) {
 	c->v->tag = VALUE_BINDING;
 	c->v->c = b;
 	++ c->v;
@@ -565,15 +575,15 @@ Table *lang_pushnewtable(Runtime *c) {
 }
 
 
-String *lang_pushnewS(Runtime *c, char const *junk) {
-	String *s = langS_new(c,junk);
+lString *lang_pushnewS(Runtime *c, char const *junk) {
+	lString *s = langS_new(c,junk);
 	lang_pushString(c,s);
 	return s;
 }
 
 
-Closure *lang_pushnewcl(Runtime *c, Proto fn) {
-	Closure *cl = langF_newclosure(c,fn);
+lClosure *lang_pushnewcl(Runtime *c, Proto fn) {
+	lClosure *cl = langF_newclosure(c,fn);
 	LASSERT(lang_leftover(c) >= fn.ncaches);
 	c->v -= fn.ncaches;
 	int i;

@@ -101,15 +101,22 @@ lbool langX_isalphanum(char x) {
 }
 
 
-ltokentype langX_iskeyword(char const *name) {
-	/* todo: hashing! */
-#define KEYWORD_XITEM(NAME,STRING) \
-	if (S_eq(name,STRING)) {        \
-		return TK_##NAME;            \
+ltokentype wordorkeyword(char const *name) {
+	for (ltokentype i = FIRST_KEYWORD; i < LAST_KEYWORD; ++ i) {
+		ltokenintel intel = langX_tokenintel[i];
+		if (S_eq(intel.name,name)) {
+			return i;
+		}
 	}
-	KEYWORD_XLIST
-#undef KEYWORD_XITEM
 	return TK_WORD;
+	/* todo: hashing! */
+// #define KEYWORD_XITEM(NAME,STRING) \
+// 	if (S_eq(name,STRING)) {        \
+// 		return TK_##NAME;            \
+// 	}
+// 	KEYWORD_XLIST
+// #undef KEYWORD_XITEM
+	// return TK_WORD;
 }
 
 
@@ -156,7 +163,7 @@ ltoken langX_yield(FileState *file) {
 				} while (langX_isalphanum(thischr()));
 				buffer[length] = 0;
 
-				tk.type = langX_iskeyword(buffer);
+				tk.type = wordorkeyword(buffer);
 				if (tk.type == TK_WORD) {
 					/* todo: string interner, or arena? */
 					tk.s = S_ncopy(lHEAP,length,buffer);
@@ -390,5 +397,6 @@ ltoken langX_yield(FileState *file) {
 	file->tk = file->thentk;
 	file->thentk = tk;
 
+	// langX_error(files,tk.line,"token %s",langX_tokenintel[tk.type].name);
 	return file->lasttk;
 }

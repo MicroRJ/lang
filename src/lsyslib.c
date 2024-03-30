@@ -7,8 +7,8 @@
 
 int syslib_libfn(Runtime *rt) {
 	Handle lib = lang_loadhandle(rt,0);
-	String *name = lang_loadS(rt,1);
-	Binding fn = (Binding) sys_libfn(lib,name->c);
+	lString *name = lang_loadS(rt,1);
+	lBinding fn = (lBinding) sys_libfn(lib,name->c);
 	if (fn != lnil) {
 		lang_pushbinding(rt,fn);
 	} else {
@@ -19,7 +19,7 @@ int syslib_libfn(Runtime *rt) {
 
 
 int syslib_loadlib(Runtime *rt) {
-	String *name = lang_loadS(rt,0);
+	lString *name = lang_loadS(rt,0);
 	Handle lib = sys_loadlib(name->c);
 	if (lib != INVALID_HANDLE_VALUE) {
 		lang_pushhandle(rt,lib);
@@ -35,7 +35,7 @@ int syslib_workdir(Runtime *rt) {
 	sys_workdir(sizeof(buf),buf);
 	lang_pushnewS(rt,buf);
 	if (rt->f->x == 1) {
-		String *s = lang_loadS(rt,0);
+		lString *s = lang_loadS(rt,0);
 		sys_setworkdir(s->c);
 	}
 	return 1;
@@ -51,15 +51,15 @@ int syslib_pwd(Runtime *rt) {
 
 
 int syslib_setpwd(Runtime *rt) {
-	String *s = lang_loadS(rt,0);
+	lString *s = lang_loadS(rt,0);
 	sys_setworkdir(s->c);
 	return 0;
 }
 
 
 int syslib_fopen(Runtime *c) {
-	String *name = lang_loadS(c,0);
-	String *flags = lang_loadS(c,1);
+	lString *name = lang_loadS(c,0);
+	lString *flags = lang_loadS(c,1);
 	Handle h = sys_fopen(name->c,flags->c);
 	lang_pushhandle(c,h);
 	return 1;
@@ -81,7 +81,7 @@ int syslib_fsize(Runtime *c) {
 }
 
 
-void syslib_fpfv_(FILE *file, Value v, lbool quotes) {
+void syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 	switch (v.tag) {
 		case VALUE_NONE: {
 			fprintf(file,"nil");
@@ -169,10 +169,10 @@ lbool isvirtual(char const *fn) {
 }
 
 
-static String *keyname;
-static String *keypath;
-static String *keyisdir;
-void syslib_listdir_(Runtime *c, Table *list, Table *flags, String *d, Closure *cl) {
+static lString *keyname;
+static lString *keypath;
+static lString *keyisdir;
+void syslib_listdir_(Runtime *c, Table *list, Table *flags, lString *d, lClosure *cl) {
 	Module *md = c->md;
 
 	WIN32_FIND_DATAA f;
@@ -183,8 +183,8 @@ void syslib_listdir_(Runtime *c, Table *list, Table *flags, String *d, Closure *
 
 		int isdir = 0 != (f.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 
-		String *name = langS_new(c,f.cFileName);
-		String *path = langS_new(c,S_tpf("%s\\%s",d->string,f.cFileName));
+		lString *name = langS_new(c,f.cFileName);
+		lString *path = langS_new(c,S_tpf("%s\\%s",d->string,f.cFileName));
 
 		lang_pushlong(c,ltrue);
 		Table *file = lang_pushnewtable(c);
@@ -209,8 +209,8 @@ void syslib_listdir_(Runtime *c, Table *list, Table *flags, String *d, Closure *
 lapi int syslib_listdir(Runtime *c) {
 	LASSERT(c->f->x == 2);
 
-	String *d = lang_loadS(c,0);
-	Closure *f = lang_loadcl(c,1);
+	lString *d = lang_loadS(c,0);
+	lClosure *f = lang_loadcl(c,1);
 
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */

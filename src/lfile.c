@@ -37,7 +37,7 @@ lbool langX_pick(FileState *fs, ltokentype k) {
 ltoken langX_take(FileState *fs, int k) {
 	ltoken tk = fs->tk;
 	if (!langX_pick(fs,k)) {
-		langX_error(fs,fs->tk.line,"expected '%s'\n",langX_tokenname(k));
+		langX_error(fs,fs->tk.line,"expected '%s'\n",langX_tokenintel[k].name);
 	}
 	return tk;
 }
@@ -266,7 +266,7 @@ lnodeid langY_loadsubexpr(FileState *fs, int rank) {
 	lnodeid x = langY_loadunary(fs);
 	if (x == NO_NODE) return x;
 	for (;;) {
-		int thisrank = langX_tokenprec(fs->tk.type);
+		int thisrank = langX_tokenintel[fs->tk.type].prec;
 		/* auto breaks when is not a binary operator */
 		if (thisrank <= rank) break;
 		ltoken tk = langX_yield(fs);
@@ -393,7 +393,6 @@ lnodeid langY_loadunary(FileState *fs) {
 			langX_yield(fs);
 			v = langY_loadexpr(fs);
 		} break;
-
 		case TK_CURLY_LEFT: {
 			v = langY_loadtable(fs);
 		} break;
@@ -408,6 +407,12 @@ lnodeid langY_loadunary(FileState *fs) {
 		} break;
 		case TK_FUN: {
 			v = langY_loadfn(fs);
+		} break;
+		case TK_STKGET:
+		case TK_STKLEN: {
+			langX_yield(fs);
+			lnodeid *z = langY_loadcallargs(fs);
+			v = langY_builtinnode(fs,tk.line,tk.type,z);
 		} break;
 		case TK_LOAD: {
 			langX_yield(fs);
@@ -460,7 +465,7 @@ lnodeid langY_loadunary(FileState *fs) {
 			v = langY_nodeS(fs,tk.line,(char*) tk.s);
 		} break;
 		default: {
-			langX_error(fs,tk.line,"'%s': unexpected token", langX_tokenname(tk.type));
+			langX_error(fs,tk.line,"'%s': unexpected token", langX_tokenintel[tk.type].name);
 		} break;
 	}
 

@@ -290,9 +290,11 @@ void langL_load2(FileState *fs, char *line, lnodeid x, llocalid y) {
 				LASSERT(z != x);
 				Node q = fs->nodes[z];
 
+				/* todo: this is temporary */
 				if (q.k == NODE_DESIG) {
-					/* todo: check for fields */
-					LNOCHANCE;
+					langL_load2(fs,q.line,q.x,1);
+					langL_load2(fs,q.line,q.y,1);
+					langL_byte(fs,q.line,BYTE_SETFIELD,0);
 				} else {
 					langL_byte(fs,q.line,BYTE_INT,i);
 					langL_load2(fs,q.line,z,1);
@@ -310,14 +312,28 @@ void langL_load2(FileState *fs, char *line, lnodeid x, llocalid y) {
 			langL_load2(fs,NO_LINE,v.y,1);
 			langL_byte(fs,line,BYTE_INDEX,0);
 		} break;
+		case NODE_BUILTIN: {
+			/* host the result registers */
+			langL_push(fs,line,y);
+			int n = langA_varlen(v.z);
+			langA_varifor(v.z) {
+				langL_load2(fs,NO_LINE,v.z[i],1);
+			}
+			if (v.x == TK_STKLEN) {
+				langL_bytexy(fs,line,BYTE_STKLEN,n,y);
+			} else
+			if (v.x == TK_STKGET) {
+				langL_bytexy(fs,line,BYTE_STKGET,n,y);
+			} else LNOCHANCE;
+		} break;
 		case NODE_LOADFILE: {
-			/* host the return registers */
+			/* host the result registers */
 			langL_push(fs,line,y);
 			langL_load2(fs,line,v.x,1);
 			langL_bytexy(fs,line,BYTE_LOADFILE,0,y);
 		} break;
 		case NODE_MCALL: {
-			/* host the return registers */
+			/* host the result registers */
 			langL_push(fs,line,y);
 			int n = langA_varlen(v.z);
 			langA_varifor(v.z) {
@@ -328,7 +344,7 @@ void langL_load2(FileState *fs, char *line, lnodeid x, llocalid y) {
 			langL_bytexy(fs,line,BYTE_METACALL,n,y);
 		} break;
 		case NODE_CALL: {
-			/* host the return registers */
+			/* host the result registers */
 			langL_push(fs,line,y);
 			llocalid n = langA_varlen(v.z);
 			langA_varifor(v.z) {
@@ -610,7 +626,7 @@ void langL_beginloop(FileState *fs, char *line, Loop *loop, int x, int r) {
 	LASSERT(fs->nodes[r].k == NODE_RANGE);
 	/* todo: */
 	if (x == -1) {
-		int v = lang_addglobal(fs->md,langS_new(fs->rt,"$temp"),(Value){VALUE_NONE});
+		int v = lang_addglobal(fs->md,langS_new(fs->rt,"$temp"),(lValue){VALUE_NONE});
 		x = langY_globalnode(fs,line,v);
 	}
 

@@ -50,8 +50,8 @@ void langL_closelastlyblock(FileState *fs, char *line, CodeBlock *bl);
 
 int langL_loadall(FileState *fs, char *line, lnodeid x);
 void langL_loaddrop(FileState *fs, char *line, lnodeid x);
-void langL_load2(FileState *fs, char *line, lnodeid x, llocalid n);
 void langL_loadinto(FileState *fs, char *line, lnodeid x, lnodeid y);
+void langL_load2(FileState *fs, char *line, lnodeid x, llocalid n);
 
 enum {
 	L_IF  = 0, // JZ
