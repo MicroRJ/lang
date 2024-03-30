@@ -6,8 +6,19 @@
 
 
 #define FIRST_KEYWORD 1
-
 #define  LAST_KEYWORD 22
+
+
+typedef struct ltoken {
+	enum ltokentype type;
+	char *line;
+	union {
+		char const *s;
+		llong i;
+		lnumber n;
+	};
+} ltoken;
+
 
 typedef enum ltokentype {
 	TK_NONE = 0,

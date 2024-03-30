@@ -90,9 +90,7 @@ int lang_loadfile(Runtime *rt, lString *filename, int y) {
 
 	char *contents;
 	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
-	if (LFAILED(error)) {
-		return -1;
-	}
+	if (LFAILED(error)) return -1;
 
 	Module *md = rt->md;
 

@@ -1,0 +1,5 @@
+
+_chdir("code/x64")
+system("cl /nologo /Zi /FA /Od jit.c")
+system("jit.exe")
+// system("devenv jit.exe")

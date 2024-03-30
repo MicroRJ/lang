@@ -1,0 +1,8 @@
+
+pf("stdout: ", stdout)
+pf("stderr: ", stderr)
+pf("stdin: ", stdin)
+pf("time(): ", time())
+pf("_strdate(): ", _strdate())
+pf("_strtime(): ", _strtime())
+pf("_getpid(): ", _getpid())

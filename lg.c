@@ -25,6 +25,7 @@ int main(int n, char **c) {
 
 	syslib_load(&rt);
 	tstlib_load(&rt);
+	crtlib_load(&rt);
 
 	char pwd[0x100];
 	sys_workdir(sizeof(pwd),pwd);

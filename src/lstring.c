@@ -9,6 +9,7 @@ lString *langS_new(Runtime *fs, char const *junk) {
 	static MetaFunc _m[] = {
 		{"length",langS_length_},
 		{"match",langS_match_},
+		{"hash",langS_hash_},
 	};
 
 	int length = S_length(junk);
@@ -90,6 +91,13 @@ int langS_match_(Runtime *c) {
 	lString *s = (lString*) c->f->obj;
 	lString *p = lang_loadS(c,0);
 	lang_pushlong(c,S_match(p->string,s->string));
+	return 1;
+}
+
+
+int langS_hash_(Runtime *c) {
+	lString *s = (lString*) c->f->obj;
+	lang_pushlong(c,s->hash);
 	return 1;
 }
 

@@ -81,55 +81,45 @@ int syslib_fsize(Runtime *c) {
 }
 
 
-void syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
+int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 	switch (v.tag) {
-		case VALUE_NONE: {
-			fprintf(file,"nil");
-		} break;
-		case VALUE_HANDLE: {
-			fprintf(file,"h%llX",v.i);
-		} break;
-		case VALUE_LONG: {
-			fprintf(file,"%lli",v.i);
-		} break;
-		case VALUE_REAL: {
-			fprintf(file,"%f",v.n);
-		} break;
+		case VALUE_NONE: return fprintf(file,"nil");
+		case VALUE_HANDLE: return fprintf(file,"h%llX",v.i);
+		case VALUE_LONG: return fprintf(file,"%lli",v.i);
+		case VALUE_REAL: return fprintf(file,"%f",v.n);
+		case VALUE_FUNC: return fprintf(file,"F()");
+		case VALUE_BINDING: return fprintf(file,"C()");
 		case VALUE_TABLE: {
+			int wrote = 0;
 			Table *t = v.t;
-			fprintf(file,"{");
+			wrote += fprintf(file,"{");
 			langA_varifor(t->v) {
-				if (i != 0) fprintf(file,", ");
-				syslib_fpfv_(file,t->v[i],ltrue);
+				if (i != 0) wrote += fprintf(file,", ");
+				wrote += syslib_fpfv_(file,t->v[i],ltrue);
 			}
-			fprintf(file,"}");
-		} break;
-		case VALUE_FUNC: {
-			fprintf(file,"F()");
-		} break;
-		case VALUE_BINDING: {
-			fprintf(file,"C()");
+			wrote += fprintf(file,"}");
+			return wrote;
 		} break;
 		case VALUE_STRING: {
 			if (quotes) {
-				fprintf(file,"\"%s\"",v.s->string);
+				return fprintf(file,"\"%s\"",v.s->string);
 			} else {
-				fprintf(file,"%s",v.s->string);
+				return fprintf(file,"%s",v.s->string);
 			}
 		} break;
-		default: {
-			fprintf(file,"(unknown)");
-		} break;
+		default: return fprintf(file,"(?)");
 	}
 }
 
 
 int syslib_fpf(Runtime *rt) {
 	Handle file = lang_loadhandle(rt,0);
+	int wrote = 0;
 	for (int i = 1; i < rt->f->x; i ++) {
-		syslib_fpfv_(file,lang_load(rt,i),lfalse);
+		wrote += syslib_fpfv_(file,lang_load(rt,i),lfalse);
 	}
-	return 0;
+	lang_pushlong(rt,wrote);
+	return 1;
 }
 
 
@@ -233,10 +223,6 @@ lapi int syslib_listdir(Runtime *c) {
 /* todo: can we do this from code */
 lapi void syslib_load(Runtime *rt) {
 	Module *md = rt->md;
-
-
-	lang_addglobal(md,lang_pushnewS(rt,"stderr"),lang_H(stderr));
-	lang_addglobal(md,lang_pushnewS(rt,"stdout"),lang_H(stdout));
 
 	lang_addglobal(md,lang_pushnewS(rt,"loadlib"),lang_C(syslib_loadlib));
 	lang_addglobal(md,lang_pushnewS(rt,"libfn"),lang_C(syslib_libfn));

@@ -16,11 +16,13 @@
 #pragma warning(disable:4996)
 
 
+/* todo: remove deps */
 #include <stdio.h>
 #include <stdlib.h>
 #include <crtdbg.h>
 #include <stdarg.h>
-#include <math.h> /* math functions */
+#include <math.h>
+
 
 #ifndef STB_SPRINTF_IMPLEMENTATION
 #define STB_SPRINTF_IMPLEMENTATION
@@ -67,7 +69,7 @@ typedef struct lClosure lClosure;
 #include <src/llog.h>
 #include <src/lmem.h>
 #include <src/lsys.h>
-#include <src/llexer.h>
+#include <src/ltoken.h>
 #include <src/lbyte.h>
 #include <src/lmodule.h>
 #include <src/lruntime.h>
@@ -107,6 +109,7 @@ typedef struct lClosure lClosure;
 #include <src/lfile.c>
 #include <src/ltest.c>
 #include <src/lsyslib.c>
+#include <src/lcrtlib.c>
 #include <src/lruntime.c>
 
 

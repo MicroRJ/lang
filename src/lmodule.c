@@ -30,7 +30,7 @@ lglobalid lang_addproto(Module *md, Proto p) {
 
 
 /* this is silly */
-void syslib_fpfv_(FILE *file, lValue v, lbool quotes);
+int syslib_fpfv_(FILE *file, lValue v, lbool quotes);
 void lang_dumpmodule(Module *md, char *name) {
 	Handle file = sys_fopen(name,"wb");
 	fprintf(file,"Module:\n");

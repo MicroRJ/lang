@@ -21,6 +21,7 @@ lString *langS_new(Runtime *fs, char const *contents);
 
 int langS_length_(Runtime *c);
 int langS_match_(Runtime *c);
+int langS_hash_(Runtime *c);
 
 
 lbool S_match(char *p, char *s);
