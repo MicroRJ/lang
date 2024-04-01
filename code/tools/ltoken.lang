@@ -15,9 +15,11 @@ if will != 'y' ? {
 	leave ()
 }
 
-workdir("code/tools")
 
-let file = fopen("ltoken.h","wb")
+_chdir("code/tools")
+
+
+let file = fopen("ltoken_lastGen.h","wb")
 
 
 let _time = clocktime()
@@ -79,11 +81,12 @@ tklist = {
 	/* todo: maybe something like this? */
 	// [["k","v","n"]]:
 	newtk("NONE", N, "none"),
+	newtk("ENUM", K, "enum"),
 	newtk("FUN", K, "fun"),
 	newtk("NIL", K, "nil"),
 	newtk("LOCAL", K, "local"),
 	newtk("LET", K, "let"),
-	newtk("FINALY", K, "finally"),
+	newtk("FINALLY", K, "finally"),
 	newtk("IN", K, "in"),
 	newtk("FOR", K, "for"),
 	newtk("WHILE", K, "while"),
@@ -171,7 +174,7 @@ fpf(file,"#define  LAST_KEYWORD ", lastkeyword, "\n\n\n")
 
 fpf(file,"typedef struct ltoken {\n")
 fpf(file,"\tenum ltokentype type;\n")
-fpf(file,"\tchar *line;\n")
+fpf(file,"\tllineid line;\n")
 fpf(file,"\tunion {\n")
 fpf(file,"\t\tchar const *s;\n")
 fpf(file,"\t\tllong i;\n")
@@ -183,14 +186,18 @@ fpf(file,"} ltoken;\n\n\n")
 fpf(file,"typedef enum ltokentype {\n")
 for i in 0..tklist:length ? {
 	let tk = tklist[i]
-	fpf(file,"\tTK_",tk.n," = ",tk.v,",\n")
+
+	let x = fpf(file,"\tTK_",tk.n);
+	let _
+	for _ in x..24 ? fpf(file," ")
+	fpf(file," = ",tk.v,",\n")
 }
 fpf(file,"} ltokentype;\n\n\n")
 
 fpf(file,"typedef struct ltokenintel {\n")
 fpf(file,"\tchar *name;\n")
-fpf(file,"\tchar  prec;\n")
-fpf(file,"\tlhash hash;\n")
+fpf(file,"\tchar prec;\n")
+fpf(file,"\tlhashid hash;\n")
 fpf(file,"} ltokenintel;\n\n\n")
 
 fpf(file,"lglobaldecl ltokenintel langX_tokenintel[] = {\n")

@@ -5,6 +5,23 @@
 */
 
 
+lnumber ltoreal(lValue v) {
+	if (v.tag == VALUE_LONG) {
+		return (lnumber) v.i;
+	}
+	return v.n;
+}
+
+
+llong ltolong(lValue v) {
+	if (v.tag == VALUE_REAL) {
+		return (llong) v.n;
+	}
+	return v.i;
+}
+
+
+/* imagine being fast */
 lBinding lfndmetafn(lObject *j, lString *name) {
 	for (int i = 0; i < j->_n; i ++) {
 		if (S_eq(j->_m[i].name,name->c)) {
@@ -92,11 +109,12 @@ int lang_loadfile(Runtime *rt, lString *filename, int y) {
 	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
 	if (LFAILED(error)) return -1;
 
-	Module *md = rt->md;
+	lModule *md = rt->md;
 
 	FileState fs = {md};
 	fs.rt = rt;
 	fs.md = md;
+	fs.bytes = md->nbytes;
 	fs.filename = filename->string;
 	fs.contents = contents;
 	fs.thischar = contents;
@@ -107,10 +125,21 @@ int lang_loadfile(Runtime *rt, lString *filename, int y) {
 	langX_yield(&fs);
 	langX_yield(&fs);
 
+
 	FileFunc fn = {0};
 	langY_beginfn(&fs,&fn,fs.tk.line);
 	while (!langX_test(&fs,0)) langY_loadstat(&fs);
 	langY_closefn(&fs);
+
+
+	lFile fl = {0};
+	fl.bytes = fn.bytes;
+	fl.nbytes = md->nbytes - fn.bytes;
+	fl.name = filename->c;
+	fl.contents = contents;
+	fl.pathondisk = filename->c;
+	langA_varadd(md->files,fl);
+
 
 	lClosure cl = {0};
 	cl.fn.nlocals = fn.nlocals;
@@ -119,15 +148,15 @@ int lang_loadfile(Runtime *rt, lString *filename, int y) {
 
 	int nleft = lang_call(rt,lnil,&cl,0,y);
 
-	/* free stuff */
-	langM_dealloc(lHEAP,contents);
+	/* todo: lines? */
+	// langM_dealloc(lHEAP,contents);
 
 	return nleft;
 }
 
 
 int lang_exec(Runtime *cs) {
-	Module *md = cs->md;
+	lModule *md = cs->md;
 	CallFrame *c = cs->f;
 	lClosure *cl = c->cl;
 	Proto fn = cl->fn;
@@ -158,22 +187,32 @@ int lang_exec(Runtime *cs) {
 
 		#endif
 		switch (b.k) {
-			/* todo: maybe the leave instruction
-			itself could specify a jump address,
-			if the jump address is zero then
-			return, otherwise jump to that address */
 			case BYTE_LEAVE: {
-				goto leave;
-			}
+				if (c->dl) {
+					c-> j = c->dl->j;
+					c->dl = c->dl->n;
+				} else goto leave;
+			} break;
+			case BYTE_DELAY: {
+				ldelaylist *dl = langM_alloc(lHEAP,sizeof(ldelaylist));
+				dl->n = c->dl;
+				dl->j = c->j;
+				c->dl = dl;
+
+				LASSERT(b.i >= 0);
+				c->j = b.i;
+			} break;
 			case BYTE_YIELD: {
 				LASSERT(b.x >= 0);
-				/* move return values to hosted return registers,
-				discarding any excess returns. */
+				/* move return values to hosted
+				return registers, discarding
+				any excess returns. */
 				int y = b.y < c->y ? b.y : c->y;
 				for (int p = 0; p < y; ++p) {
 					c->l[p-c->y] = cs->v[p-b.y];
 				}
 				c->y = y;
+				/* todo: this is unnecessary */
 				c->j = b.x;
 			} break;
 			case BYTE_STKGET: {
@@ -202,7 +241,6 @@ int lang_exec(Runtime *cs) {
 			} break;
 			case BYTE_J: {
 				LASSERT(b.i >= 0);
-				/* todo?: should be additive */
 				c->j = b.i;
 			} break;
 			case BYTE_JZ: {
@@ -262,7 +300,7 @@ int lang_exec(Runtime *cs) {
 				md->g->v[b.i] = *(-- cs->v);
 			} break;
 			case BYTE_TABLE: {
-				lang_pushtable(cs,langH_new(cs));
+				lang_pushnewtable(cs);
 			} break;
 			case BYTE_SETFIELD: {
 				lValue t = cs->v[-3];
@@ -283,7 +321,7 @@ int lang_exec(Runtime *cs) {
 
 				if (t.tag == VALUE_STRING) {
 					if (v.tag == VALUE_LONG) {
-						t.s->string[k.i] = v.i;
+						t.s->c[k.i] = v.i;
 					} else {
 						LNOCHANCE;
 					}
@@ -308,7 +346,7 @@ int lang_exec(Runtime *cs) {
 				k = cs->v[1];
 				if (t.tag == VALUE_STRING) {
 					if (k.tag == VALUE_LONG) {
-						lang_pushlong(cs,t.s->string[k.i]);
+						lang_pushlong(cs,t.s->c[k.i]);
 					} else {
 						LNOCHANCE;
 					}

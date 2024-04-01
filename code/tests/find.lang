@@ -1,4 +1,4 @@
-setpwd("code/tests")
+_chdir("code/tests")
 
 
 let sysfile = fopen("filefind.web2.ignore","wb")

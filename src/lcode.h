@@ -44,8 +44,8 @@ typedef struct Loop {
 } Loop;
 
 
-void langL_beginlastlyblock(FileState *fs, char *line, CodeBlock *bl);
-void langL_closelastlyblock(FileState *fs, char *line, CodeBlock *bl);
+void langL_begindelayedblock(FileState *fs, char *line, CodeBlock *bl);
+void langL_closedelayedblock(FileState *fs, char *line, CodeBlock *bl);
 
 
 int langL_loadall(FileState *fs, char *line, lnodeid x);

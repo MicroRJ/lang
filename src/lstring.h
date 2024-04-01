@@ -7,7 +7,7 @@
 
 typedef struct lString {
 	lObject  obj;
-	lhash   hash;
+	lhashid   hash;
 	int     length;
 	union {
 		char   string[1];

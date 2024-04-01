@@ -269,6 +269,9 @@ ltoken langX_yield(FileState *file) {
 				// lang_loginfo("[%lli] = num(%f)",tk.value,n);
 			}
 		} break;
+		case '#': {
+			movechr();
+		} goto retry;
 		case '\0': {
 			tk.type = TK_NONE;
 		} break;

@@ -1,5 +1,11 @@
+/*
+** See Copyright Notice In lang.h
+** build.lang
+** Build System, lol
+*/
 
-_chdir("code/x64")
-system("cl /nologo /Zi /FA /Od jit.c")
-system("jit.exe")
-// system("devenv jit.exe")
+
+_chdir("code/x64/build")
+system("cl /nologo /I.. /I../.. /I../../.. /Zi /FA /Od ../ljit.c")
+system("ljit.exe")
+// system("devenv ljit.exe")

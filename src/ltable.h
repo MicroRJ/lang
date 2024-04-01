@@ -41,8 +41,8 @@ llong langH_take(Table *table, lValue k);
 void langH_free(Table *t);
 
 
-lhash langH_rehash(lhash hash);
-lhash langH_hashS(char *bytes);
-lhash langH_hashPtr(Ptr *p);
+lhashid langH_rehash(lhashid hash);
+lhashid langH_hashS(char *bytes);
+lhashid langH_hashPtr(Ptr *p);
 lbool langH_valueeq(lValue *x, lValue *y);
 llong langH_hashvalue(lValue v);

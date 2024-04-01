@@ -6,7 +6,7 @@
 
 #if 0
 /* todo?: will we have arrays or not? */
-Array *langA_new(Module *fs, llong n) {
+Array *langA_new(lModule *fs, llong n) {
 	// static MetaFunc _m[] = {
 		// {"length",langA_length_},
 		// {"slice",langA_slice_},

@@ -5,6 +5,15 @@
 */
 
 
+
+
+typedef struct ldelaylist ldelaylist;
+typedef struct ldelaylist {
+	ldelaylist *n;
+	lbyteid j;
+} ldelaylist;
+
+
 typedef struct CallFrame {
 	/* closure this call frame belongs to */
 	lClosure *cl;
@@ -27,11 +36,19 @@ typedef struct CallFrame {
 	either generates the extra values
 	or discards the excess.  */
 	int x,y;
+
+
+	/* byte address to jump to once all delayed
+	blocks have been executed */
+	lbyteid dj;
+	/* list of delayed blocks to be executed
+	on return. */
+	ldelaylist *dl;
 } CallFrame;
 
 
 typedef struct Runtime {
-	Module *md;
+	lModule *md;
 	lValue *s,*v;
 	llocalid z;
 	CallFrame *f;
@@ -41,17 +58,4 @@ typedef struct Runtime {
 	lbool logging;
 } Runtime;
 
-lnumber ltoreal(lValue v) {
-	if (v.tag == VALUE_LONG) {
-		return (lnumber) v.i;
-	}
-	return v.n;
-}
 
-
-llong ltolong(lValue v) {
-	if (v.tag == VALUE_REAL) {
-		return (llong) v.n;
-	}
-	return v.i;
-}

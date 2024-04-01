@@ -1,3 +1,4 @@
+
 let _globaltime = clocktime()
 finally pf(" total elapsed: ", timediffs(_globaltime))
 
@@ -16,18 +17,12 @@ fpf(sysfile,"test scores:\n")
 finally fpf(sysfile,"end of test run");
 
 let list = listdir(".",fun(file,flags) ? {
-	let _time = clocktime()
-	let istest = false
-
-	finally if istest ? pf(" => took: ", timediffs(_time))
-
 	if file.name == "test.lang" ? leave false
-	if file.name:match("*.test.lang") == false ? leave false
+	iff file.name:match("*.test.lang") ? leave false
 	pf("============== test: ", file.name)
-	istest = true
 
-	/* global */
-	failed = false
+	let _time = clocktime()
+	finally pf(" => took: ", timediffs(_time))
 
 	let failed = load file.path
 	if failed ? {

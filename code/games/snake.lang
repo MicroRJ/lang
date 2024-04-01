@@ -1,11 +1,11 @@
-iff load "code/games/lgi.lang" ? {
-	pf("snake cannot run without lgi.lang")
-	leave ()
-}
+iff load "code/games/lgi.lang" ? leave ()
 
-let FLOOR = 0
-let APPLE = 1
-let SNAKE = 2
+
+let enum {
+	FLOOR,
+	APPLE,
+	SNAKE
+}
 
 
 let int2 = fun(x,y) ? {
@@ -97,32 +97,32 @@ let movesnake = fun (snake, dir) ? {
 
 	if (n.x < 0 || n.y < 0) ?
 	elif grid_size <= n.x ?
-	elif grid_size <= n.y ?
-	then {
-		snake.collided = true
-		leave
-	}
+elif grid_size <= n.y ?
+then {
+	snake.collided = true
+	leave
+}
 
 	// save the tail in case we eat apple, when we shift the snake forwards we loose the tail so we
 	// need to repopulate it to grow, we also use this for clearing the grid in case we did not eat an apple,
 	// in which case there will be no snake part present in the tail slot
-	let t = body[length-1]
+let t = body[length-1]
 
-	let i
-	for i in 1..length ? {
-		body[length-i] = body[length-i-1]
-	}
-	body[0] = n
+let i
+for i in 1..length ? {
+	body[length-i] = body[length-i-1]
+}
+body[0] = n
 
 	// store the previous head value to check for collisions, don't generate apple
 	// yet to avoid overwriting the apple with a snake part
-	let v = grid[grid_size * n.y + n.x]
+let v = grid[grid_size * n.y + n.x]
 
 	// if we ate an apple simply restore the tail at one past the previous tail position
-	if v == APPLE ? {
-		body[length] = t
-		length = length + 1
-	} else {
+if v == APPLE ? {
+	body[length] = t
+	length = length + 1
+} else {
 		// if we did not grow then clear the old tail, this will visually glitch the snake
 		// if the last tail position overlaps any part of the snake, which will consequently
 		// get cleared.
@@ -130,23 +130,23 @@ let movesnake = fun (snake, dir) ? {
 		// to help a bit prevent this.
 		// We do redraw the new head and tail only after we've cleared, so that could help
 		// if we only overlap the head or tail.
-		grid[grid_size * t.y + t.x] = FLOOR
-	}
+	grid[grid_size * t.y + t.x] = FLOOR
+}
 
 	// redraw the head now that it moved
-	grid[grid_size * n.y + n.x] = SNAKE
+grid[grid_size * n.y + n.x] = SNAKE
 
 	// redraw the tail now that it moved
-	let p = body[length-1]
-	grid[grid_size * p.y + p.x] = SNAKE
+let p = body[length-1]
+grid[grid_size * p.y + p.x] = SNAKE
 
 
-	if v == APPLE ? {
-		addapple()
-	}
+if v == APPLE ? {
+	addapple()
+}
 
-	snake.heading = dir
-	snake.length = length
+snake.heading = dir
+snake.length = length
 }
 
 

@@ -39,7 +39,7 @@ void strcatf(char *buffer, char *fmt, ...) {
 
 
 int testlib_disasm(Runtime *c) {
-	Module *md = c->md;
+	lModule *md = c->md;
 	lClosure *cl = lang_loadcl(c,0);
 	Proto p = cl->fn;
 	char file[BUFFER];
@@ -101,7 +101,7 @@ int testlib_gc(Runtime *c) {
 }
 
 
-int _gidof(Module *fs, lObject *j) {
+int _gidof(lModule *fs, lObject *j) {
 	langA_varifor(fs->g->v) {
 		if (fs->g->v[i].j == j) {
 			return i;
@@ -127,7 +127,7 @@ char *gccolor2s(GCColor c) {
 
 
 void tstlib_load(Runtime *rt) {
-	Module *md = rt->md;
+	lModule *md = rt->md;
 	/* todo: ugly */
 	lang_addglobal(md,lang_pushnewS(rt,"gc"),lang_C(testlib_gc));
 	lang_addglobal(md,lang_pushnewS(rt,"gcpause"),lang_C(testlib_gcpause));

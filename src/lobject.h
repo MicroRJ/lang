@@ -76,8 +76,7 @@ typedef struct lValue {
 
 typedef struct lClosure {
 	lObject obj;
-	/* todo: we don't need to store the whole
-	thing here */
+	/* todo: we don't need to store the whole thing here */
 	Proto   fn;
 	/* allocated past this point */
 	lValue caches[1];

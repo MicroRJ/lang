@@ -163,7 +163,7 @@ static lString *keyname;
 static lString *keypath;
 static lString *keyisdir;
 void syslib_listdir_(Runtime *c, Table *list, Table *flags, lString *d, lClosure *cl) {
-	Module *md = c->md;
+	lModule *md = c->md;
 
 	WIN32_FIND_DATAA f;
 	HANDLE h = FindFirstFileA(S_tpf("%s\\*",d->string),&f);
@@ -222,7 +222,7 @@ lapi int syslib_listdir(Runtime *c) {
 
 /* todo: can we do this from code */
 lapi void syslib_load(Runtime *rt) {
-	Module *md = rt->md;
+	lModule *md = rt->md;
 
 	lang_addglobal(md,lang_pushnewS(rt,"loadlib"),lang_C(syslib_loadlib));
 	lang_addglobal(md,lang_pushnewS(rt,"libfn"),lang_C(syslib_libfn));

@@ -48,8 +48,19 @@ void langY_enterlevel(FileState *fs) {
 }
 
 
+void langY_checkassign(FileState *fs, llineid line, lnodeid x) {
+	Node n = fs->nodes[x];
+	if (n.k == NODE_LOCAL) {
+		FileName fnn = fs->locals[fs->fn->locals+n.x];
+		if (fnn.enm) {
+			langX_error(fs,line,"enum value is constant, you're attempting to modify its value");
+		}
+	}
+}
+
+
 llocalid langY_numlocinlev(FileState *fs) {
-	FileLocal *locals = fs->locals;
+	FileName *locals = fs->locals;
 	llocalid nlocals = fs->nlocals;
 	llocalid n;
 	for (n = 0; n < nlocals; ++n) {
@@ -74,10 +85,10 @@ lnodeid langY_numnodesinlev(FileState *fs) {
 }
 
 
-void langY_leavelevel(FileState *fs, char *line) {
+void langY_leavelevel(FileState *fs, llineid line) {
 	llocalid nlocals = langY_numlocinlev(fs);
 	if (nlocals != 0) {
-		langL_localalloc(fs,NO_LINE,-nlocals);
+		langL_localalloc(fs,line,-nlocals);
 	}
 	lnodeid nnodes = langY_numnodesinlev(fs);
 	fs->nnodes -= nnodes;
@@ -146,7 +157,7 @@ llocalid langY_localorcacheid(FileState *fs, char *loc, char *name) {
 ** function, if already declared issue a warning
 ** but still return a valid id.
 */
-lnodeid langY_enrolllocalnode(FileState *fs, char *line, char *name) {
+lnodeid langY_enrolllocalnode(FileState *fs, llineid line, char *name, lbool enm) {
 	llocalid id = langY_localorcacheid(fs,line,name);
 	if (id == NO_SLOT) {
 		FileFunc *fn = fs->fn;
@@ -154,10 +165,13 @@ lnodeid langY_enrolllocalnode(FileState *fs, char *line, char *name) {
 		lnodeid node = langY_localnode(fs,line,slot);
 		fs->locals[fn->locals+slot].name = name;
 		fs->locals[fn->locals+slot].node = node;
-		// langX_error(fs,line,"'%s': local, %i",name,slot);
+		fs->locals[fn->locals+slot].enm  = enm;
+		// if (enm) {
+		// 	langX_error(fs,line,"'%s': enum, %i",name,slot);
+		// }
 		return node;
 	} else {
-		FileLocal local = fs->locals[id];
+		FileName local = fs->locals[id];
 		/* is this variable name already present in this level? */
 		if (local.level == fs->level) {
 			langX_error(fs,line,"'%s': already declared",name);
@@ -202,13 +216,13 @@ void langY_beginfn(FileState *fs, FileFunc *fn, char *line) {
 	fn->locals = fs->nlocals;
 	fn->bytes = fs->md->nbytes;
 	fn->line = line;
-	fn->lj = NO_JUMP;
+	fn->yj = lnil;
 	fs->fn = fn;
 }
 
 
 void langY_closefn(FileState *fs) {
-	langL_leave(fs,fs->lasttk.line);
+	langL_return(fs,fs->lasttk.line);
 	langY_leavelevel(fs,fs->lasttk.line);
 	/* ensure all locals were deallocated
 	properly */
@@ -283,7 +297,7 @@ lnodeid langY_loadfn(FileState *fs) {
 	ltoken tk = langX_take(fs,TK_FUN);
 
 	/* All bytecode is outputted to the same
-	module, the way this language work is
+	module, the way this language works is
 	that we just run the entire thing,
 	for that reason add a jump byte to
 	skip this function's code. */
@@ -298,7 +312,7 @@ lnodeid langY_loadfn(FileState *fs) {
 	if (!langX_test(fs,TK_PAREN_RIGHT)) do {
 
 		ltoken n = langX_take(fs,TK_WORD);
-		langY_enrolllocalnode(fs,n.line,(char*)n.s);
+		langY_enrolllocalnode(fs,n.line,(char*)n.s,lfalse);
 
 		arity ++;
 	} while (langX_pick(fs,TK_COMMA));
@@ -322,7 +336,8 @@ lnodeid langY_loadfn(FileState *fs) {
 
 	/* add this function to the type table */
 	Proto p = {0};
-	p.arity = arity;
+	p.x = arity;
+	p.y = fn.nyield;
 	p.nlocals = fn.nlocals;
 	p.bytes = fn.bytes;
 	p.nbytes  = fs->md->nbytes - fn.bytes;
@@ -515,6 +530,31 @@ lnodeid langY_loadunary(FileState *fs) {
 }
 
 
+/* todo: make this legit */
+void langY_loadenumlist(FileState *fs) {
+	llong nextvalue = 0;
+	if (!langX_test(fs,TK_CURLY_RIGHT)) {
+		do {
+			/* , } */
+			if (langX_test(fs,TK_CURLY_RIGHT)) {
+				break;
+			}
+			ltoken tk = fs->tk;
+			ltoken n = langX_take(fs,TK_WORD);
+			lnodeid x = langY_enrolllocalnode(fs,n.line,(char*)n.s,ltrue);
+			llong l = nextvalue;
+			if (langX_pick(fs,TK_ASSIGN)) {
+				tk = fs->tk;
+				ltoken v = langX_take(fs,TK_INTEGER);
+				l = v.i;
+			} else nextvalue ++;
+			lnodeid y = langY_nodeI(fs,tk.line,l);
+			langL_loadinto(fs,tk.line,x,y);
+		} while(langX_pick(fs,TK_COMMA));
+	}
+}
+
+
 void langY_loadstat(FileState *fs) {
 	switch (fs->tk.type) {
 		case TK_THEN:
@@ -535,13 +575,14 @@ void langY_loadstat(FileState *fs) {
 			langX_take(fs,TK_CURLY_RIGHT);
 			langY_leavelevel(fs,fs->lasttk.line);
 		} break;
-		case TK_FINALY: {
-			ltoken tk = langX_take(fs,TK_FINALY);
+		case TK_FINALLY: {
+			ltoken tk = langX_take(fs,TK_FINALLY);
 
 			CodeBlock bl = {0};
-			langL_beginlastlyblock(fs,tk.line,&bl);
+			langL_begindelayedblock(fs,tk.line,&bl);
 			langY_loadstat(fs);
-			langL_closelastlyblock(fs,tk.line,&bl);
+			langL_closedelayedblock(fs,tk.line,&bl);
+
 		} break;
 		case TK_WHILE: {
 			ltoken tk = langX_take(fs,TK_WHILE);
@@ -603,23 +644,39 @@ void langY_loadstat(FileState *fs) {
 		case TK_LET:
 		case TK_LOCAL: {
 			ltoken tk = langX_yield(fs);
-			ltoken n = langX_take(fs,TK_WORD);
 			if (tk.type == TK_LOCAL) {
 				langX_error(fs,tk.line,"consider using 'let' instead");
 			}
-
-			lnodeid x = langY_enrolllocalnode(fs,n.line,(char*)n.s);
-
-			if (langX_pick(fs,TK_ASSIGN)) {
-				tk = fs->lasttk;
-				int y = langY_loadexpr(fs);
-				langL_loadinto(fs,tk.line,x,y);
+			if (tk.type == TK_ENUM) {
+				langX_error(fs,tk.line,"global enums are not supported yet, this enum will be made local");
+			} else
+			/* allows for 'let enum' */
+			if (tk.type == TK_LET) {
+				if (langX_test(fs,TK_ENUM)) {
+					tk = langX_yield(fs);
+				}
 			}
+			lbool enm = tk.type == TK_ENUM;
+			if (langX_pick(fs,TK_CURLY_LEFT)) {
+				langY_loadenumlist(fs);
+				langX_take(fs,TK_CURLY_RIGHT);
+			} else {
+				ltoken n = langX_take(fs,TK_WORD);
+				lnodeid x = langY_enrolllocalnode(fs,n.line,(char*)n.s,enm);
+				if (langX_pick(fs,TK_ASSIGN)) {
+					tk = fs->lasttk;
+					lnodeid y = langY_loadexpr(fs);
+					langL_loadinto(fs,tk.line,x,y);
+				}
+			}
+
 		} break;
 		default: {
 			lnodeid x = langY_loadexpr(fs);
+
+			ltoken tk = fs->tk;
 			if (langX_pick(fs,TK_ASSIGN_QUESTION)) {
-				ltoken tk = fs->lasttk;
+				langY_checkassign(fs,tk.line,x);
 				lnodeid c = langY_nodexy(fs,tk.line,NODE_EQ,x,langY_nodeZ(fs,tk.line));
 				lnodeid y = langY_loadexpr(fs);
 				ljlist js = {0};
@@ -629,7 +686,7 @@ void langY_loadstat(FileState *fs) {
 				langL_tieloosejs(fs,js.f);
 			} else
 			if (langX_pick(fs,TK_ASSIGN)) {
-				ltoken tk = fs->lasttk;
+				langY_checkassign(fs,tk.line,x);
 				lnodeid y = langY_loadexpr(fs);
 				langL_loadinto(fs,tk.line,x,y);
 			} else {

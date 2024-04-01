@@ -72,7 +72,7 @@ llong langH_hashin(Table *table, lValue k) {
 	llong hash = langH_hashvalue(k);
 	llong head = hash % ntotal;
 	llong tail = head;
-	lhash walk = langH_rehash(hash)|1;
+	lhashid walk = langH_rehash(hash)|1;
 	do {
 		lValue x = slots[tail].k;
 		if (x.tag == VALUE_NONE) return tail;
@@ -264,15 +264,15 @@ int langH_foreach_(Runtime *c) {
 
 /* Some of the hash functions and comments
 were borrowed from the great Sean Barrett */
-lhash langH_rehash(lhash hash) {
+lhashid langH_rehash(lhashid hash) {
 	return ((hash) + ((hash) >> 6) + ((hash) >> 19));
 }
 
 
 #if 1
 // FNV-1a
-lhash langH_hashS (char *bytes) {
-	lhash hash = 2166136261u;
+lhashid langH_hashS (char *bytes) {
+	lhashid hash = 2166136261u;
 	while (*bytes) {
 		hash ^= *bytes++;
 		hash *= 16777619;
@@ -280,8 +280,8 @@ lhash langH_hashS (char *bytes) {
 	return hash;
 }
 #else
-lhash langH_hashS(char *bytes) {
-	lhash hash = 0;
+lhashid langH_hashS(char *bytes) {
+	lhashid hash = 0;
 	while (*bytes) {
 		hash = (hash << 7) + (hash >> 25) + *bytes++;
 	}
@@ -290,9 +290,9 @@ lhash langH_hashS(char *bytes) {
 #endif
 
 
-lhash langH_hashPtr(Ptr *p) {
+lhashid langH_hashPtr(Ptr *p) {
    // typically lacking in low bits and high bits
-	lhash hash = langH_rehash((lhash)(llong)p);
+	lhashid hash = langH_rehash((lhashid)(llong)p);
 	hash += hash << 16;
 
    // pearson's shuffle

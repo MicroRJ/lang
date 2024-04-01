@@ -14,7 +14,7 @@ int main(int n, char **c) {
 
 	langM_initmemory();
 
-	Module md = {0};
+	lModule md = {0};
 
 	Runtime rt = {&md};
 	rt.z = 4096;
@@ -34,7 +34,8 @@ int main(int n, char **c) {
 	lString *filename = lang_pushnewS(&rt,c[1]);
 	lang_loadfile(&rt,filename,0);
 
-	// lang_dumpmodule(&md,".module.ignore");
+	Handle file = sys_fopen(".module.ignore","wb");
+	lang_dumpmodule(&md,file);
 
 
 	printf("exited\n");

@@ -138,7 +138,7 @@ int crtlib_system(Runtime *rt) {
 
 
 lapi void crtlib_load(Runtime *rt) {
-	Module *md = rt->md;
+	lModule *md = rt->md;
 
 	lang_addglobal(md,lang_pushnewS(rt,"stderr"),lang_H(stderr));
 	lang_addglobal(md,lang_pushnewS(rt,"stdout"),lang_H(stdout));

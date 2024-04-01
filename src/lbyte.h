@@ -5,7 +5,6 @@
 */
 
 
-typedef int lbyteid;
 
 
 typedef enum ByteName {
@@ -13,11 +12,18 @@ typedef enum ByteName {
 	BYTE_J,
 	BYTE_JZ,
 	BYTE_JNZ,
-	/* todo: implement? */
-	BYTE_JNIL,
 
-	BYTE_YIELD,
+	/* delays the execution n instructions until
+	procedure exits, jumps to the specified byte
+	address. */
+	BYTE_DELAY,
+	/* checks delay list, pops the last delay from it
+	if any and jumps to it, otherwise returns control
+	flow to the calling procedure */
 	BYTE_LEAVE,
+	/* copies specified values to corresponding return
+	registers */
+	BYTE_YIELD,
 
 	BYTE_DROP,
 	BYTE_DUPL,
@@ -85,37 +91,40 @@ typedef struct Bytecode {
 
 char const *lang_bytename(ByteName k) {
 	switch (k) {
+		case BYTE_STKGET: return "stkget";
+		case BYTE_STKLEN: return "stklen";
 		case BYTE_LEAVE: return "leave";
 		case BYTE_YIELD: return "yield";
 		case BYTE_J: return "j";
 		case BYTE_JZ: return "jz";
 		case BYTE_JNZ: return "jnz";
-		case BYTE_ISNIL: return "z";
-		case BYTE_DROP: return "pop";
-		case BYTE_DUPL: return "dup";
-		case BYTE_INT: return "i";
+		case BYTE_ISNIL: return "isnil";
+		case BYTE_DROP: return "drop";
+		case BYTE_DUPL: return "dupl";
+		case BYTE_INT: return "int";
 		case BYTE_NIL: return "nil";
-		case BYTE_CALL: return "()";
-		case BYTE_METACALL: return "M()";
-		case BYTE_CLOSURE: return "f+";
-		case BYTE_CACHE: return "u.";
-		case BYTE_GLOBAL: return "g.";
-		case BYTE_SETGLOBAL: return "g=";
-		case BYTE_LOCAL: return "l.";
-		case BYTE_SETLOCAL: return "l=";
-		case BYTE_TABLE: return "t+";
-		case BYTE_INDEX: return "[";
-		case BYTE_FIELD: return ".";
-		case BYTE_SETFIELD: return ".=";
-		case BYTE_SETINDEX: return "[=";
-		case BYTE_ADD: return "+";
-		case BYTE_SUB: return "-";
-		case BYTE_DIV: return "/";
-		case BYTE_MUL: return "*";
-		case BYTE_MOD: return "%";
-		case BYTE_LT: return "<";
-		case BYTE_NEQ: return "!=";
-		case BYTE_EQ: return "==";
+		case BYTE_CALL: return "call";
+		case BYTE_METACALL: return "metacall";
+		case BYTE_CACHE: return "getcache";
+		case BYTE_GLOBAL: return "getglobal";
+		case BYTE_LOCAL: return "getlocal";
+		case BYTE_SETGLOBAL: return "setglobal";
+		case BYTE_SETLOCAL: return "setlocal";
+		case BYTE_CLOSURE: return "newclosure";
+		case BYTE_TABLE: return "newtable";
+		case BYTE_INDEX: return "getindex";
+		case BYTE_FIELD: return "getfield";
+		case BYTE_SETFIELD: return "setfield";
+		case BYTE_SETINDEX: return "setindex";
+		case BYTE_ADD: return "add";
+		case BYTE_SUB: return "sub";
+		case BYTE_DIV: return "dib";
+		case BYTE_MUL: return "mul";
+		case BYTE_MOD: return "mod";
+		case BYTE_LT: return "lt";
+		case BYTE_NEQ: return "neq";
+		case BYTE_EQ: return "eq";
+		case BYTE_DELAY: return "delay";
 		case BYTE_LOADFILE: return "loadfile";
 		case BYTE_LOADCLIB: return "loadclib";
 	}

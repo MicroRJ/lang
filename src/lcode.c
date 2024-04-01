@@ -23,6 +23,7 @@ llocalid langL_localalloc(FileState *fs, char *line, llocalid nlocals) {
 			fs->locals[i].line  = line;
 			fs->locals[i].name  = 0;
 			fs->locals[i].node  = NO_NODE;
+			fs->locals[i].enm   = lfalse;
 		}
 	}
 
@@ -88,7 +89,7 @@ lbyteid langL_jump(FileState *fs, char *line, lbyteid j) {
 
 void langL_tieloosejto(FileState *fs, lbyteid i, lbyteid j) {
 	LASSERT (i != NO_JUMP);
-	Module *md = fs->md;
+	lModule *md = fs->md;
 	Bytecode *bytes = md->bytes;
 	Bytecode b = bytes[i];
 
@@ -96,7 +97,8 @@ void langL_tieloosejto(FileState *fs, lbyteid i, lbyteid j) {
 	switch (b.k) {
 		case BYTE_J:
 		case BYTE_JZ:
-		case BYTE_JNZ: {
+		case BYTE_JNZ:
+		case BYTE_DELAY: {
 			bytes[i].i = l;
 		} break;
 		case BYTE_YIELD: {
@@ -136,27 +138,18 @@ void langL_yield(FileState *fs, char *line, lbyteid x) {
 }
 
 
-void langL_leave(FileState *fs, char *line) {
-	Module *md = fs->md;
+void langL_return(FileState *fs, char *line) {
+	lModule *md = fs->md;
 	FileFunc *fn = fs->fn;
 
-	/* collect all yields and link them here */
+	/* Todo: this is unncessary, we know were
+	the return instruction is at.
+	collect all yields and tie them here */
 	langL_tieloosejs(fs,fn->yj);
 	langA_vardel(fn->yj);
 	fn->yj = lnil;
 
-	/* next jump to every finally target */
-	langA_varifor(fn->lt) {
-		langL_jump(fs,line,fn->lt[i]);
-	}
-
-	/* tie last finally jump in chain */
-	if (fn->lj != NO_JUMP) {
-		langL_tieloosej(fs,fn->lj);
-		fn->lj = NO_JUMP;
-	}
-
-	/* finally, leave */
+	/* finally, return control flow */
 	langL_byte(fs,line,BYTE_LEAVE,0);
 }
 
@@ -668,28 +661,17 @@ void langL_closeloop(FileState *fs, char *line, Loop *loop) {
 }
 
 
-/* todo: merge with aljacent blocks if bytecode
-unchanged? */
-void langL_beginlastlyblock(FileState *fs, char *line, CodeBlock *d) {
-	d->j = langL_jump(fs,line,-1);
-
-	FileFunc *fn = fs->fn;
-
-	/* add a finally target */
-	langA_varadd(fn->lt,langL_getlabel(fs));
-
-	/* chain previous finally block to this one */
-	if (fn->lj != NO_JUMP) {
-		langL_tieloosej(fs,fn->lj);
-		fn->lj = NO_JUMP;
-	}
+/* todo: merge with aljacent blocks */
+void langL_begindelayedblock(FileState *fs, char *line, CodeBlock *d) {
+	d->j = langL_byte(fs,line,BYTE_DELAY,NO_JUMP);
 }
 
 
-void langL_closelastlyblock(FileState *fs, char *line, CodeBlock *bl) {
-	FileFunc *fn = fs->fn;
-	fn->lj = langL_jump(fs,line,-1);
+void langL_closedelayedblock(FileState *fs, char *line, CodeBlock *bl) {
+	// langX_error(fs,line,"closed block, %i",langL_getlocallabel(fs));
 
+	FileFunc *fn = fs->fn;
+
+	langL_byte(fs,line,BYTE_LEAVE,0);
 	langL_tieloosej(fs,bl->j);
-	bl->j = NO_JUMP;
 }

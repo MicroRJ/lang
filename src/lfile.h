@@ -5,19 +5,28 @@
 */
 
 
-/* maps a name to a local  */
-typedef struct FileLocal {
+/* Used for scoping, will possibly remove in the
+future if performance matters than much, maps a
+name to either an enum or local, enums are
+compile time constants and do not occupy
+stack space */
+typedef struct FileName {
 	char   *name;
-	char   *line;
-	lnodeid node;
+	llineid line;
+	/* the level in which this name was
+	declared, for scoping */
 	int    level;
-} FileLocal;
+	/* the node that contains the value
+	if constant, or local node if local. */
+	lnodeid node;
+	lbool   enm;
+} FileName;
 
 
 typedef struct FileFunc FileFunc;
 typedef struct FileFunc {
 	FileFunc *enclosing;
-	char *line;
+	llineid line;
 	/* index to first local within locals in file,
 	we use this to also determine whether a local
 	should be cached (captured) or not. locals
@@ -28,21 +37,21 @@ typedef struct FileFunc {
 	that are to be cached */
 	llocalid *caches;
 	/* this is needed to emit instructions
-	relative to the current function we're parsing */
+	relative to the current function we're
+	parsing, there's always an active function,
+	even at file level */
 	lbyteid bytes;
 
 	int nyield;
+
+	/* todo: deprecated */
 	/* list of yield jumps to be patched */
 	lbyteid *yj;
-	/* list of all defer targets */
-	lbyteid *lt;
-	/* last defer jump */
-	lbyteid lj;
 } FileFunc;
 
 
 typedef struct FileState {
-	Module *md;
+	lModule *md;
 	/* this is so that we can allocate
 	objects during compilation time,
 	runtime is present everywhere anyways. */
@@ -67,11 +76,13 @@ typedef struct FileState {
 	locals are file locals, at file level,
 	when calling this file, use nlocals to create
 	a prototype. */
-	FileLocal *locals;
+	FileName *locals;
 	llocalid nlocals;
 	/* hierarchical list of loading functions,
 	each allocated in C stack by caller function */
 	FileFunc *fn;
+
+	lbyteid bytes;
 } FileState;
 
 

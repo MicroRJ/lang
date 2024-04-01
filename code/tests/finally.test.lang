@@ -1,44 +1,12 @@
-failed = false
-/*
-** The following code is erroneous,
-** 'finally' statements execute whenever the
-** function leaves regardless of the ordering
-** of other control structures, such as
-** leave statements.
-** This means it is possible to reference values
-** that have not been initialized before the 'finally'
-** block executes, such is the case for this
-** code snippet:
-*/
-testfn = fun() ? {
-	/* leave the function */
-	leave "leave 0"
-	/* this line will not be reached,
-	and _time will be uninitialized */
-	let _time = clocktime()
-	/* however this statement still
-	executes, and it references _time,
-	which has not been initialized */
-	finally pf(" => took: ", timediffs(_time))
+// __logging(true)
+// finally __logging(false)
 
-	leave "leave 1"
+testfn = fun() ? {
+	finally leave "leave 4"
+	finally leave "leave 3"
+	finally leave "leave 2"
+	finally leave "leave 1"
+	leave "leave 0"
 }
 
-/* As is this code will crash, as timediffs
-expects a long value, and by default all values
-are set to nil */
-if 0 ? pf("testfn() => ", testfn())
-/* To fix this code, simply initialize
-_time before the leave instruction. */
-
-/*
-'finally' statements work as expected, but
-this makes me question whether there is some
-deterministic way of creating a different
-version of finally statements that respect
-control flow
-*/
-
-
-
-leave failed
+leave testfn() != "leave 4"

@@ -1,13 +1,23 @@
 /*
 ** See Copyright Notice In lang.h
 ** lmodule.h
-** lObject/Bytecode Module
+** lObject/Bytecode lModule
 */
 
-typedef int lglobalid;
+
+typedef struct lFile {
+	char *name;
+	lbyteid bytes;
+	lbyteid nbytes;
+	int **protos;
+	/* todo: eventually remove these */
+	char *pathondisk;
+	char *contents;
+} lFile;
 
 
-/* Symbols
+/*
+** Symbols
 ** 	Bytecode and globals can be added dynamically and
 ** safely, in fact, multiple files will reference the
 ** same global by name, no matter the order in which
@@ -20,36 +30,37 @@ typedef int lglobalid;
 ** time.
 **
 */
-typedef struct Module {
+typedef struct lModule {
 	Table *g;
 	Proto *p;
 	Bytecode *bytes;
-	llong nbytes;
+	lbyteid nbytes;
 	char **lines;
-} Module;
+	lFile *files;
+} lModule;
 
 
-lglobalid lang_addsymbol(Module *md, lString *name);
-lglobalid lang_addglobal(Module *md, lString *name, lValue v);
-lglobalid lang_addproto(Module *md, Proto p);
+lglobalid lang_addsymbol(lModule *md, lString *name);
+lglobalid lang_addglobal(lModule *md, lString *name, lValue v);
+lglobalid lang_addproto(lModule *md, Proto p);
 
 /*
-	Module\r: runtime is stored here
+	lModule\r: runtime is stored here
 for garbage collection.
-	Module\gc: all objects to be automatically
+	lModule\gc: all objects to be automatically
 managed, or garbage collected, are listed here.
 By default all objects are added here, you
 can however remove them from this array.
 
-Module\gf: buffer for functions definitions,
+lModule\gf: buffer for functions definitions,
 essentially a type table, anonymous functions
 are also added here.
 
-Module\g: global symbol table which
+lModule\g: global symbol table which
 maps names to values, indexed
 at runtime by index.
 
-Module\bytes: buffer for bytes, all the bytes
+lModule\bytes: buffer for bytes, all the bytes
 are stored here, functions index into this
 buffer.
 

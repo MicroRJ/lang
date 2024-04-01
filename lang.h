@@ -124,6 +124,7 @@ lnumber lang_timediffs(llong begin) {
 }
 
 
+
 #pragma warning(pop)
 #endif
 
