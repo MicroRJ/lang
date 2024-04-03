@@ -5,7 +5,7 @@
 */
 
 
-int syslib_libfn(Runtime *rt) {
+int syslib_libfn(lRuntime *rt) {
 	Handle lib = lang_loadhandle(rt,0);
 	lString *name = lang_loadS(rt,1);
 	lBinding fn = (lBinding) sys_libfn(lib,name->c);
@@ -18,7 +18,7 @@ int syslib_libfn(Runtime *rt) {
 }
 
 
-int syslib_loadlib(Runtime *rt) {
+int syslib_loadlib(lRuntime *rt) {
 	lString *name = lang_loadS(rt,0);
 	Handle lib = sys_loadlib(name->c);
 	if (lib != INVALID_HANDLE_VALUE) {
@@ -30,7 +30,7 @@ int syslib_loadlib(Runtime *rt) {
 }
 
 
-int syslib_workdir(Runtime *rt) {
+int syslib_workdir(lRuntime *rt) {
 	char buf[MAX_PATH];
 	sys_workdir(sizeof(buf),buf);
 	lang_pushnewS(rt,buf);
@@ -42,7 +42,7 @@ int syslib_workdir(Runtime *rt) {
 }
 
 
-int syslib_pwd(Runtime *rt) {
+int syslib_pwd(lRuntime *rt) {
 	char buf[MAX_PATH];
 	sys_workdir(sizeof(buf),buf);
 	lang_pushnewS(rt,buf);
@@ -50,14 +50,14 @@ int syslib_pwd(Runtime *rt) {
 }
 
 
-int syslib_setpwd(Runtime *rt) {
+int syslib_setpwd(lRuntime *rt) {
 	lString *s = lang_loadS(rt,0);
 	sys_setworkdir(s->c);
 	return 0;
 }
 
 
-int syslib_fopen(Runtime *c) {
+int syslib_fopen(lRuntime *c) {
 	lString *name = lang_loadS(c,0);
 	lString *flags = lang_loadS(c,1);
 	Handle h = sys_fopen(name->c,flags->c);
@@ -66,14 +66,14 @@ int syslib_fopen(Runtime *c) {
 }
 
 
-int syslib_fclose(Runtime *c) {
+int syslib_fclose(lRuntime *c) {
 	Handle file = lang_loadhandle(c,0);
 	sys_fclose(file);
 	return 0;
 }
 
 
-int syslib_fsize(Runtime *c) {
+int syslib_fsize(lRuntime *c) {
 	Handle file = lang_loadhandle(c,0);
 	fseek(file,0,SEEK_END);
 	lang_pushlong(c,ftell(file));
@@ -85,8 +85,8 @@ int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 	switch (v.tag) {
 		case VALUE_NONE: return fprintf(file,"nil");
 		case VALUE_HANDLE: return fprintf(file,"h%llX",v.i);
-		case VALUE_LONG: return fprintf(file,"%lli",v.i);
-		case VALUE_REAL: return fprintf(file,"%f",v.n);
+		case TAG_INTEGER: return fprintf(file,"%lli",v.i);
+		case TAG_NUMBER: return fprintf(file,"%f",v.n);
 		case VALUE_FUNC: return fprintf(file,"F()");
 		case VALUE_BINDING: return fprintf(file,"C()");
 		case VALUE_TABLE: {
@@ -112,7 +112,7 @@ int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 }
 
 
-int syslib_fpf(Runtime *rt) {
+int syslib_fpf(lRuntime *rt) {
 	Handle file = lang_loadhandle(rt,0);
 	int wrote = 0;
 	for (int i = 1; i < rt->f->x; i ++) {
@@ -123,7 +123,7 @@ int syslib_fpf(Runtime *rt) {
 }
 
 
-int syslib_pf_(Runtime *rt) {
+int syslib_pf_(lRuntime *rt) {
 	for (int i = 0; i < rt->f->x; i ++) {
 		syslib_fpfv_(stdout,lang_load(rt,i),lfalse);
 	}
@@ -132,22 +132,22 @@ int syslib_pf_(Runtime *rt) {
 }
 
 
-lapi int syslib_sleep(Runtime *rt) {
+lapi int syslib_sleep(lRuntime *rt) {
 	LASSERT(rt->f->x == 1);
 	sys_sleep(lang_loadlong(rt,0));
 	return 0;
 }
 
 
-lapi int syslib_clocktime(Runtime *rt) {
+lapi int syslib_clocktime(lRuntime *rt) {
 	lang_pushlong(rt,sys_clocktime());
 	return 1;
 }
 
 
-lapi int syslib_timediffs(Runtime *rt) {
+lapi int syslib_timediffs(lRuntime *rt) {
 	LASSERT(rt->f->x == 1);
-	llong i = lang_loadlong(rt,0);
+	llongint i = lang_loadlong(rt,0);
 	lang_pushnum(rt,(sys_clocktime() - i) / (lnumber) sys_clockhz());
 	return 1;
 }
@@ -162,7 +162,7 @@ lbool isvirtual(char const *fn) {
 static lString *keyname;
 static lString *keypath;
 static lString *keyisdir;
-void syslib_listdir_(Runtime *c, Table *list, Table *flags, lString *d, lClosure *cl) {
+void syslib_listdir_(lRuntime *c, Table *list, Table *flags, lString *d, lClosure *cl) {
 	lModule *md = c->md;
 
 	WIN32_FIND_DATAA f;
@@ -196,7 +196,7 @@ void syslib_listdir_(Runtime *c, Table *list, Table *flags, lString *d, lClosure
 }
 
 
-lapi int syslib_listdir(Runtime *c) {
+lapi int syslib_listdir(lRuntime *c) {
 	LASSERT(c->f->x == 2);
 
 	lString *d = lang_loadS(c,0);
@@ -221,7 +221,7 @@ lapi int syslib_listdir(Runtime *c) {
 
 
 /* todo: can we do this from code */
-lapi void syslib_load(Runtime *rt) {
+lapi void syslib_load(lRuntime *rt) {
 	lModule *md = rt->md;
 
 	lang_addglobal(md,lang_pushnewS(rt,"loadlib"),lang_C(syslib_loadlib));

@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** lmodule.h
-** lObject/Bytecode lModule
+** lObject/lBytecode lModule
 */
 
 
@@ -12,28 +12,29 @@ typedef struct lFile {
 	int **protos;
 	/* todo: eventually remove these */
 	char *pathondisk;
-	char *contents;
+	llineid lines;
+	int nlines;
 } lFile;
 
 
 /*
 ** Symbols
-** 	Bytecode and globals can be added dynamically and
+** 	lBytecode and globals can be added dynamically and
 ** safely, in fact, multiple files will reference the
 ** same global by name, no matter the order in which
 ** they were loaded, or the means, runtime/compiletime.
 ** This is because we use a symbol table that maps a
-** name at compile time to an index in the global values.
+** name at jit time to an index in the global values.
 ** Even if a file is loaded at runtime, the compilation
 ** process finds the global symbol and maps it to the
-** target index. Lookups are effectively done at compile
+** target index. Lookups are effectively done at jit
 ** time.
 **
 */
 typedef struct lModule {
 	Table *g;
-	Proto *p;
-	Bytecode *bytes;
+	lProto *p;
+	lBytecode *bytes;
 	lbyteid nbytes;
 	char **lines;
 	lFile *files;
@@ -42,7 +43,7 @@ typedef struct lModule {
 
 lglobalid lang_addsymbol(lModule *md, lString *name);
 lglobalid lang_addglobal(lModule *md, lString *name, lValue v);
-lglobalid lang_addproto(lModule *md, Proto p);
+lglobalid lang_addproto(lModule *md, lProto p);
 
 /*
 	lModule\r: runtime is stored here

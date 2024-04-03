@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** lruntime.h
-** Runtime Structures
+** lRuntime Structures
 */
 
 
@@ -15,47 +15,46 @@ typedef struct ldelaylist {
 
 
 typedef struct CallFrame {
-	/* closure this call frame belongs to */
+	/* -- closure this call frame belongs to */
 	lClosure *cl;
-	/* object for meta functions */
+	/* -- object for meta functions and table
+	- calls */
 	lObject *obj;
-	/* pointer to base stack address, which is
-	also the regress address. when the stack
-	frame is popped the stack pointer is set
-	to l, and the return values should before l. */
+	/* -- pointer to base stack address, which is
+	- also the regress address. when the stack
+	- frame is popped the stack pointer is set
+	- to l, and the return values should before l. */
 	lValue *l;
-	/* next instruction index, not really
-	used now, but I guess for coroutines? */
-	llong j;
-	/* the number of inputs (x) in and
-	the number of expected outputs (y).
-	A function or binding can yield many more
-	or less values.
-	For bindings you must return the number
-	of actual values yielded so that the runtime
-	either generates the extra values
-	or discards the excess.  */
+	/* -- next instruction index, not really
+	- used now, but I guess for coroutines? */
+	llongint j;
+	/* -- The number of inputs (x) and
+	- the number of expected outputs (y).
+	- Output registers are allocated by the
+	- caller and runtime writes to them when
+	- the callee \yields.
+	- A function or binding can yield many more
+	- or less values, it does not matter.
+	- For bindings you must return the number
+	- of actual values yielded so that runtime
+	- can hoist the return values. */
 	int x,y;
-
-
-	/* byte address to jump to once all delayed
-	blocks have been executed */
-	lbyteid dj;
-	/* list of delayed blocks to be executed
-	on return. */
+	/* -- list of delayed jumps to be executed
+	- on return, 'finally' statements produce
+	- these. */
 	ldelaylist *dl;
 } CallFrame;
 
 
-typedef struct Runtime {
+typedef struct lRuntime {
 	lModule *md;
 	lValue *s,*v;
 	llocalid z;
 	CallFrame *f;
 	lObject **gc;
-	llong gcthreshold;
+	llongint gcthreshold;
 	lbool isgcpaused;
 	lbool logging;
-} Runtime;
+} lRuntime;
 
 

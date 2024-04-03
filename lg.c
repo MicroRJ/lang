@@ -14,18 +14,26 @@ int main(int n, char **c) {
 
 	langM_initmemory();
 
+	jittest();
+
 	lModule md = {0};
 
-	Runtime rt = {&md};
+	lRuntime rt = {&md};
 	rt.z = 4096;
 	rt.s = langM_clearalloc(lHEAP,sizeof(lValue) * rt.z);
 	rt.v = rt.s;
 
 	md.g = lang_pushnewtable(&rt);
 
+	/* todo: eventually we'll call this
+	from the source file, each lib will
+	be built independently, or maybe we
+	can add a flag so that we don't load
+	these libraries. */
 	syslib_load(&rt);
 	tstlib_load(&rt);
 	crtlib_load(&rt);
+	jitlib_load(&rt);
 
 	char pwd[0x100];
 	sys_workdir(sizeof(pwd),pwd);

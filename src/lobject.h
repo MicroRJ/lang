@@ -44,26 +44,27 @@ typedef struct lObject {
 } lObject;
 
 
-typedef enum ValueName {
+typedef enum lvaluetag {
 	VALUE_NONE,
-	VALUE_LONG,
-	VALUE_REAL,
+	TAG_INTEGER,
+	TAG_NUMBER,
 	VALUE_BINDING,
 	VALUE_CUSTOM,
 	VALUE_HANDLE,
 	VALUE_FUNC,
+	// VALUE_JITFUNC,
 	VALUE_STRING,
 	VALUE_ARRAY,
 	VALUE_TABLE,
-} ValueName;
+} lvaluetag;
 
 
 typedef struct lValue {
-	ValueName tag;
+	lvaluetag tag;
 	union {
 		Ptr       p;
 		Handle    h;
-		llong     i;
+		llongint     i;
 		lnumber   n;
 		lBinding   c;
 		lObject   *j;
@@ -76,8 +77,17 @@ typedef struct lValue {
 
 typedef struct lClosure {
 	lObject obj;
-	/* todo: we don't need to store the whole thing here */
-	Proto   fn;
+	/* I guess one of the things we could do
+	if we ever get to having multi-byte encoding,
+	is encode the entire prototype in the
+	instruction stream since most closures are
+	anonymous, given how the language works.
+	If not, then there's no need to store the
+	whole prototype here, we can instead store an
+	index into the proto table. */
+	lProto   fn;
+	/* current instruction index (coroutines) */
+	int       j;
 	/* allocated past this point */
 	lValue caches[1];
 } lClosure;
@@ -87,7 +97,7 @@ lapi lValue lang_T(Table *t);
 lapi lValue lang_C(lBinding c);
 lapi lValue lang_S(lString *s);
 lapi lValue lang_F(lClosure *f);
-lapi lValue lang_I(llong i);
+lapi lValue lang_I(llongint i);
 lapi lValue lang_N(lnumber n);
 
 
@@ -128,15 +138,15 @@ lapi lValue lang_F(lClosure *f) {
 }
 
 
-lapi lValue lang_I(llong i) {
-	lValue v = (lValue){VALUE_LONG};
+lapi lValue lang_I(llongint i) {
+	lValue v = (lValue){TAG_INTEGER};
 	v.i = i;
 	return v;
 }
 
 
 lapi lValue lang_N(lnumber n) {
-	lValue v = (lValue){VALUE_REAL};
+	lValue v = (lValue){TAG_NUMBER};
 	v.n = n;
 	return v;
 }

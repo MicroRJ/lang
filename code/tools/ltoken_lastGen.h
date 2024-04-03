@@ -14,7 +14,7 @@ typedef struct ltoken {
 	llineid line;
 	union {
 		char const *s;
-		llong i;
+		llongint i;
 		lnumber n;
 	};
 } ltoken;

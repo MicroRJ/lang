@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** lmodule.c
-** lObject/Bytecode lModule
+** lObject/lBytecode lModule
 */
 
 
@@ -22,7 +22,7 @@ lglobalid lang_addglobal(lModule *md, lString *name, lValue v) {
 }
 
 
-lglobalid lang_addproto(lModule *md, Proto p) {
+lglobalid lang_addproto(lModule *md, lProto p) {
 	lglobalid i = langA_variadd(md->p,1);
 	md->p[i] = p;
 	return i;
@@ -41,8 +41,23 @@ int linelen(char *p, int m) {
 }
 
 
-/* this is silly */
 int syslib_fpfv_(FILE *file, lValue v, lbool quotes);
+void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
+	fprintf(file," | %-4i: %s"
+	,	id, lang_bytename(b.k));
+	if (lang_byteclass(b.k) == BYTE_CLASS_XY) {
+		fprintf(file,"(x=%i,y=%i)",b.x,b.y);
+	} else {
+		fprintf(file,"(i=%lli)",b.i);
+	}
+	if (b.k == BYTE_GLOBAL) {
+		fprintf(file,"  // ");
+		syslib_fpfv_(file,md->g->v[b.i],ltrue);
+	}
+	fprintf(file,"\n");
+}
+
+
 void lang_dumpmodule(lModule *md, Handle file) {
 	fprintf(file,"lModule:\n");
 	fprintf(file,"Globals:\n");
@@ -53,20 +68,14 @@ void lang_dumpmodule(lModule *md, Handle file) {
 	}
 
 	langA_varifor(md->p) {
-		Proto p = md->p[i];
+		lProto p = md->p[i];
 		fprintf(file,"FUNC: [%i] %i,%i (%i:%i):\n",(int)i,p.bytes,p.nbytes,p.x,p.nlocals);
-		int j;
-		for (j = 0; j < p.nbytes; ++j) {
-			Bytecode b = md->bytes[p.bytes+j];
 
-			fprintf(file,"%04X: %-18s (%llX) ;  "
-			, j, lang_bytename(b.k), b.i);
-
-			if (b.k == BYTE_GLOBAL) {
-				syslib_fpfv_(file,md->g->v[b.i],ltrue);
-			}
-			fprintf(file,"\n");
+		for (lbyteid j = 0; j < p.nbytes; ++j) {
+			lBytecode b = md->bytes[p.bytes+j];
+			bytefpf(md,file,j,b);
 		}
+
 		fprintf(file,"end\n");
 	}
 

@@ -6,7 +6,7 @@
 
 
 
-typedef long long int llong;
+typedef long long int llongint;
 typedef signed int lbool;
 typedef double lnumber;
 
@@ -25,19 +25,23 @@ typedef void *Ptr;
 typedef void *Handle;
 
 
-typedef int (* lBinding)(Runtime *);
-
+typedef int (* lBinding)(lRuntime *);
+// typedef int (* lJITFunc)(int);
 
 /*
 ** Function Prototype
 */
-typedef struct Proto {
+typedef struct lProto {
+	/* xin, yield */
 	short x,y;
+	/* number of cached values */
 	short ncaches;
+	/* temporary: number of locals */
 	short nlocals;
+	short nstacks;
 	short nbytes;
 	short bytes;
-} Proto;
+} lProto;
 
 
 

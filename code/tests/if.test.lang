@@ -1,7 +1,46 @@
 
+__logging(false)
+
+let enum int2 = fun(x,y) ? ({"x"=x,"y"=y})
+
+let enum {
+	LEFT  = int2(-1, 0),
+	RIGHT = int2( 1, 0),
+	UP    = int2( 0, 1),
+	DOWN  = int2( 0,-1),
+}
+
+
+fun() ? {
+	table = {}
+	if UP.x == 0 ? elif UP.y == 1 ?
+	then {
+		table.name = 0
+	}
+	pf(LEFT,RIGHT,UP,DOWN)
+}()
+
+leave 0
+
 
 if false ? leave true
 iff true ? leave true
+
+__logging(true)
+let nop = fun() ? {
+	pf("here")
+	pf("here")
+}
+pf("here")
+if false ? {
+	nop
+	nop
+	nop
+	nop
+	nop
+}
+pf("j here")
+
 
 let test = fun(x,y) ? {
 	if x != y ? failed = true
@@ -34,4 +73,9 @@ for x in 0..4 ? {
 	elif x == 2 ? test(x == 2, true)
 	else test(x >= 3, true)
 }
+
+if failed ? {
+	pf("failed")
+}
+
 leave failed

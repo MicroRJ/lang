@@ -5,10 +5,10 @@
 */
 
 
-#define NO_JUMP (-1)
 #define NO_SLOT (-1)
-#define NO_LINE (-0)
 #define NO_BYTE (-1)
+#define NO_JUMP (-0)
+#define NO_LINE (-0)
 
 
 typedef struct CodeBlock {
@@ -48,27 +48,27 @@ void langL_begindelayedblock(FileState *fs, char *line, CodeBlock *bl);
 void langL_closedelayedblock(FileState *fs, char *line, CodeBlock *bl);
 
 
-int langL_loadall(FileState *fs, char *line, lnodeid x);
-void langL_loaddrop(FileState *fs, char *line, lnodeid x);
-void langL_loadinto(FileState *fs, char *line, lnodeid x, lnodeid y);
-void langL_load2(FileState *fs, char *line, lnodeid x, llocalid n);
+int langL_loadall(FileState *fs, char *line, ltreeid x);
+void langL_loaddrop(FileState *fs, char *line, ltreeid x);
+void langL_loadinto(FileState *fs, char *line, ltreeid x, ltreeid y);
+void langL_load2(FileState *fs, char *line, ltreeid x, llocalid n);
 
 enum {
 	L_IF  = 0, // JZ
 	L_IFF = 1, // JNZ
 };
-void langL_beginif(FileState *fs, char *line, Select *s, lnodeid x, int z);
-void langL_addelif(FileState *fs, char *line, Select *s, lnodeid x);
+void langL_beginif(FileState *fs, char *line, Select *s, ltreeid x, int z);
+void langL_addelif(FileState *fs, char *line, Select *s, ltreeid x);
 void langL_addelse(FileState *fs, char *line, Select *s);
 void langL_addthen(FileState *fs, char *line, Select *s);
 void langL_closeif(FileState *fs, char *line, Select *s);
 
 
-void langL_beginloop(FileState *fs, char *line, Loop *loop, lnodeid x, lnodeid r);
+void langL_beginloop(FileState *fs, char *line, Loop *loop, ltreeid x, ltreeid r);
 void langL_closeloop(FileState *fs, char *line, Loop *loop);
 
 void langL_begindowhile(FileState *fs, char *line, Loop *loop);
-void langL_closedowhile(FileState *fs, char *line, Loop *loop, lnodeid x);
+void langL_closedowhile(FileState *fs, char *line, Loop *loop, ltreeid x);
 
-void langL_beginwhile(FileState *fs, char *line, Loop *loop, lnodeid x);
+void langL_beginwhile(FileState *fs, char *line, Loop *loop, ltreeid x);
 void langL_closewhile(FileState *fs, char *line, Loop *loop);

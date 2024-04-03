@@ -8,7 +8,7 @@
 /* Used for scoping, will possibly remove in the
 future if performance matters than much, maps a
 name to either an enum or local, enums are
-compile time constants and do not occupy
+jit time constants and do not occupy
 stack space */
 typedef struct FileName {
 	char   *name;
@@ -18,7 +18,7 @@ typedef struct FileName {
 	int    level;
 	/* the node that contains the value
 	if constant, or local node if local. */
-	lnodeid node;
+	ltreeid node;
 	lbool   enm;
 } FileName;
 
@@ -27,6 +27,11 @@ typedef struct FileFunc FileFunc;
 typedef struct FileFunc {
 	FileFunc *enclosing;
 	llineid line;
+	/* the total stack length, for explicit
+	addressing, when jitting this is what's
+	allocated */
+	llocalid stklen;
+	llocalid stktop;
 	/* index to first local within locals in file,
 	we use this to also determine whether a local
 	should be cached (captured) or not. locals
@@ -55,7 +60,7 @@ typedef struct FileState {
 	/* this is so that we can allocate
 	objects during compilation time,
 	runtime is present everywhere anyways. */
-	Runtime *rt;
+	lRuntime *rt;
 	char *filename;
 	char *linechar;
 	char *contents;
@@ -63,8 +68,8 @@ typedef struct FileState {
 	int linenumber;
 	ltoken lasttk,tk,thentk;
 	/* buffer for nodes */
-	Node *nodes;
-	lnodeid nnodes;
+	Tree *nodes;
+	ltreeid nnodes;
 	/* the current level, level is incremented
 	per level, block or statement or whenever
 	it makes sense, represents a visibility
@@ -86,6 +91,6 @@ typedef struct FileState {
 } FileState;
 
 
-lnodeid langY_loadexpr(FileState *fs);
-lnodeid langY_loadunary(FileState *fs);
+ltreeid langY_loadexpr(FileState *fs);
+ltreeid langY_loadunary(FileState *fs);
 void langY_loadstat(FileState *fs);

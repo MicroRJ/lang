@@ -13,21 +13,21 @@ lgi_API int lgi_tick();
 lgi_API void lgi_drawQuad(lgi_Color color, float x, float y, float w, float h);
 
 
-llibfn int lgilib_time(Runtime *rt) {
+llibfn int lgilib_time(lRuntime *rt) {
 	lnumber time = lgi.Time.totalSeconds;
 	lang_pushnum(rt,time);
 	return 1;
 }
 
 
-llibfn int lgilib_deltatime(Runtime *rt) {
+llibfn int lgilib_deltatime(lRuntime *rt) {
 	lnumber time = lgi.Time.deltaSeconds;
 	lang_pushnum(rt,time);
 	return 1;
 }
 
 
-llibfn int lgilib_initWindowed(Runtime *rt) {
+llibfn int lgilib_initWindowed(lRuntime *rt) {
 	int windowWidth = (int) lang_loadlong(rt,0);
 	int windowHeight = (int) lang_loadlong(rt,1);
 	lString *name = lang_loadS(rt,2);
@@ -36,14 +36,14 @@ llibfn int lgilib_initWindowed(Runtime *rt) {
 }
 
 
-llibfn int lgilib_tick(Runtime *rt) {
+llibfn int lgilib_tick(lRuntime *rt) {
 	int r = lgi_tick();
 	lang_pushlong(rt,r);
 	return 1;
 }
 
 
-llibfn int lgilib_drawQuad(Runtime *rt) {
+llibfn int lgilib_drawQuad(lRuntime *rt) {
 	LASSERT(lang_leftover(rt) == 8);
 	float r = (float) lang_loadnum(rt,0);
 	float g = (float) lang_loadnum(rt,1);
@@ -59,14 +59,14 @@ llibfn int lgilib_drawQuad(Runtime *rt) {
 }
 
 
-llibfn int lgilib_clearBackground(Runtime *rt) {
+llibfn int lgilib_clearBackground(lRuntime *rt) {
 	(void) rt;
 	lgi_clearBackground(lgi_BLACK);
 	return 0;
 }
 
 
-llibfn int lgilib_testKey(Runtime *rt) {
+llibfn int lgilib_testKey(lRuntime *rt) {
 	(void) rt;
 	int key = (int) lang_loadlong(rt,0);
 	lang_pushlong(rt,lgi_testKey(key));

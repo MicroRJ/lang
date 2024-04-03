@@ -43,14 +43,41 @@ ltoken langX_take(FileState *fs, int k) {
 }
 
 
+llocalid langY_addlocal(FileState *fs, char *line, llocalid nlocals) {
+	FileFunc *ff = fs->fn;
+	llocalid id = fs->nlocals;
+	fs->nlocals += nlocals;
+	LASSERT(fs->nlocals >= ff->locals);
+
+	nlocals = fs->nlocals - ff->locals;
+	if (ff->nlocals < nlocals) ff->nlocals = nlocals;
+
+	/* this should work with negative numbers too */
+	langA_variadd(fs->locals,nlocals);
+
+	if (nlocals > 0) {
+		for (llocalid i = id; i < fs->nlocals; ++i) {
+			fs->locals[i].level = fs->level;
+			fs->locals[i].line  = line;
+			fs->locals[i].name  = 0;
+			fs->locals[i].node  = NO_TREE;
+			fs->locals[i].enm   = lfalse;
+		}
+	}
+
+	// langX_error(fs,line,"%i, fs=%i, ff=%i",id,fs->nlocals,nlocals);
+	return id - ff->locals;
+}
+
+
 void langY_enterlevel(FileState *fs) {
 	++ fs->level;
 }
 
 
-void langY_checkassign(FileState *fs, llineid line, lnodeid x) {
-	Node n = fs->nodes[x];
-	if (n.k == NODE_LOCAL) {
+void langY_checkassign(FileState *fs, llineid line, ltreeid x) {
+	Tree n = fs->nodes[x];
+	if (n.k == TREE_LOCAL) {
 		FileName fnn = fs->locals[fs->fn->locals+n.x];
 		if (fnn.enm) {
 			langX_error(fs,line,"enum value is constant, you're attempting to modify its value");
@@ -72,10 +99,10 @@ llocalid langY_numlocinlev(FileState *fs) {
 }
 
 
-lnodeid langY_numnodesinlev(FileState *fs) {
-	Node *nodes = fs->nodes;
-	lnodeid nnodes = fs->nnodes;
-	lnodeid n;
+ltreeid langY_numnodesinlev(FileState *fs) {
+	Tree *nodes = fs->nodes;
+	ltreeid nnodes = fs->nnodes;
+	ltreeid n;
 	for (n = 0; n < nnodes; ++n) {
 		if (nodes[nnodes-1-n].level < fs->level) {
 			break;
@@ -88,9 +115,9 @@ lnodeid langY_numnodesinlev(FileState *fs) {
 void langY_leavelevel(FileState *fs, llineid line) {
 	llocalid nlocals = langY_numlocinlev(fs);
 	if (nlocals != 0) {
-		langL_localalloc(fs,line,-nlocals);
+		langY_addlocal(fs,line,-nlocals);
 	}
-	lnodeid nnodes = langY_numnodesinlev(fs);
+	ltreeid nnodes = langY_numnodesinlev(fs);
 	fs->nnodes -= nnodes;
 	-- fs->level;
 }
@@ -132,12 +159,12 @@ void langY_cachelocal(FileState *fs, FileFunc *fn, llocalid local) {
 ** lexical relevance, starting from the last
 ** declared local.
 ** The id returned is an absolute index into
-** fs->locals and you should make it relative
+** fs->locals, you should make it relative
 ** to the current function.
 ** If the local is outside of this function,
 ** then it caches it.
 */
-llocalid langY_localorcacheid(FileState *fs, char *loc, char *name) {
+llocalid langY_fndlocalid(FileState *fs, char *loc, char *name) {
 	FileFunc *fn = fs->fn;
 	llocalid locals = fn->locals;
 	for (llocalid id = fs->nlocals-1; id >= 0; --id) {
@@ -157,12 +184,12 @@ llocalid langY_localorcacheid(FileState *fs, char *loc, char *name) {
 ** function, if already declared issue a warning
 ** but still return a valid id.
 */
-lnodeid langY_enrolllocalnode(FileState *fs, llineid line, char *name, lbool enm) {
-	llocalid id = langY_localorcacheid(fs,line,name);
+ltreeid langY_enrolllocaltree(FileState *fs, llineid line, char *name, lbool enm) {
+	llocalid id = langY_fndlocalid(fs,line,name);
 	if (id == NO_SLOT) {
 		FileFunc *fn = fs->fn;
-		llocalid slot = langL_localalloc(fs,line,1);
-		lnodeid node = langY_localnode(fs,line,slot);
+		llocalid slot = langY_addlocal(fs,line,1);
+		ltreeid node = langY_treelocal(fs,line,slot);
 		fs->locals[fn->locals+slot].name = name;
 		fs->locals[fn->locals+slot].node = node;
 		fs->locals[fn->locals+slot].enm  = enm;
@@ -183,8 +210,8 @@ lnodeid langY_enrolllocalnode(FileState *fs, llineid line, char *name, lbool enm
 }
 
 
-lnodeid langY_cacheorlocalnode(FileState *fs, char *line, char *name) {
-	llocalid id = langY_localorcacheid(fs,line,name);
+ltreeid langY_cacheorlocaltree(FileState *fs, llineid line, char *name) {
+	llocalid id = langY_fndlocalid(fs,line,name);
 	if (id == -1) return -1;
 
 	llocalid x = -1;
@@ -196,12 +223,12 @@ lnodeid langY_cacheorlocalnode(FileState *fs, char *line, char *name) {
 		at level 0 cannot capture anything above.
 		if the level is less than 0, then we've
 		royally screwed up. */
-		if (fn->locals == 0) LNOCHANCE;
+		if (fn->locals == 0) LNOBRANCH;
 
 		if (id < fn->enclosing->locals) {
 			langX_error(fs,line,"too many layers for caching");
 		} else {
-			x = langY_cachenode(fs,line,langY_cacheindex(fn,id));
+			x = langY_treecache(fs,line,langY_cacheindex(fn,id));
 		}
 	} else {
 		x = fs->locals[id].node;
@@ -222,7 +249,7 @@ void langY_beginfn(FileState *fs, FileFunc *fn, char *line) {
 
 
 void langY_closefn(FileState *fs) {
-	langL_return(fs,fs->lasttk.line);
+	langL_fnepiloge(fs,fs->lasttk.line);
 	langY_leavelevel(fs,fs->lasttk.line);
 	/* ensure all locals were deallocated
 	properly */
@@ -231,12 +258,12 @@ void langY_closefn(FileState *fs) {
 }
 
 
-lnodeid *langY_loadcallargs(FileState *fs) {
+ltreeid *langY_loadcallargs(FileState *fs) {
 	/* ( x { , x } ) */
-	lnodeid *z = 0;
+	ltreeid *z = 0;
 	if (langX_pick(fs,TK_PAREN_LEFT)) {
 		if (!langX_test(fs,TK_PAREN_RIGHT)) do {
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 			if (x == -1) break;
 			langA_varadd(z,x);
 		} while (langX_pick(fs,TK_COMMA));
@@ -246,53 +273,51 @@ lnodeid *langY_loadcallargs(FileState *fs) {
 }
 
 
-/*
-** Utility function that converts a binary
-** operator token to a binary operator node,
-** in retrospect, one could have used the
-** token itself, but its no biggie.
-*/
-NodeType tonode(ltokentype tk) {
+/* -- Pretty self explanatory function,
+- could have used the token itself, but
+- that's for smart people to do.
+- */
+ltreetype tktonode(ltokentype tk) {
 	switch (tk) {
-		case TK_DOT_DOT:            return NODE_RANGE;
-		case TK_LOG_AND:            return NODE_LOG_AND;
-		case TK_LOG_OR:             return NODE_LOG_OR;
-		case TK_ADD:                return NODE_ADD;
-		case TK_SUB:                return NODE_SUB;
-		case TK_DIV:                return NODE_DIV;
-		case TK_MUL:                return NODE_MUL;
-		case TK_MODULUS:            return NODE_MOD;
-		case TK_NOT_EQUALS:         return NODE_NEQ;
-		case TK_EQUALS:             return NODE_EQ;
-		case TK_GREATER_THAN:       return NODE_GT;
-		case TK_GREATER_THAN_EQUAL: return NODE_GTEQ;
-		case TK_LESS_THAN:          return NODE_LT;
-		case TK_LESS_THAN_EQUAL:    return NODE_LTEQ;
-		case TK_LEFT_SHIFT:         return NODE_BSHL;
-		case TK_RIGHT_SHIFT:        return NODE_BSHR;
-		case TK_BIT_XOR:            return NODE_BXOR;
+		case TK_DOT_DOT:            return TREE_RANGE;
+		case TK_LOG_AND:            return TREE_LOG_AND;
+		case TK_LOG_OR:             return TREE_LOG_OR;
+		case TK_ADD:                return TREE_ADD;
+		case TK_SUB:                return TREE_SUB;
+		case TK_DIV:                return TREE_DIV;
+		case TK_MUL:                return TREE_MUL;
+		case TK_MODULUS:            return TREE_MOD;
+		case TK_NOT_EQUALS:         return TREE_NEQ;
+		case TK_EQUALS:             return TREE_EQ;
+		case TK_GREATER_THAN:       return TREE_GT;
+		case TK_GREATER_THAN_EQUAL: return TREE_GTEQ;
+		case TK_LESS_THAN:          return TREE_LT;
+		case TK_LESS_THAN_EQUAL:    return TREE_LTEQ;
+		case TK_LEFT_SHIFT:         return TREE_BSHL;
+		case TK_RIGHT_SHIFT:        return TREE_BSHR;
+		case TK_BIT_XOR:            return TREE_BXOR;
 	}
-	return NODE_NONE;
+	return TREE_NONE;
 }
 
 
-lnodeid langY_loadsubexpr(FileState *fs, int rank) {
-	lnodeid x = langY_loadunary(fs);
-	if (x == NO_NODE) return x;
+ltreeid langY_loadsubexpr(FileState *fs, int rank) {
+	ltreeid x = langY_loadunary(fs);
+	if (x == NO_TREE) return x;
 	for (;;) {
 		int thisrank = langX_tokenintel[fs->tk.type].prec;
 		/* auto breaks when is not a binary operator */
 		if (thisrank <= rank) break;
 		ltoken tk = langX_yield(fs);
-		lnodeid y = langY_loadsubexpr(fs,thisrank);
-		if (y == NO_NODE) break;
-		x = langY_nodexy(fs,tk.line,tonode(tk.type),x,y);
+		ltreeid y = langY_loadsubexpr(fs,thisrank);
+		if (y == NO_TREE) break;
+		x = langY_treexy(fs,tk.line,tktonode(tk.type),x,y);
 	}
 	return x;
 }
 
 
-lnodeid langY_loadfn(FileState *fs) {
+ltreeid langY_loadfn(FileState *fs) {
 
 	ltoken tk = langX_take(fs,TK_FUN);
 
@@ -312,7 +337,7 @@ lnodeid langY_loadfn(FileState *fs) {
 	if (!langX_test(fs,TK_PAREN_RIGHT)) do {
 
 		ltoken n = langX_take(fs,TK_WORD);
-		langY_enrolllocalnode(fs,n.line,(char*)n.s,lfalse);
+		langY_enrolllocaltree(fs,n.line,(char*)n.s,lfalse);
 
 		arity ++;
 	} while (langX_pick(fs,TK_COMMA));
@@ -328,17 +353,18 @@ lnodeid langY_loadfn(FileState *fs) {
 		}
 		langX_take(fs,TK_CURLY_RIGHT);
 	} else {
-		lnodeid x = langY_loadexpr(fs);
+		ltreeid x = langY_loadexpr(fs);
 		langL_yield(fs,tk.line,x);
 	}
 
 	langY_closefn(fs);
 
 	/* add this function to the type table */
-	Proto p = {0};
+	lProto p = {0};
 	p.x = arity;
 	p.y = fn.nyield;
 	p.nlocals = fn.nlocals;
+	p.nstacks = fn.stklen;
 	p.bytes = fn.bytes;
 	p.nbytes  = fs->md->nbytes - fn.bytes;
 	p.ncaches = langA_varlen(fn.caches);
@@ -348,61 +374,61 @@ lnodeid langY_loadfn(FileState *fs) {
 	langL_tieloosej(fs,fj);
 
 	/* todo: */
-	lnodeid *z = lnil;
+	ltreeid *z = lnil;
 	langA_varifor(fn.caches) {
-		lnodeid n = fs->locals[fn.caches[i]].node;
+		ltreeid n = fs->locals[fn.caches[i]].node;
 		langA_varadd(z,n);
 	}
 
-	return langY_nodeF(fs,tk.line,f,z);
+	return langY_treeclosure(fs,tk.line,f,z);
 }
 
 
-lnodeid langY_loadtable(FileState *fs) {
+ltreeid langY_loadtable(FileState *fs) {
 	ltoken tk = fs->tk;
 	langX_take(fs,TK_CURLY_LEFT);
-	lnodeid *z = lnil;
+	ltreeid *z = lnil;
 	if (!langX_test(fs,TK_CURLY_RIGHT)) {
 		do {
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 			if (x == -1) break;
 
 			if (langX_test(fs,TK_ASSIGN)) {
 				tk = langX_yield(fs);
 
-				lnodeid y = langY_loadexpr(fs);
-				x = langY_designode(fs,tk.line,x,y);
+				ltreeid y = langY_loadexpr(fs);
+				x = langY_treedesig(fs,tk.line,x,y);
 			}
 			langA_varadd(z,x);
 		} while(langX_pick(fs,TK_COMMA));
 	}
 	langX_take(fs,TK_CURLY_RIGHT);
-	return langY_nodeH(fs,tk.line,z);
+	return langY_treetable(fs,tk.line,z);
 }
 
 
-lnodeid langY_loadexpr(FileState *fs) {
+ltreeid langY_loadexpr(FileState *fs) {
 	/* todo?: do this in else where? */
 	switch (fs->tk.type) {
 		case TK_NONE:
 		case TK_PAREN_RIGHT:
 		case TK_CURLY_RIGHT:
 		case TK_SQUARE_RIGHT: {
-			return NO_NODE;
+			return NO_TREE;
 		}
 	}
 	return langY_loadsubexpr(fs,0);
 }
 
 
-lnodeid langY_loadunary(FileState *fs) {
-	lnodeid v = - 1;
+ltreeid langY_loadunary(FileState *fs) {
+	ltreeid v = - 1;
 	ltoken tk = fs->tk;
 	switch (tk.type) {
 		case TK_SUB: {
 			langX_yield(fs);
 			v = langY_loadexpr(fs);
-			v = langY_nodexy(fs,tk.line,NODE_SUB,langY_nodeI(fs,tk.line,0),v);
+			v = langY_treexy(fs,tk.line,TREE_SUB,langY_treelongint(fs,tk.line,0),v);
 		} break;
 		case TK_ADD: {
 			langX_yield(fs);
@@ -416,8 +442,8 @@ lnodeid langY_loadunary(FileState *fs) {
 			v = langY_loadexpr(fs);
 			langX_take(fs,TK_PAREN_RIGHT);
 			/* allow for empty () */
-			if (v != NO_NODE) {
-				v = langY_groupnode(fs,tk.line,v);
+			if (v != NO_TREE) {
+				v = langY_treegroup(fs,tk.line,v);
 			}
 		} break;
 		case TK_FUN: {
@@ -426,24 +452,24 @@ lnodeid langY_loadunary(FileState *fs) {
 		case TK_STKGET:
 		case TK_STKLEN: {
 			langX_yield(fs);
-			lnodeid *z = langY_loadcallargs(fs);
-			v = langY_builtinnode(fs,tk.line,tk.type,z);
+			ltreeid *z = langY_loadcallargs(fs);
+			v = langY_treebuiltincall(fs,tk.line,tk.type,z);
 		} break;
 		case TK_LOAD: {
 			langX_yield(fs);
 			v = langY_loadexpr(fs);
-			v = langY_loadfilenode(fs,tk.line,v);
+			v = langY_treeloadfile(fs,tk.line,v);
 		} break;
 		case TK_WORD: {
 			langX_yield(fs);
 
-			v = langY_cacheorlocalnode(fs,tk.line,(char*)tk.s);
+			v = langY_cacheorlocaltree(fs,tk.line,(char*)tk.s);
 
-			if (v == NO_NODE) {
+			if (v == NO_TREE) {
 				/* todo:! gc'd string */
 				lglobalid x = lang_addsymbol(fs->md,langS_new(fs->rt,tk.s));
 				if (x != -1) {
-					v = langY_globalnode(fs,tk.line,x);
+					v = langY_treeglobal(fs,tk.line,x);
 					// langX_error(fs,tk.line,"global");
 				}
 			}
@@ -454,30 +480,30 @@ lnodeid langY_loadunary(FileState *fs) {
 		} break;
 		case TK_NIL: {
 			langX_yield(fs);
-			v = langY_nodeZ(fs,tk.line);
+			v = langY_treenil(fs,tk.line);
 		} break;
 		case TK_TRUE: {
 			/* todo: maybe use proper boolean node? */
 			langX_yield(fs);
-			v = langY_nodeI(fs,tk.line,1);
+			v = langY_treelongint(fs,tk.line,1);
 		} break;
 		case TK_FALSE: {
 			/* todo: maybe use proper boolean node? */
 			langX_yield(fs);
-			v = langY_nodeI(fs,tk.line,0);
+			v = langY_treelongint(fs,tk.line,0);
 		} break;
 		case TK_LETTER:
 		case TK_INTEGER: {
 			langX_yield(fs);
-			v = langY_nodeI(fs,tk.line,tk.i);
+			v = langY_treelongint(fs,tk.line,tk.i);
 		} break;
 		case TK_NUMBER: {
 			langX_yield(fs);
-			v = langY_nodeN(fs,tk.line,tk.n);
+			v = langY_treenumber(fs,tk.line,tk.n);
 		} break;
 		case TK_STRING: {
 			langX_yield(fs);
-			v = langY_nodeS(fs,tk.line,(char*) tk.s);
+			v = langY_treeString(fs,tk.line,(char*) tk.s);
 		} break;
 		default: {
 			langX_error(fs,tk.line,"'%s': unexpected token", langX_tokenintel[tk.type].name);
@@ -492,34 +518,34 @@ lnodeid langY_loadunary(FileState *fs) {
 			case TK_DOT: {
 				langX_yield(fs);
 				ltoken n = langX_take(fs,TK_WORD);
-				lnodeid i = langY_nodeS(fs,n.line,(char*) n.s);
-				v = langY_fieldnode(fs,tk.line,v,i);
+				ltreeid i = langY_treeString(fs,n.line,(char*) n.s);
+				v = langY_treefield(fs,tk.line,v,i);
 			} break;
 			// {x} . [ {x} ]
 			case TK_SQUARE_LEFT: {
 				langX_take(fs,TK_SQUARE_LEFT);
-				lnodeid i = langY_loadexpr(fs);
+				ltreeid i = langY_loadexpr(fs);
 				langX_take(fs,TK_SQUARE_RIGHT);
-				if (fs->nodes[i].k == NODE_RANGE_INDEX) {
-					LNOCHANCE;
+				if (fs->nodes[i].k == TREE_RANGE_INDEX) {
+					LNOBRANCH;
 				} else
-				if (fs->nodes[i].k == NODE_RANGE) {
-					v = langY_rangeindexnode(fs,tk.line,v,i);
+				if (fs->nodes[i].k == TREE_RANGE) {
+					v = langY_treerangedindex(fs,tk.line,v,i);
 				} else {
-					v = langY_indexnode(fs,tk.line,v,i);
+					v = langY_treeindex(fs,tk.line,v,i);
 				}
 			} break;
 			/* {x} : {x} () */
 			case TK_COLON: {
 				langX_take(fs,TK_COLON);
 				ltoken n = langX_take(fs,TK_WORD);
-				lnodeid y = langY_nodeS(fs,n.line,(char*) n.s);
-				lnodeid *z = langY_loadcallargs(fs);
-				v = langY_metacallnode(fs,tk.line,v,y,z);
+				ltreeid y = langY_treeString(fs,n.line,(char*) n.s);
+				ltreeid *z = langY_loadcallargs(fs);
+				v = langY_treemetacall(fs,tk.line,v,y,z);
 			} break;
 			case TK_PAREN_LEFT: {
-				lnodeid *z = langY_loadcallargs(fs);
-				v = langY_callnode(fs,tk.line,v,z);
+				ltreeid *z = langY_loadcallargs(fs);
+				v = langY_treecall(fs,tk.line,v,z);
 			} break;
 			default: goto leave;
 		}
@@ -532,7 +558,6 @@ lnodeid langY_loadunary(FileState *fs) {
 
 /* todo: make this legit */
 void langY_loadenumlist(FileState *fs) {
-	llong nextvalue = 0;
 	if (!langX_test(fs,TK_CURLY_RIGHT)) {
 		do {
 			/* , } */
@@ -541,14 +566,9 @@ void langY_loadenumlist(FileState *fs) {
 			}
 			ltoken tk = fs->tk;
 			ltoken n = langX_take(fs,TK_WORD);
-			lnodeid x = langY_enrolllocalnode(fs,n.line,(char*)n.s,ltrue);
-			llong l = nextvalue;
-			if (langX_pick(fs,TK_ASSIGN)) {
-				tk = fs->tk;
-				ltoken v = langX_take(fs,TK_INTEGER);
-				l = v.i;
-			} else nextvalue ++;
-			lnodeid y = langY_nodeI(fs,tk.line,l);
+			ltreeid x = langY_enrolllocaltree(fs,n.line,(char*)n.s,ltrue);
+			langX_take(fs,TK_ASSIGN);
+			ltreeid y = langY_loadexpr(fs);
 			langL_loadinto(fs,tk.line,x,y);
 		} while(langX_pick(fs,TK_COMMA));
 	}
@@ -563,7 +583,7 @@ void langY_loadstat(FileState *fs) {
 		} break;
 		case TK_LEAVE: {
 			ltoken tk = langX_yield(fs);
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 			langL_yield(fs,tk.line,x);
 		} break;
 		case TK_CURLY_LEFT: {
@@ -586,7 +606,7 @@ void langY_loadstat(FileState *fs) {
 		} break;
 		case TK_WHILE: {
 			ltoken tk = langX_take(fs,TK_WHILE);
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 			langX_take(fs,TK_QMARK);
 			Loop loop = {0};
 			langL_beginwhile(fs,tk.line,&loop,x);
@@ -599,14 +619,14 @@ void langY_loadstat(FileState *fs) {
 			langL_begindowhile(fs,tk.line,&loop);
 			langY_loadstat(fs);
 			langX_take(fs,TK_WHILE);
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 			langL_closedowhile(fs,tk.line,&loop,x);
 		} break;
 		case TK_FOR: {
 			ltoken tk = langX_take(fs,TK_FOR);
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 			langX_take(fs,TK_IN);
-			lnodeid y = langY_loadexpr(fs);
+			ltreeid y = langY_loadexpr(fs);
 			langX_take(fs,TK_QMARK);
 
 			Loop loop = {0};
@@ -617,7 +637,7 @@ void langY_loadstat(FileState *fs) {
 		case TK_IF:
 		case TK_IFF: {
 			ltoken tk = langX_yield(fs);
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 			langX_take(fs,TK_QMARK);
 			Select s = {0};
 			langL_beginif(fs,tk.line,&s,x
@@ -662,23 +682,23 @@ void langY_loadstat(FileState *fs) {
 				langX_take(fs,TK_CURLY_RIGHT);
 			} else {
 				ltoken n = langX_take(fs,TK_WORD);
-				lnodeid x = langY_enrolllocalnode(fs,n.line,(char*)n.s,enm);
+				ltreeid x = langY_enrolllocaltree(fs,n.line,(char*)n.s,enm);
 				if (langX_pick(fs,TK_ASSIGN)) {
 					tk = fs->lasttk;
-					lnodeid y = langY_loadexpr(fs);
+					ltreeid y = langY_loadexpr(fs);
 					langL_loadinto(fs,tk.line,x,y);
 				}
 			}
 
 		} break;
 		default: {
-			lnodeid x = langY_loadexpr(fs);
+			ltreeid x = langY_loadexpr(fs);
 
 			ltoken tk = fs->tk;
 			if (langX_pick(fs,TK_ASSIGN_QUESTION)) {
 				langY_checkassign(fs,tk.line,x);
-				lnodeid c = langY_nodexy(fs,tk.line,NODE_EQ,x,langY_nodeZ(fs,tk.line));
-				lnodeid y = langY_loadexpr(fs);
+				ltreeid c = langY_treexy(fs,tk.line,TREE_EQ,x,langY_treenil(fs,tk.line));
+				ltreeid y = langY_loadexpr(fs);
 				ljlist js = {0};
 				langL_jumpiffalse(fs,&js,c);
 				langL_tieloosejs(fs,js.t);
@@ -687,7 +707,7 @@ void langY_loadstat(FileState *fs) {
 			} else
 			if (langX_pick(fs,TK_ASSIGN)) {
 				langY_checkassign(fs,tk.line,x);
-				lnodeid y = langY_loadexpr(fs);
+				ltreeid y = langY_loadexpr(fs);
 				langL_loadinto(fs,tk.line,x,y);
 			} else {
 				langL_loaddrop(fs,lnil,x);

@@ -5,10 +5,10 @@
 */
 
 
-lapi void *sys_valloc(llong length);
+lapi void *sys_valloc(llongint length);
 
-lapi llong sys_clockhz();
-lapi llong sys_clocktime();
+lapi llongint sys_clockhz();
+lapi llongint sys_clocktime();
 
 lapi int sys_getmyname(int length, char *buffer);
 
@@ -23,7 +23,7 @@ lapi Handle sys_loadlib(char const *name);
 lapi void *sys_libfn(Handle lib, char const *name);
 
 lapi Error sys_loadfilebytes(Alloc *allocator, void **lppOut, char const *fileName);
-lapi Error sys_savefilebytes(char const *buffer, llong length, char const *fileName);
+lapi Error sys_savefilebytes(char const *buffer, llongint length, char const *fileName);
 
 lapi int sys_getlasterror();
 lapi void sys_geterrormsg(int error, char *buff, int len);

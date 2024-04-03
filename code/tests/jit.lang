@@ -1,0 +1,15 @@
+
+let enum xorshift = fun(x) ? {
+	x = x + x;
+	x = x ^ x << 13
+	x = x ^ x >> 7
+	x = x ^ x << 17
+	leave x
+}
+pf("xor: ", xorshift(5280))
+
+/* clearly this is not how you do jitting,
+we don't even know the types of anything */
+let enum xorshiftjit = jit(xorshift)
+
+

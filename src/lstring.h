@@ -16,12 +16,12 @@ typedef struct lString {
 } lString;
 
 
-lString *langS_new(Runtime *fs, char const *contents);
+lString *langS_new(lRuntime *fs, char const *contents);
 
 
-int langS_length_(Runtime *c);
-int langS_match_(Runtime *c);
-int langS_hash_(Runtime *c);
+int langS_length_(lRuntime *c);
+int langS_match_(lRuntime *c);
+int langS_hash_(lRuntime *c);
 
 
 lbool S_match(char *p, char *s);

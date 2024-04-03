@@ -5,7 +5,7 @@
 */
 
 
-Table *langH_new2(Runtime *fs, llong ntotal) {
+Table *langH_new2(lRuntime *fs, llongint ntotal) {
 	/* todo: we could make this system a a bit more
 	efficient by storing all methods in a single
 	hash table, then we would have to assign each
@@ -22,7 +22,7 @@ Table *langH_new2(Runtime *fs, llong ntotal) {
 	Table *table = langGC_allocobj(fs,OBJ_TABLE,sizeof(Table));
 	table->obj._m = _m;
 	table->obj._n = _countof(_m);
-	// lang_loginfo("'%llx': created new table",(llong)table);
+	// lang_loginfo("'%llx': created new table",(llongint)table);
 
 	table->ntotal = ntotal;
 	table->nslots = 0;
@@ -31,7 +31,7 @@ Table *langH_new2(Runtime *fs, llong ntotal) {
 }
 
 
-Table *langH_new(Runtime *fs) {
+Table *langH_new(lRuntime *fs) {
 	return langH_new2(fs,4);
 }
 
@@ -56,7 +56,7 @@ void langH_free(Table *t) {
 ** result to modify the slot and value as desired.
 **
 */
-llong langH_hashin(Table *table, lValue k) {
+llongint langH_hashin(Table *table, lValue k) {
 	/* This particular function uses double hashing,
 	which should allow us to get more resolution out
 	of the hash value, the first hash computes the
@@ -68,10 +68,10 @@ llong langH_hashin(Table *table, lValue k) {
 	than linear probing. Of course, this is already
 	well known... */
 	HashSlot *slots = table->slots;
-	llong ntotal = table->ntotal;
-	llong hash = langH_hashvalue(k);
-	llong head = hash % ntotal;
-	llong tail = head;
+	llongint ntotal = table->ntotal;
+	llongint hash = langH_hashvalue(k);
+	llongint head = hash % ntotal;
+	llongint tail = head;
 	lhashid walk = langH_rehash(hash)|1;
 	do {
 		lValue x = slots[tail].k;
@@ -84,22 +84,22 @@ llong langH_hashin(Table *table, lValue k) {
 }
 
 
-llong langH_slot2index(Table *table, llong slot) {
+llongint langH_slot2index(Table *table, llongint slot) {
 	return table->slots[slot].i;
 }
 
 
-lValue langH_slot2value(Table *table, llong slot) {
+lValue langH_slot2value(Table *table, llongint slot) {
 	return table->v[table->slots[slot].i];
 }
 
 
-lbool langH_slotiskey(Table *table, llong slot) {
+lbool langH_slotiskey(Table *table, llongint slot) {
 	return slot >= 0 && table->slots[slot].k.tag != VALUE_NONE;
 }
 
 
-void langH_slotsetkeyval(Table *table, llong slot, lValue k, llong i) {
+void langH_slotsetkeyval(Table *table, llongint slot, lValue k, llongint i) {
 	table->slots[slot].k = k;
 	table->slots[slot].i = i;
 }
@@ -114,16 +114,16 @@ void langH_checkthreshold(Table *table) {
 		the table size >> 1 << 2 */
 		Table newtable = * table;
 		newtable.ntotal = table->ntotal << 2;
-		if (newtable.ntotal < table->ntotal) LNOCHANCE;
+		if (newtable.ntotal < table->ntotal) LNOBRANCH;
 		newtable.slots = langM_clearalloc(lHEAP,newtable.ntotal * sizeof(HashSlot));
 
 		for (int i = 0; i < table->ntotal; ++ i) {
 			HashSlot slot = table->slots[i];
 			if (slot.k.tag == VALUE_NONE) continue;
 
-			llong newslot = langH_hashin(&newtable,slot.k);
+			llongint newslot = langH_hashin(&newtable,slot.k);
 
-			if (newslot == -1) LNOCHANCE;
+			if (newslot == -1) LNOBRANCH;
 
 			newtable.slots[newslot] = slot;
 		}
@@ -138,11 +138,11 @@ void langH_checkthreshold(Table *table) {
 
 void langH_insert(Table *table, lValue k, lValue v) {
 	langH_checkthreshold(table);
-	llong slot = langH_hashin(table,k);
-	if (slot == -1) LNOCHANCE;
+	llongint slot = langH_hashin(table,k);
+	if (slot == -1) LNOBRANCH;
 	HashSlot *entry = table->slots + slot;
 	if (!langH_slotiskey(table,slot)) {
-		llong i = langA_variadd(table->v,1);
+		llongint i = langA_variadd(table->v,1);
 		table->v[i] = v;
 
 		table->slots[slot].k = k;
@@ -155,8 +155,8 @@ void langH_insert(Table *table, lValue k, lValue v) {
 
 
 lValue langH_lookup(Table *table, lValue k) {
-	llong slot = langH_hashin(table,k);
-	if (slot == -1) LNOCHANCE;
+	llongint slot = langH_hashin(table,k);
+	if (slot == -1) LNOBRANCH;
 	if (langH_slotiskey(table,slot)) {
 		return langH_slot2value(table,slot);
 	}
@@ -164,14 +164,14 @@ lValue langH_lookup(Table *table, lValue k) {
 }
 
 
-llong langH_take(Table *table, lValue k) {
-	LASSERT((k.tag == VALUE_LONG || k.tag == VALUE_REAL) || k.s != 0);
+llongint langH_take(Table *table, lValue k) {
+	LASSERT((k.tag == TAG_INTEGER || k.tag == TAG_NUMBER) || k.s != 0);
 
 	langH_checkthreshold(table);
-	llong slot = langH_hashin(table,k);
-	if (slot == -1) LNOCHANCE;
+	llongint slot = langH_hashin(table,k);
+	if (slot == -1) LNOBRANCH;
 	if (!langH_slotiskey(table,slot)) {
-		llong i = langA_variadd(table->v,1);
+		llongint i = langA_variadd(table->v,1);
 		table->v[i] = (lValue){VALUE_NONE};
 
 		table->slots[slot].k = k;
@@ -182,7 +182,7 @@ llong langH_take(Table *table, lValue k) {
 }
 
 
-llong langH_iadd(Table *table, lValue v) {
+llongint langH_iadd(Table *table, lValue v) {
 	return langA_variadd(table->v,1);
 }
 
@@ -195,13 +195,13 @@ void langH_add(Table *table, lValue v) {
 /*
 ** Meta Methods:
 */
-int langH_length_(Runtime *c) {
+int langH_length_(lRuntime *c) {
 	lang_pushlong(c,langA_varlen(((Table*)c->f->obj)->v));
 	return 1;
 }
 
 
-int langH_haskey_(Runtime *c) {
+int langH_haskey_(lRuntime *c) {
 	LASSERT(c->f->x == 1);
 	Table *table = (Table*) c->f->obj;
 	lValue k = lang_load(c,0);
@@ -210,7 +210,7 @@ int langH_haskey_(Runtime *c) {
 }
 
 
-int langH_lookup_(Runtime *c) {
+int langH_lookup_(lRuntime *c) {
 	LASSERT(c->f->x == 1);
 	lValue k = lang_load(c,0);
 	Table *table = (Table*) c->f->obj;
@@ -219,14 +219,14 @@ int langH_lookup_(Runtime *c) {
 }
 
 
-int langH_collisions_(Runtime *c) {
+int langH_collisions_(lRuntime *c) {
 	Table *table = (Table*) c->f->obj;
 	lang_pushlong(c,table->ncollisions);
 	return 1;
 }
 
 
-int langH_insert_(Runtime *c) {
+int langH_insert_(lRuntime *c) {
 	int n = c->f->x;
 
 	LASSERT(n >= 1 && n <= 2);
@@ -242,7 +242,7 @@ int langH_insert_(Runtime *c) {
 }
 
 
-int langH_foreach_(Runtime *c) {
+int langH_foreach_(lRuntime *c) {
 	LASSERT(c->f->x == 1);
 	LASSERT(lang_load(c,0).tag == VALUE_FUNC);
 
@@ -292,7 +292,7 @@ lhashid langH_hashS(char *bytes) {
 
 lhashid langH_hashPtr(Ptr *p) {
    // typically lacking in low bits and high bits
-	lhashid hash = langH_rehash((lhashid)(llong)p);
+	lhashid hash = langH_rehash((lhashid)(llongint)p);
 	hash += hash << 16;
 
    // pearson's shuffle
@@ -314,8 +314,8 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 		case VALUE_STRING: {
 			return langS_eq(x->s,y->s);
 		}
-		case VALUE_LONG:
-		case VALUE_REAL:
+		case TAG_INTEGER:
+		case TAG_NUMBER:
 		case VALUE_TABLE:
 		case VALUE_FUNC:
 		case VALUE_BINDING: {
@@ -323,31 +323,31 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 		}
 	}
 
-	LNOCHANCE;
+	LNOBRANCH;
 	return lfalse;
 }
 
 
-llong langH_hashvalue(lValue v) {
+llongint langH_hashvalue(lValue v) {
 	switch (v.tag) {
 		case VALUE_STRING: {
 			return v.s->hash;
 		}
-		case VALUE_REAL:
+		case TAG_NUMBER:
 		case VALUE_TABLE:
 		case VALUE_FUNC:
 		case VALUE_BINDING:
-		case VALUE_LONG: {
+		case TAG_INTEGER: {
 			return langH_hashPtr(v.p);
 		}
 	}
-	LNOCHANCE;
+	LNOBRANCH;
 	return lfalse;
 }
 
 
 #if 0
-void langH_mergesort_(Table *h, int level, llong x, llong z, Proto *fn) {
+void langH_mergesort_(Table *h, int level, llongint x, llongint z, lProto *fn) {
 
 	if (z-x <= 1) return;
 
@@ -376,7 +376,7 @@ void langH_mergesort_(Table *h, int level, llong x, llong z, Proto *fn) {
 
 		int r = lang_callargs(c,fn,2,a,b);
 		lValue vr = pop();
-		LASSERT(vr.tag == VALUE_LONG);
+		LASSERT(vr.tag == TAG_INTEGER);
 
 		if (vr.i) {
 			lValue t = h[x+i];
@@ -385,7 +385,7 @@ void langH_mergesort_(Table *h, int level, llong x, llong z, Proto *fn) {
 		}
 	}
 }
-int langH_sort_(Runtime *c) {
+int langH_sort_(lRuntime *c) {
 
 }
 

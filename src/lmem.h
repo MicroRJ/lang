@@ -17,10 +17,10 @@ typedef struct Alloc Alloc;
 #define GIGABYTES(x) ((x)*1024llu*1024llu*1024llu)
 
 
-#define ALLOCFN(NAME) Error NAME (Alloc *allocator, int flags, llong oldSize, llong newSize, void **oldAndNewMemory, ldebugloc loca)
+#define ALLOCFN(NAME) Error NAME (Alloc *allocator, int flags, llongint oldSize, llongint newSize, void **oldAndNewMemory, ldebugloc loca)
 
 
-typedef Error (* AllocFn)(Alloc *allocator, int flags, llong oldSize, llong newSize, void **oldAndNewMemory, ldebugloc loca);
+typedef Error (* AllocFn)(Alloc *allocator, int flags, llongint oldSize, llongint newSize, void **oldAndNewMemory, ldebugloc loca);
 
 
 typedef struct Alloc {
@@ -36,21 +36,21 @@ typedef struct MemBlock {
 	MemBlock *then;
 	ldebugloc loca;
 	ldebugloc freeloca;
-	llong contentssize;
+	llongint contentssize;
 	unsigned int foottrap;
 } MemBlock;
 #endif
 
 
 void langM_debugdealloc(void *mem, ldebugloc loca);
-void *langM_debugrealloc(void *mem, llong contentssize, ldebugloc loca);
-void *langM_debugalloc(llong contentssize, ldebugloc loca);
+void *langM_debugrealloc(void *mem, llongint contentssize, ldebugloc loca);
+void *langM_debugalloc(llongint contentssize, ldebugloc loca);
 
 
 lapi void langM_dealloc_(Alloc *allocator, void const *memory, ldebugloc loca);
-lapi void *langM_realloc_(Alloc *allocator, llong size, void *memory, ldebugloc loca);
-lapi void *langM_alloc_(Alloc *allocator, llong size, ldebugloc loca);
-lapi void *langM_clearalloc_(Alloc *allocator, llong size, ldebugloc loca);
+lapi void *langM_realloc_(Alloc *allocator, llongint size, void *memory, ldebugloc loca);
+lapi void *langM_alloc_(Alloc *allocator, llongint size, ldebugloc loca);
+lapi void *langM_clearalloc_(Alloc *allocator, llongint size, ldebugloc loca);
 
 
 #define langM_dealloc(cator,mem) langM_dealloc_(cator,mem,LHERE)

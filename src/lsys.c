@@ -20,21 +20,21 @@ lapi void sys_geterrormsg(int error, char *buff, int len) {
 }
 
 
-lapi void *sys_valloc(llong length) {
+lapi void *sys_valloc(llongint length) {
 #if defined(_WIN32)
 	return VirtualAlloc(NULL,length,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
 #endif
 }
 
 
-lapi void sys_sleep(llong ms) {
+lapi void sys_sleep(llongint ms) {
 #if defined(_WIN32)
 	Sleep((DWORD) ms);
 #endif
 }
 
 
-lapi llong sys_clockhz() {
+lapi llongint sys_clockhz() {
 #if defined(_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceFrequency(&largeInt);
@@ -43,7 +43,7 @@ lapi llong sys_clockhz() {
 }
 
 
-lapi llong sys_clocktime() {
+lapi llongint sys_clocktime() {
 #if defined(_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceCounter(&largeInt);
@@ -167,7 +167,7 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 }
 
 
-lapi Error sys_savefilebytes(char const *buffer, llong length, char const *fileName) {
+lapi Error sys_savefilebytes(char const *buffer, llongint length, char const *fileName) {
 
 	FILE *file;
 	fopen_s(&file,fileName,"wb");
@@ -177,7 +177,7 @@ lapi Error sys_savefilebytes(char const *buffer, llong length, char const *fileN
 	}
 
 	Error error = Error_None;
-	llong lengthWritten = fwrite(buffer, 1, length, file);
+	llongint lengthWritten = fwrite(buffer, 1, length, file);
 
 	if (lengthWritten != length) {
 		error = Error_CouldNotWriteEntireFile;

@@ -1,10 +1,9 @@
 /*
-**
-** Copyright(c) 2023 - Dayan Rodriguez - Dyr
-**
-** -+- elang -+-
-**
+** See Copyright Notice In lang.h
+** llexer.c
+** Lexical Analyzer
 */
+
 
 
 lbool langX_islineend(char x) {
@@ -174,7 +173,7 @@ ltoken langX_yield(FileState *file) {
 		case '5':case '6':case '7':case '8':case '9': {
 			tk.type = TK_INTEGER;
 
-			llong base = 10;
+			llongint base = 10;
 			if (thischr() == '0') {
 				if (thenchr() == 'x') {
 					movechr();
@@ -183,7 +182,7 @@ ltoken langX_yield(FileState *file) {
 				}
 			}
 
-			llong i = 0;
+			llongint i = 0;
 			if (base == 10) {
 				do {
 					i = i * 10 + (movechr() - '0');

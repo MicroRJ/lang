@@ -8,6 +8,8 @@
 
 #pragma warning(push)
 #pragma warning(disable:4100)
+#pragma warning(disable:4245)
+#pragma warning(disable:4057)
 #pragma warning(disable:4189)
 #pragma warning(disable:4201)
 #pragma warning(disable:4244)
@@ -53,7 +55,7 @@
 #define lnil ("nil",(Ptr)(0))
 
 
-typedef struct Runtime Runtime;
+typedef struct lRuntime lRuntime;
 typedef struct FileState FileState;
 typedef struct Table Table;
 typedef struct lString lString;
@@ -76,7 +78,7 @@ typedef struct lClosure lClosure;
 #include <src/lstring.h>
 #include <src/larray.h>
 #include <src/ltable.h>
-#include <src/lnode.h>
+#include <src/ltree.h>
 #include <src/lcode.h>
 #include <src/lfile.h>
 
@@ -104,7 +106,7 @@ typedef struct lClosure lClosure;
 #include <src/ltable.c>
 #include <src/lfunc.c>
 #include <src/llexer.c>
-#include <src/lnode.c>
+#include <src/ltree.c>
 #include <src/lcode.c>
 #include <src/lfile.c>
 #include <src/ltest.c>
@@ -112,13 +114,15 @@ typedef struct lClosure lClosure;
 #include <src/lcrtlib.c>
 #include <src/lruntime.c>
 
+/* todo: build this separately */
+#include <src/ljitlib.c>
 
-llong lang_clocktime() {
+llongint lang_clocktime() {
 	return sys_clocktime();
 }
 
 
-lnumber lang_timediffs(llong begin) {
+lnumber lang_timediffs(llongint begin) {
 	/* todo: clockhz can be cached */
 	return (sys_clocktime() - begin) / (lnumber) sys_clockhz();
 }

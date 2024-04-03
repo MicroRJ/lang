@@ -4,17 +4,17 @@
 ** Garbage Collector
 */
 
-#define L_GC_THRESHOLD (llong) (8192)
+#define L_GC_THRESHOLD (llongint) (8192)
 
-void langGC_collect(Runtime *fs);
+void langGC_collect(lRuntime *fs);
 
 
-void langGC_pause(Runtime *fs) {
+void langGC_pause(lRuntime *fs) {
 	fs->isgcpaused = ltrue;
 }
 
 
-void langGC_unpause(Runtime *fs) {
+void langGC_unpause(lRuntime *fs) {
 	fs->isgcpaused = lfalse;
 }
 
@@ -29,7 +29,7 @@ void langGC_markwhite(lObject *obj) {
 }
 
 
-void *langGC_allocobj(Runtime *rt, ObjectType type, llong length) {
+void *langGC_allocobj(lRuntime *rt, ObjectType type, llongint length) {
 	if (rt != 0) {
 		if (!rt->isgcpaused) {
 			if (rt->gcthreshold <= 0) {
@@ -53,17 +53,17 @@ void *langGC_allocobj(Runtime *rt, ObjectType type, llong length) {
 }
 
 
-void langGC_remobj(Runtime *fs, llong i) {
+void langGC_remobj(lRuntime *fs, llongint i) {
 	lObject **gc = fs->gc;
 	if (gc == 0) return;
-	llong n = langA_varlen(gc);
+	llongint n = langA_varlen(gc);
 	LASSERT(i >= 0 && i < n);
 	gc[i] = gc[n-1];
 	((Array*)(gc))[-1].min --;
 }
 
 
-lbool ttisobj(ValueName tag) {
+lbool ttisobj(lvaluetag tag) {
 	if (tag == VALUE_STRING) return ltrue;
 	if (tag == VALUE_TABLE) return ltrue;
 	if (tag == VALUE_FUNC) return ltrue;
@@ -72,13 +72,13 @@ lbool ttisobj(ValueName tag) {
 }
 
 
-ValueName ttobj2val(ObjectType type) {
+lvaluetag ttobj2val(ObjectType type) {
 	switch(type) {
 		case OBJ_CLOSURE: return VALUE_FUNC;
 		case OBJ_TABLE: return VALUE_TABLE;
 		case OBJ_STRING: return VALUE_STRING;
 	}
-	LNOCHANCE;
+	LNOBRANCH;
 	return -1;
 }
 
@@ -99,7 +99,7 @@ void langGC_deallocvalue(lValue v) {
 
 
 lbool langGC_markvalue(lValue *v);
-llong langGC_marktable(Table *table);
+llongint langGC_marktable(Table *table);
 
 
 int langGC_markclosure(lClosure *cl) {
@@ -112,8 +112,8 @@ int langGC_markclosure(lClosure *cl) {
 }
 
 
-llong langGC_marktable(Table *table) {
-	llong n = 0, k = 0;
+llongint langGC_marktable(Table *table) {
+	llongint n = 0, k = 0;
 	for (k=0; k<table->ntotal; ++k) {
 		n += langGC_markvalue(&table->slots[k].k);
 	}
@@ -152,9 +152,9 @@ lbool langGC_markvalue(lValue *v) {
 }
 
 
-llong langGC_mark(Runtime *fs) {
+llongint langGC_mark(lRuntime *fs) {
 	/* mark global table first */
-	llong n = langGC_marktable(fs->md->g);
+	llongint n = langGC_marktable(fs->md->g);
 	lValue *v;
 	for (v = fs->s; v < fs->v; ++ v) {
 		n += langGC_markvalue(v);
@@ -163,12 +163,12 @@ llong langGC_mark(Runtime *fs) {
 }
 
 
-void langGC_collect(Runtime *fs) {
-	llong n = langGC_mark(fs);
+void langGC_collect(lRuntime *fs) {
+	llongint n = langGC_mark(fs);
 	(void) n;
 	lang_loginfo("marked: %lli/%lli",langA_varlen(fs->gc),n);
 
-	llong d = 0;
+	llongint d = 0;
 	langA_varifor(fs->gc) {
 		lObject *it = fs->gc[i];
 		if (it == 0) continue;

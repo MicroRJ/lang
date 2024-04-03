@@ -38,9 +38,9 @@ void lang_assertfn(ldebugloc ind, char const *name, lbool expr);
 #endif
 
 
-#if !defined(LNOCHANCE)
-	#define LNOCHANCE do {\
-		printf("You've Hit A Roadblock\n");\
+#if !defined(LNOBRANCH)
+	#define LNOBRANCH do {\
+		printf("%s[%i] %s(): You've Hit A Roadblock\n",__FILE__,__LINE__,__func__);\
 		__debugbreak();\
 	} while (0)
 #endif

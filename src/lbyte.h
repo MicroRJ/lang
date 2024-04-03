@@ -5,10 +5,14 @@
 */
 
 
+typedef enum lbyteclass {
+	BYTE_CLASS_I,
+	BYTE_CLASS_XY,
+} lbyteclass;
 
 
-typedef enum ByteName {
-
+typedef enum lbyteop {
+	BYTE_HALT = 0,
 	BYTE_J,
 	BYTE_JZ,
 	BYTE_JNZ,
@@ -27,6 +31,12 @@ typedef enum ByteName {
 
 	BYTE_DROP,
 	BYTE_DUPL,
+
+	/* x, y */
+	BYTE_LOADNUM,
+	BYTE_LOADINT,
+	BYTE_LOADNIL,
+	/* -- todo: deprecated */
 	BYTE_NUM,
 	BYTE_INT,
 	BYTE_NIL,
@@ -36,6 +46,7 @@ typedef enum ByteName {
 
 	BYTE_CALL,
 	BYTE_METACALL,
+	BYTE_TABLECALL,
 
 	BYTE_STKGET,
 	BYTE_STKLEN,
@@ -69,28 +80,42 @@ typedef enum ByteName {
 	BYTE_SHL,
 	BYTE_SHR,
 	BYTE_XOR,
-} ByteName;
+} lbyteop;
 
 
-/* todo: eventually this will be made more
+/* -- todo: eventually this will be made more
 compact, since this language is meant be
 simple, for teaching, and fast prototyping,
 I'm not worrying too much about it...
 though it would help performance quite a bit... */
-typedef struct Bytecode {
-	ByteName k;
+typedef struct lBytecode {
+	lbyteop k;
 	union {
-		llong  i;
+		llongint  i;
 		struct {
 			int x,y;
 		};
 	};
-} Bytecode;
+} lBytecode;
 
 
-
-char const *lang_bytename(ByteName k) {
+lbyteclass lang_byteclass(lbyteop k) {
 	switch (k) {
+		case BYTE_CALL:
+		case BYTE_LOCAL:
+		case BYTE_YIELD:
+		case BYTE_METACALL:
+		case BYTE_LOADFILE: {
+			return BYTE_CLASS_XY;
+		}
+	}
+	return BYTE_CLASS_I;
+}
+
+
+char const *lang_bytename(lbyteop k) {
+	switch (k) {
+		case BYTE_NUM: return "num";
 		case BYTE_STKGET: return "stkget";
 		case BYTE_STKLEN: return "stklen";
 		case BYTE_LEAVE: return "leave";
@@ -122,12 +147,17 @@ char const *lang_bytename(ByteName k) {
 		case BYTE_MUL: return "mul";
 		case BYTE_MOD: return "mod";
 		case BYTE_LT: return "lt";
+		case BYTE_LTEQ: return "lteq";
 		case BYTE_NEQ: return "neq";
 		case BYTE_EQ: return "eq";
 		case BYTE_DELAY: return "delay";
 		case BYTE_LOADFILE: return "loadfile";
 		case BYTE_LOADCLIB: return "loadclib";
+
+		case BYTE_SHL: return "shl";
+		case BYTE_SHR: return "shr";
+		case BYTE_XOR: return "xor";
 	}
-	LNOCHANCE;
-	return 0;
+	return "???";
 }
+

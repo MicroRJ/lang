@@ -5,19 +5,19 @@
 */
 
 
-void sets(Runtime *c, Table *table, char const *k) {
+void sets(lRuntime *c, Table *table, char const *k) {
 	langH_insert(table,lang_S(langS_new(c,k)),* -- c->v);
 }
 
 
-int testlib_logging(Runtime *c) {
-	llong logging = lang_loadlong(c,0);
+int testlib_logging(lRuntime *c) {
+	llongint logging = lang_loadlong(c,0);
 	c->logging = logging;
 	return 0;
 }
 
 
-int testlib_debugbreak(Runtime *c) {
+int testlib_debugbreak(lRuntime *c) {
 	__debugbreak();
 	return 0;
 }
@@ -38,16 +38,16 @@ void strcatf(char *buffer, char *fmt, ...) {
 }
 
 
-int testlib_disasm(Runtime *c) {
+int testlib_disasm(lRuntime *c) {
 	lModule *md = c->md;
 	lClosure *cl = lang_loadcl(c,0);
-	Proto p = cl->fn;
+	lProto p = cl->fn;
 	char file[BUFFER];
 	langM_clear(file,sizeof(file));
 	int j;
 	for (j = 0; j < p.nbytes; ++j) {
 		if (j != 0) strcatf(file,"\n");
-		Bytecode b = md->bytes[p.bytes+j];
+		lBytecode b = md->bytes[p.bytes+j];
 		switch (b.k) {
 			case BYTE_LOADFILE:
 			case BYTE_METACALL:
@@ -64,38 +64,38 @@ int testlib_disasm(Runtime *c) {
 }
 
 
-int testlib_absslot(Runtime *c) {
+int testlib_absslot(lRuntime *c) {
 	llocalid slot = lang_loadlong(c,0);
 	lang_pushvalue(c,c->s[slot]);
 	return 1;
 }
 
 
-int testlib_absslotid(Runtime *c) {
+int testlib_absslotid(lRuntime *c) {
 	lang_pushlong(c,c->v-c->s);
 	return 1;
 }
 
 
-int testlib_pc(Runtime *c) {
+int testlib_pc(lRuntime *c) {
 	lang_pushlong(c,c->f->j);
 	return 1;
 }
 
 
-int testlib_gcpause(Runtime *c) {
+int testlib_gcpause(lRuntime *c) {
 	langGC_pause(c);
 	return 0;
 }
 
 
-int testlib_gcunpause(Runtime *c) {
+int testlib_gcunpause(lRuntime *c) {
 	langGC_unpause(c);
 	return 0;
 }
 
 
-int testlib_gc(Runtime *c) {
+int testlib_gc(lRuntime *c) {
 	langGC_collect(c);
 	return 0;
 }
@@ -111,7 +111,7 @@ int _gidof(lModule *fs, lObject *j) {
 }
 
 
-int _gtable(Runtime *c) {
+int _gtable(lRuntime *c) {
 	lang_pushtable(c,c->md->g);
 	return 1;
 }
@@ -126,7 +126,7 @@ char *gccolor2s(GCColor c) {
 }
 
 
-void tstlib_load(Runtime *rt) {
+void tstlib_load(lRuntime *rt) {
 	lModule *md = rt->md;
 	/* todo: ugly */
 	lang_addglobal(md,lang_pushnewS(rt,"gc"),lang_C(testlib_gc));

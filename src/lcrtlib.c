@@ -12,43 +12,43 @@
 #include <direct.h>
 
 
-int crtlib_abort(Runtime *rt) {
+int crtlib_abort(lRuntime *rt) {
 	if(1) abort();
 	return 0;
 }
 
 
-int crtlib_exit(Runtime *rt) {
+int crtlib_exit(lRuntime *rt) {
 	if(1) exit(lang_loadlong(rt,0));
 	return 0;
 }
 
 
-int crtlib__getch(Runtime *rt) {
+int crtlib__getch(lRuntime *rt) {
 	lang_pushlong(rt,_getch());
 	return 1;
 }
 
 
-int crtlib__getpid(Runtime *rt) {
+int crtlib__getpid(lRuntime *rt) {
 	lang_pushlong(rt,_getpid());
 	return 1;
 }
 
 
-int crtlib_time(Runtime *rt) {
+int crtlib_time(lRuntime *rt) {
 	lang_pushlong(rt,time(0));
 	return 1;
 }
 
 
-int crtlib_clock(Runtime *rt) {
+int crtlib_clock(lRuntime *rt) {
 	lang_pushlong(rt,clock());
 	return 1;
 }
 
 
-int crtlib__strdate(Runtime *rt) {
+int crtlib__strdate(lRuntime *rt) {
 	char buf[128];
 	_strdate_s(buf,sizeof(buf));
 	lang_pushnewS(rt,buf);
@@ -56,7 +56,7 @@ int crtlib__strdate(Runtime *rt) {
 }
 
 
-int crtlib__strtime(Runtime *rt) {
+int crtlib__strtime(lRuntime *rt) {
 	char buf[128];
 	_strtime_s(buf,sizeof(buf));
 	lang_pushnewS(rt,buf);
@@ -65,79 +65,79 @@ int crtlib__strtime(Runtime *rt) {
 
 
 
-int crtlib__unlink(Runtime *rt) {
+int crtlib__unlink(lRuntime *rt) {
 	lString *name = lang_loadS(rt,0);
 	lang_pushlong(rt,_unlink(name->c));
 	return 1;
 }
 
 
-int crtlib__unlock_file(Runtime *rt) {
+int crtlib__unlock_file(lRuntime *rt) {
 	Handle file = lang_loadhandle(rt,0);
 	_unlock_file(file);
 	return 0;
 }
 
 
-int crtlib__write(Runtime *rt) {
+int crtlib__write(lRuntime *rt) {
 	Handle file = lang_loadhandle(rt,0);
 	lString *buf = lang_loadS(rt,1);
-	lang_pushlong(rt,_write((llong)file,buf->c,buf->length));
+	lang_pushlong(rt,_write((llongint)file,buf->c,buf->length));
 	return 1;
 }
 
 
-int crtlib__close(Runtime *rt) {
+int crtlib__close(lRuntime *rt) {
 	Handle file = lang_loadhandle(rt,0);
-	lang_pushlong(rt,_close((int)(llong)file));
+	lang_pushlong(rt,_close((int)(llongint)file));
 	return 1;
 }
 
 
-int crtlib__commit(Runtime *rt) {
+int crtlib__commit(lRuntime *rt) {
 	Handle file = lang_loadhandle(rt,0);
-	lang_pushlong(rt,_commit((int)(llong)file));
+	lang_pushlong(rt,_commit((int)(llongint)file));
 	return 1;
 }
 
 
-int crtlib__chdir(Runtime *rt) {
+int crtlib__chdir(lRuntime *rt) {
 	lString *name = lang_loadS(rt,0);
 	lang_pushlong(rt,_chdir(name->c));
 	return 1;
 }
 
 
-int crtlib__chdrive(Runtime *rt) {
-	llong letter = lang_loadlong(rt,0);
+int crtlib__chdrive(lRuntime *rt) {
+	llongint letter = lang_loadlong(rt,0);
 	lang_pushlong(rt,_chdrive(letter));
 	return 1;
 }
 
 
-int crtlib__chmode(Runtime *rt) {
+int crtlib__chmode(lRuntime *rt) {
 	lString *name = lang_loadS(rt,0);
-	llong mode = lang_loadlong(rt,1);
+	llongint mode = lang_loadlong(rt,1);
 	lang_pushlong(rt,_chmod(name->c,mode));
 	return 1;
 }
 
 
-int crtlib__execl(Runtime *rt) {
+int crtlib__execl(lRuntime *rt) {
 	lString *cl = lang_loadS(rt,0);
 	lang_pushlong(rt,_execl(cl->c,0,0));
 	return 1;
 }
 
 
-int crtlib_system(Runtime *rt) {
+int crtlib_system(lRuntime *rt) {
 	lString *cl = lang_loadS(rt,0);
 	lang_pushlong(rt,system(cl->c));
 	return 1;
 }
 
 
-lapi void crtlib_load(Runtime *rt) {
+lapi void crtlib_load(lRuntime *rt) {
 	lModule *md = rt->md;
 
 	lang_addglobal(md,lang_pushnewS(rt,"stderr"),lang_H(stderr));

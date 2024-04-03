@@ -7,8 +7,8 @@
 
 typedef struct Array {
 	lObject  obj;
-	llong max;
-	llong min;
+	llongint max;
+	llongint min;
    /* contents are allocated past this point */
 } Array;
 
@@ -34,7 +34,8 @@ typedef struct Array {
 */
 #define langA_vararr(var) ((Array*)(var))[-1]
 #define langA_varfor(T,N,A) for (T N = A; N < A + langA_varlen(A); N += 1)
-#define langA_varifor(A) for (llong i = 0; i < langA_varlen(A); ++ i)
+#define langA_varjfor(A) for (llongint j = 0; j < langA_varlen(A); ++ j)
+#define langA_varifor(A) for (llongint i = 0; i < langA_varlen(A); ++ i)
 #define langA_vardel(var) ((var != 0) ? langM_dealloc(lHEAP,(Array*)(var)-1),0 : 0)
 #define langA_varmax(var) ((var != 0) ? ((Array*)(var))[-1].max : 0)
 #define langA_varmin(var) ((var != 0) ? ((Array*)(var))[-1].min : 0)
@@ -49,5 +50,5 @@ typedef struct Array {
 ** Returns the last index of the array
 ** that can be written to
 */
-llong langA_varadd_(void **var
-, llong per, llong res, llong com);
+llongint langA_varadd_(void **var
+, llongint per, llongint res, llongint com);
