@@ -14,54 +14,55 @@ typedef int ltreeid;
 /* - Trees are mainly for storing expressions
 - temporarily and then generating bytecode
 - from that, effectively a very simple AST.
-- This step isn't necessary but it makes
-- things easier to understand and flexible.
+- This largely unnecessary for how simple
+- this language but it makes things easier
+- to understand and flexible should we scale.
 - Trees are stored in a linear buffer and
 - deallocated naturally as they become
 - inaccessible.
 */
 typedef enum ltreetype {
-	TREE_NONE = 0,
+	Y_NONE = 0,
 
-	TREE_GROUP,
+	Y_GROUP,
 
-	TREE_FUNCTION,
-	TREE_LOADFILE,
-	TREE_STRING,
-	TREE_TABLE,
-	TREE_INTEGER,
-	TREE_NUMBER,
-	TREE_NIL,
+	Y_FUNCTION,
+	Y_LOADFILE,
+	Y_STRING,
+	Y_TABLE,
+	Y_INTEGER,
+	Y_NUMBER,
+	Y_NIL,
 
-	TREE_GLOBAL,
-	TREE_LOCAL,
-	TREE_CACHE,
+	Y_GLOBAL,
+	Y_LOCAL,
+	Y_CACHED,
 
 	// [{x}..{x}]
-	TREE_RANGE_INDEX,
-	TREE_INDEX,
+	Y_RANGE_INDEX,
+	Y_INDEX,
 	// {x}.{x}
-	TREE_FIELD,
+	Y_FIELD,
 
-	TREE_DESIG,
+	Y_DESIG,
 
 	// {x}({x})
-	TREE_CALL,
+	Y_CALL,
 	// {x}:({x})
-	TREE_MCALL,
+	Y_MCALL,
 	/* Some builtin instruction node, x is the
 	builtin id, (the token type) and z the
 	inputs */
-	TREE_BUILTIN,
+	Y_BUILTIN,
 	/* Common meta functions */
-	TREE_MCALL_CLONE,
-	TREE_MCALL_SPLIT,
-	TREE_MCALL_MATCH,
-	TREE_MCALL_REPLACE,
-	TREE_MCALL_INDEXOF,
-	TREE_MCALL_LENGTH,
-	TREE_MCALL_INSERT,
-	TREE_MCALL_LOOKUP,
+	Y_MCALL_CLONE,
+	Y_MCALL_SPLIT,
+	Y_MCALL_MATCH,
+	Y_MCALL_REPLACE,
+	Y_MCALL_INDEXOF,
+	Y_MCALL_LENGTH,
+	Y_MCALL_INSERT,
+	Y_MCALL_LOOKUP,
 
 	/* binary nodes use x,y, reason why did not use
 	token here was because this will prob either go
@@ -69,29 +70,31 @@ typedef enum ltreetype {
 	be as modular as possible, also I did think about
 	assigning these to tokens, but value clashing
 	is annoying. */
-	TREE_RANGE,
-	TREE_LOG_AND,
-	TREE_LOG_OR,
-	TREE_ADD,
-	TREE_SUB,
-	TREE_DIV,
-	TREE_MUL,
-	TREE_MOD,
-	TREE_NEQ,
-	TREE_EQ,
-	TREE_LT,
-	TREE_LTEQ,
-	TREE_GT,
-	TREE_GTEQ,
-	TREE_BSHL,
-	TREE_BSHR,
-	TREE_BXOR,
+	Y_RANGE,
+	Y_LOG_AND,
+	Y_LOG_OR,
+	Y_ADD,
+	Y_SUB,
+	Y_DIV,
+	Y_MUL,
+	Y_MOD,
+	Y_NEQ,
+	Y_EQ,
+	Y_LT,
+	Y_LTEQ,
+	Y_GT,
+	Y_GTEQ,
+	Y_BSHL,
+	Y_BSHR,
+	Y_BXOR,
 } ltreetype;
 
 
 typedef struct Tree {
 	ltreetype k;
 	char *line;
+	/* todo: eventually remove this when
+	blocks are added */
 	int level;
 
 	/* x,y,z represent node inputs, if more
@@ -102,7 +105,7 @@ typedef struct Tree {
 	/* todo?: don't quite union these two for debugging? */
 	union {
 		char const *s;
-		llongint       i;
+		llongint    i;
 		lnumber     n;
 	} lit;
 } Tree;

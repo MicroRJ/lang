@@ -139,7 +139,7 @@ void emit86_shift(lbyteop type, ljValue x, ljValue y) {
 	ljValue xx = x;
 	if (xx.type == JIT_MEM) emit86_mov(x = REG(RAX),xx);
 	if (x.type == JIT_GPR && y.type == JIT_IMM) {
-		int v = type == BYTE_SHL ? 4 : 5;
+		int v = type == BC_SHL ? 4 : 5;
 		LINE((p2(0xC1,MODRM_RR(x.base,v)), NEXT, p1(y.immediate)));
 	} else LNOBRANCH;
 	if (xx.type == JIT_MEM) emit86_mov(xx,x);
@@ -148,7 +148,7 @@ void emit86_shift(lbyteop type, ljValue x, ljValue y) {
 
 lBinding jit(lModule *md, lProto fn) {
 	pf("jitting fn\n");
-	int loc = ((fn.nstacks*8+15)/16)*16;
+	int loc = ((fn.nlocals*8+15)/16)*16;
 	DO_PUSH_RBP();
 	DO_MOV64_REG_REG(REG_RBP,REG_RSP);
 	/* todo: instead should use, sub 64-bit reg 8 bit operand */
@@ -173,24 +173,24 @@ lBinding jit(lModule *md, lProto fn) {
 	for (lbyteid i = 0; i < nbytes; ++i) {
 		lBytecode byte = bytes[i];
 		switch (byte.k) {
-			case BYTE_INT: {
+			case BC_INT: {
 				top ++->node = emit_irlongint(&js,byte.i);
 			} break;
-			case BYTE_LOCAL: {
+			case BC_RELOAD: {
 				for (int y = 0; y < byte.y; ++ y) {
 					top ++->node = emit_irloadlocal(&js,DATA_INT64,0,byte.x+y);
 				}
 			} break;
-			case BYTE_SETLOCAL: {
-				*irtop++ = emit_irloadintolocal(&js,0,byte.i,top[-1].node);
-				-- top;
-			} break;
-			case BYTE_YIELD:
-			case BYTE_LEAVE:
-			case BYTE_XOR:
-			case BYTE_SHL:
-			case BYTE_SHR:
-			case BYTE_ADD: {
+			// case BC_RELOAD: {
+			// *irtop++ = emit_irloadintolocal(&js,0,byte.i,top[-1].node);
+			// -- top;
+			// } break;
+			case BC_YIELD:
+			case BC_LEAVE:
+			case BC_XOR:
+			case BC_SHL:
+			case BC_SHR:
+			case BC_ADD: {
 				// instr_byte(0,byte,top[-2].node,top[-1].node);
 				// -- top;
 			} break;
@@ -198,12 +198,12 @@ lBinding jit(lModule *md, lProto fn) {
 		}
 		#if 0
 		switch (byte.k) {
-			case BYTE_INT: {
+			case BC_INT: {
 				stack[top].type = JIT_IMM;
 				stack[top].immediate = byte.i;
 				++ top;
 			} break;
-			case BYTE_LOCAL: {
+			case BC_RELOAD: {
 				for (int y = 0; y < byte.y; ++ y) {
 					stack[top].type = JIT_MEM;
 					stack[top].base = RBP;
@@ -211,12 +211,12 @@ lBinding jit(lModule *md, lProto fn) {
 					++ top;
 				}
 			} break;
-			case BYTE_SETLOCAL: {
+			case BC_RELOAD: {
 				ljValue y = stack[top-1];
 				-- top;
 				emit86_mov(MEM(RBP,- byte.i * 8 - 8), y);
 			} break;
-			case BYTE_ADD: {
+			case BC_ADD: {
 				emit86_mov(REG(RCX),stack[top-2]);
 				emit86_mov(REG(RDX),stack[top-1]);
 				top -= 1;
@@ -224,23 +224,23 @@ lBinding jit(lModule *md, lProto fn) {
 				DO_CALL_REG64(REG_EAX);
 				stack[top++] = REG(RAX);
 			} break;
-			case BYTE_SHR:
-			case BYTE_SHL: {
+			case BC_SHR:
+			case BC_SHL: {
 				ljValue x = stack[top-2];
 				ljValue y = stack[top-1];
 				-- top;
 				emit86_shift(byte.k,x,y);
 			} break;
-			case BYTE_XOR: {
+			case BC_XOR: {
 				ljValue x = stack[top-2];
 				ljValue y = stack[top-1];
 				-- top;
 				emit86_logxor(x,y);
 			} break;
-			case BYTE_YIELD: {
+			case BC_YIELD: {
 				emit86_mov(REG(RAX),stack[--top]);
 			} break;
-			case BYTE_LEAVE:
+			case BC_LEAVE:
 			break;
 			default: LNOBRANCH;
 		}

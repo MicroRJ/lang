@@ -36,9 +36,9 @@ typedef struct lProto {
 	short x,y;
 	/* number of cached values */
 	short ncaches;
-	/* temporary: number of locals */
+	/* stack size required allocated by runtime
+	at call time. */
 	short nlocals;
-	short nstacks;
 	short nbytes;
 	short bytes;
 } lProto;

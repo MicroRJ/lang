@@ -35,8 +35,14 @@
 #define XSTRINGIFY_(xx) #xx
 #define XSTRINGIFY(xx) XSTRINGIFY_(xx)
 
+
 #define XFUSE_(xx,yy) xx##yy
 #define XFUSE(xx,yy) XFUSE_(xx,yy)
+
+
+#if !defined(MAX)
+	#define MAX(x,y) ((x) > (y) ? (x) : (y))
+#endif
 
 
 #if !defined(lapi)

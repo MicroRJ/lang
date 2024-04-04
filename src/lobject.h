@@ -55,7 +55,7 @@ typedef enum lvaluetag {
 	// VALUE_JITFUNC,
 	VALUE_STRING,
 	VALUE_ARRAY,
-	VALUE_TABLE,
+	TAG_TABLE,
 } lvaluetag;
 
 
@@ -104,7 +104,7 @@ lapi lValue lang_N(lnumber n);
 
 
 lapi lValue lang_T(Table *t) {
-	lValue v = (lValue){VALUE_TABLE};
+	lValue v = (lValue){TAG_TABLE};
 	v.t = t;
 	return v;
 }

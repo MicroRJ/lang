@@ -65,7 +65,7 @@ void langGC_remobj(lRuntime *fs, llongint i) {
 
 lbool ttisobj(lvaluetag tag) {
 	if (tag == VALUE_STRING) return ltrue;
-	if (tag == VALUE_TABLE) return ltrue;
+	if (tag == TAG_TABLE) return ltrue;
 	if (tag == VALUE_FUNC) return ltrue;
 	if (tag == VALUE_CUSTOM) return ltrue;
 	return lfalse;
@@ -75,7 +75,7 @@ lbool ttisobj(lvaluetag tag) {
 lvaluetag ttobj2val(ObjectType type) {
 	switch(type) {
 		case OBJ_CLOSURE: return VALUE_FUNC;
-		case OBJ_TABLE: return VALUE_TABLE;
+		case OBJ_TABLE: return TAG_TABLE;
 		case OBJ_STRING: return VALUE_STRING;
 	}
 	LNOBRANCH;

@@ -49,9 +49,9 @@ int testlib_disasm(lRuntime *c) {
 		if (j != 0) strcatf(file,"\n");
 		lBytecode b = md->bytes[p.bytes+j];
 		switch (b.k) {
-			case BYTE_LOADFILE:
-			case BYTE_METACALL:
-			case BYTE_CALL: {
+			case BC_LOADFILE:
+			case BC_METACALL:
+			case BC_CALL: {
 				strcatf(file,"%s(%i,%i)", lang_bytename(b.k), b.x,b.y);
 			} break;
 			default: {

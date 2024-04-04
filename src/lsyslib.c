@@ -89,7 +89,7 @@ int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 		case TAG_NUMBER: return fprintf(file,"%f",v.n);
 		case VALUE_FUNC: return fprintf(file,"F()");
 		case VALUE_BINDING: return fprintf(file,"C()");
-		case VALUE_TABLE: {
+		case TAG_TABLE: {
 			int wrote = 0;
 			Table *t = v.t;
 			wrote += fprintf(file,"{");

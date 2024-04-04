@@ -5,8 +5,7 @@
 */
 
 
-/* todo: ensure that we don't have replace
-symbols */
+/* todo: ensure that we don't have to replace symbols */
 lglobalid lang_addsymbol(lModule *md, lString *name) {
 	if (name == 0) {
 		return langA_variadd(md->g->v,1);
@@ -43,14 +42,17 @@ int linelen(char *p, int m) {
 
 int syslib_fpfv_(FILE *file, lValue v, lbool quotes);
 void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
-	fprintf(file," | %-4i: %s"
+	fprintf(file," | %-4i %s"
 	,	id, lang_bytename(b.k));
-	if (lang_byteclass(b.k) == BYTE_CLASS_XY) {
-		fprintf(file,"(x=%i,y=%i)",b.x,b.y);
+	if (lang_byteclass(b.k) == BC_CLASS_XYZ) {
+		printf("(x=%i,y=%i,z=%i)",b.x,b.y,b.z);
+	} else
+	if (lang_byteclass(b.k) == BC_CLASS_XY) {
+		printf("(x=%i,y=%i)",b.x,b.y);
 	} else {
-		fprintf(file,"(i=%lli)",b.i);
+		printf("(x=%lli)",b.i);
 	}
-	if (b.k == BYTE_GLOBAL) {
+	if (b.k == BC_LOADGLOBAL) {
 		fprintf(file,"  // ");
 		syslib_fpfv_(file,md->g->v[b.i],ltrue);
 	}

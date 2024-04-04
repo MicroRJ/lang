@@ -316,7 +316,7 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 		}
 		case TAG_INTEGER:
 		case TAG_NUMBER:
-		case VALUE_TABLE:
+		case TAG_TABLE:
 		case VALUE_FUNC:
 		case VALUE_BINDING: {
 			return x->i == y->i;
@@ -334,7 +334,7 @@ llongint langH_hashvalue(lValue v) {
 			return v.s->hash;
 		}
 		case TAG_NUMBER:
-		case VALUE_TABLE:
+		case TAG_TABLE:
 		case VALUE_FUNC:
 		case VALUE_BINDING:
 		case TAG_INTEGER: {

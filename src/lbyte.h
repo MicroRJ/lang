@@ -6,80 +6,85 @@
 
 
 typedef enum lbyteclass {
-	BYTE_CLASS_I,
-	BYTE_CLASS_XY,
+	BC_CLASS_I,
+	BC_CLASS_XY,
+	BC_CLASS_XYZ,
 } lbyteclass;
 
 
 typedef enum lbyteop {
-	BYTE_HALT = 0,
-	BYTE_J,
-	BYTE_JZ,
-	BYTE_JNZ,
+	BC_HALT = 0,
+	BC_J,
+	BC_JZ,
+	BC_JNZ,
 
 	/* delays the execution n instructions until
 	procedure exits, jumps to the specified byte
 	address. */
-	BYTE_DELAY,
+	BC_DELAY,
 	/* checks delay list, pops the last delay from it
 	if any and jumps to it, otherwise returns control
 	flow to the calling procedure */
-	BYTE_LEAVE,
+	BC_LEAVE,
 	/* copies specified values to corresponding return
 	registers */
-	BYTE_YIELD,
+	BC_YIELD,
 
-	BYTE_DROP,
-	BYTE_DUPL,
+	BC_DROP,
+	BC_DUPL,
 
 	/* x, y */
-	BYTE_LOADNUM,
-	BYTE_LOADINT,
-	BYTE_LOADNIL,
+	BC_LOADNUM,
+	BC_LOADINT,
+	BC_LOADNIL,
+	BC_LOADGLOBAL,
+
 	/* -- todo: deprecated */
-	BYTE_NUM,
-	BYTE_INT,
-	BYTE_NIL,
+	BC_NUM,
+	BC_INT,
+	BC_NIL,
 
-	BYTE_LOADFILE,
-	BYTE_LOADCLIB,
+	BC_LOADFILE,
+	BC_LOADCLIB,
 
-	BYTE_CALL,
-	BYTE_METACALL,
-	BYTE_TABLECALL,
+	BC_CALL,
+	BC_METACALL,
+	BC_TABLECALL,
 
-	BYTE_STKGET,
-	BYTE_STKLEN,
+	BC_STKGET,
+	BC_STKLEN,
 
-	BYTE_GLOBAL,
-	BYTE_LOCAL,
-	BYTE_CACHE,
-	BYTE_INDEX,
-	BYTE_FIELD,
 
-	BYTE_SETGLOBAL,
-	BYTE_SETLOCAL,
-	BYTE_SETINDEX,
-	BYTE_SETFIELD,
+	/* todo: deprecated */
+	BC_RELOAD,
 
-	BYTE_CLOSURE,
-	BYTE_TABLE,
+	BC_LOADCACHED,
+	BC_INDEX,
+	BC_FIELD,
 
-	BYTE_NEQ,
-	BYTE_EQ,
-	BYTE_LT,
-	BYTE_LTEQ,
-	BYTE_ISNIL,
+	BC_SETGLOBAL,
+	BC_SETINDEX,
+	BC_SETFIELD,
 
-	BYTE_ADD,
-	BYTE_SUB,
-	BYTE_DIV,
-	BYTE_MUL,
-	BYTE_MOD,
+	BC_CLOSURE,
+	BC_TABLE,
 
-	BYTE_SHL,
-	BYTE_SHR,
-	BYTE_XOR,
+	BC_ISNIL,
+
+	BC_NEQ,
+	BC_EQ,
+	BC_LT,
+	BC_LTEQ,
+
+	BC_ADD,
+	BC_SUB,
+	BC_DIV,
+	BC_MUL,
+	BC_MOD,
+
+	BC_SHL,
+	BC_SHR,
+	BC_XOR,
 } lbyteop;
 
 
@@ -93,7 +98,7 @@ typedef struct lBytecode {
 	union {
 		llongint  i;
 		struct {
-			int x,y;
+			int x,y,z;
 		};
 	};
 } lBytecode;
@@ -101,62 +106,75 @@ typedef struct lBytecode {
 
 lbyteclass lang_byteclass(lbyteop k) {
 	switch (k) {
-		case BYTE_CALL:
-		case BYTE_LOCAL:
-		case BYTE_YIELD:
-		case BYTE_METACALL:
-		case BYTE_LOADFILE: {
-			return BYTE_CLASS_XY;
+		case BC_LOADNUM:
+		case BC_LOADINT:
+		case BC_LOADNIL:
+		case BC_RELOAD: {
+			return BC_CLASS_XY;
+		}
+		case BC_NEQ: case BC_EQ:
+		case BC_LT: case BC_LTEQ:
+		case BC_ADD: case BC_SUB:
+		case BC_DIV: case BC_MUL: case BC_MOD:
+		case BC_SHL: case BC_SHR:
+		case BC_XOR:
+		case BC_CALL:
+		case BC_YIELD:
+		case BC_METACALL:
+		case BC_LOADFILE: {
+			return BC_CLASS_XYZ;
 		}
 	}
-	return BYTE_CLASS_I;
+	return BC_CLASS_I;
 }
 
 
 char const *lang_bytename(lbyteop k) {
 	switch (k) {
-		case BYTE_NUM: return "num";
-		case BYTE_STKGET: return "stkget";
-		case BYTE_STKLEN: return "stklen";
-		case BYTE_LEAVE: return "leave";
-		case BYTE_YIELD: return "yield";
-		case BYTE_J: return "j";
-		case BYTE_JZ: return "jz";
-		case BYTE_JNZ: return "jnz";
-		case BYTE_ISNIL: return "isnil";
-		case BYTE_DROP: return "drop";
-		case BYTE_DUPL: return "dupl";
-		case BYTE_INT: return "int";
-		case BYTE_NIL: return "nil";
-		case BYTE_CALL: return "call";
-		case BYTE_METACALL: return "metacall";
-		case BYTE_CACHE: return "getcache";
-		case BYTE_GLOBAL: return "getglobal";
-		case BYTE_LOCAL: return "getlocal";
-		case BYTE_SETGLOBAL: return "setglobal";
-		case BYTE_SETLOCAL: return "setlocal";
-		case BYTE_CLOSURE: return "newclosure";
-		case BYTE_TABLE: return "newtable";
-		case BYTE_INDEX: return "getindex";
-		case BYTE_FIELD: return "getfield";
-		case BYTE_SETFIELD: return "setfield";
-		case BYTE_SETINDEX: return "setindex";
-		case BYTE_ADD: return "add";
-		case BYTE_SUB: return "sub";
-		case BYTE_DIV: return "dib";
-		case BYTE_MUL: return "mul";
-		case BYTE_MOD: return "mod";
-		case BYTE_LT: return "lt";
-		case BYTE_LTEQ: return "lteq";
-		case BYTE_NEQ: return "neq";
-		case BYTE_EQ: return "eq";
-		case BYTE_DELAY: return "delay";
-		case BYTE_LOADFILE: return "loadfile";
-		case BYTE_LOADCLIB: return "loadclib";
+		case BC_LOADNUM: return "loadnum";
+		case BC_LOADINT: return "loadint";
+		case BC_LOADNIL: return "loadnil";
+		case BC_NUM: return "num";
+		case BC_STKGET: return "stkget";
+		case BC_STKLEN: return "stklen";
+		case BC_LEAVE: return "leave";
+		case BC_YIELD: return "yield";
+		case BC_J: return "j";
+		case BC_JZ: return "jz";
+		case BC_JNZ: return "jnz";
+		case BC_ISNIL: return "isnil";
+		case BC_DROP: return "drop";
+		case BC_DUPL: return "dupl";
+		case BC_INT: return "int";
+		case BC_NIL: return "nil";
+		case BC_CALL: return "call";
+		case BC_METACALL: return "metacall";
+		case BC_LOADCACHED: return "loadcached";
+		case BC_LOADGLOBAL: return "loadglobal";
+		case BC_RELOAD: return "reload";
+		case BC_SETGLOBAL: return "setglobal";
+		case BC_CLOSURE: return "newclosure";
+		case BC_TABLE: return "newtable";
+		case BC_INDEX: return "getindex";
+		case BC_FIELD: return "getfield";
+		case BC_SETFIELD: return "setfield";
+		case BC_SETINDEX: return "setindex";
+		case BC_ADD: return "add";
+		case BC_SUB: return "sub";
+		case BC_DIV: return "dib";
+		case BC_MUL: return "mul";
+		case BC_MOD: return "mod";
+		case BC_LT: return "lt";
+		case BC_LTEQ: return "lteq";
+		case BC_NEQ: return "neq";
+		case BC_EQ: return "eq";
+		case BC_DELAY: return "delay";
+		case BC_LOADFILE: return "loadfile";
+		case BC_LOADCLIB: return "loadclib";
 
-		case BYTE_SHL: return "shl";
-		case BYTE_SHR: return "shr";
-		case BYTE_XOR: return "xor";
+		case BC_SHL: return "shl";
+		case BC_SHR: return "shr";
+		case BC_XOR: return "xor";
 	}
 	return "???";
 }

@@ -163,6 +163,8 @@ int fndfile(lModule *md, llineid line) {
 
 
 int lang_resume(lRuntime *cs) {
+	cs->logging = ltrue;
+
 	lModule *md = cs->md;
 	CallFrame *c = cs->f;
 	lClosure *cl = c->cl;
@@ -175,33 +177,17 @@ int lang_resume(lRuntime *cs) {
 
 		#if 1
 		if (cs->logging) {
-			printf(" | %-4lli: %-4lli, %s"
-			,	jp,cs->v-c->l,lang_bytename(b.k));
-			if (lang_byteclass(b.k) == BYTE_CLASS_XY) {
-				printf("(x=%i,y=%i)",b.x,b.y);
-			} else {
-				printf("(i=%lli)",b.i);
-			}
-			if (b.k == BYTE_GLOBAL) {
-				printf("  // ");
-				syslib_fpfv_(stdout,md->g->v[b.i],ltrue);
-			} else
-			if (b.k == BYTE_LOCAL) {
-				printf("  // ");
-				syslib_fpfv_(stdout,c->l[b.i],ltrue);
-			}
-			printf("\n");
+			bytefpf(md,stdout,c->j,b);
 		}
-
 		#endif
 		switch (b.k) {
-			case BYTE_LEAVE: {
+			case BC_LEAVE: {
 				if (c->dl) {
 					c-> j = c->dl->j;
 					c->dl = c->dl->n;
 				} else goto leave;
 			} break;
-			case BYTE_DELAY: {
+			case BC_DELAY: {
 				ldelaylist *dl = langM_alloc(lHEAP,sizeof(ldelaylist));
 				dl->n = c->dl;
 				dl->j = c->j;
@@ -210,7 +196,7 @@ int lang_resume(lRuntime *cs) {
 				LASSERT(b.i >= 0);
 				c->j = jp + b.i;
 			} break;
-			case BYTE_YIELD: {
+			case BC_YIELD: {
 				LASSERT(b.x >= 0);
 				/* move return values to hosted
 				return registers, discarding
@@ -224,7 +210,7 @@ int lang_resume(lRuntime *cs) {
 				c->j = jp + b.x;
 				cl->j = c->j;
 			} break;
-			case BYTE_STKGET: {
+			case BC_STKGET: {
 				LASSERT(b.x == 1);
 				LASSERT(b.y <= 1);
 				llongint i = ltolong(*-- cs->v);
@@ -232,7 +218,7 @@ int lang_resume(lRuntime *cs) {
 					cs->v[-b.y] = c->l[i];
 				}
 			} break;
-			case BYTE_STKLEN: {
+			case BC_STKLEN: {
 				LASSERT(b.x == 0);
 				LASSERT(b.y <= 1);
 				if (b.y != 0) {
@@ -240,7 +226,7 @@ int lang_resume(lRuntime *cs) {
 					cs->v[-b.y].i   = cs->v - c->l;
 				}
 			} break;
-			case BYTE_LOADFILE: {
+			case BC_LOADFILE: {
 				LASSERT(lang_leftover(cs) >= 1);
 				LASSERT(cs->v[-1].tag == VALUE_STRING);
 				lString *name = (--cs->v)->s;
@@ -248,84 +234,69 @@ int lang_resume(lRuntime *cs) {
 				lang_loadfile(cs,name,b.y);
 				langGC_markwhite((lObject*)name);
 			} break;
-			case BYTE_J: {
+			case BC_J: {
 				c->j = jp + b.i;
 			} break;
-			case BYTE_JZ: {
+			case BC_JZ: {
 				lbool j = (-- cs->v)->i;
 				if (j == 0) c->j = jp + b.i;
 			} break;
-			case BYTE_JNZ: {
+			case BC_JNZ: {
 				lbool j = (-- cs->v)->i;
 				if (j != 0) c->j = jp + b.i;
 			} break;
-			case BYTE_DROP: {
+			case BC_DROP: {
 				-- cs->v;
 			} break;
-			case BYTE_DUPL: {
+			case BC_DUPL: {
 				for (int i = 0; i < b.i; ++i) {
 					*cs->v ++ = cs->v[-1];
 				}
 			} break;
-			case BYTE_NIL: {
+			case BC_NIL: {
 				/* todo: i should be how many more */
 				for (int i = 0; i < b.i; ++i) {
 					lang_pushnil(cs);
 				}
 			} break;
-			case BYTE_NUM: {
-				cs->v->tag = TAG_NUMBER;
-				cs->v->n   = *((lnumber*)&b.i);
-				++ cs->v;
-			} break;
-			case BYTE_LOADINT: {
+			case BC_LOADINT: {
 				c->l[b.x].tag = TAG_INTEGER;
 				c->l[b.x].i   = b.i;
 			} break;
-			case BYTE_INT: {
-				cs->v->tag = TAG_INTEGER;
-				cs->v->i   = b.i;
-				++ cs->v;
-			} break;
-			case BYTE_CACHE: {
+			case BC_LOADCACHED: {
 				LASSERT(b.i >= 0 && b.i < fn.ncaches);
-				*cs->v ++ = cl->caches[b.i];
+				c->l[b.x] = cl->caches[b.i];
 			} break;
-			case BYTE_CLOSURE: {
+			case BC_CLOSURE: {
 				LASSERT(b.i >= 0 && b.i < langA_varlen(md->p));
-				lang_pushnewcl(cs,md->p[b.i]);
+				c->l[b.x].tag = VALUE_FUNC;
+				c->l[b.x].f   = langF_newclosure(cs,md->p[b.i]);
 			} break;
-			case BYTE_LOCAL: {
-				for (int i = 0; i < b.y; ++ i) {
-					*cs->v ++ = c->l[b.x+i];
-				}
+			case BC_RELOAD: {
+				c->l[b.x] = c->l[b.y];
 			} break;
-			case BYTE_SETLOCAL: {
-				LASSERT(lang_leftover(cs) >= 1);
-				c->l[b.i] = *(-- cs->v);
+			case BC_LOADGLOBAL: {
+				c->l[b.x] = md->g->v[b.y];
 			} break;
-			case BYTE_GLOBAL: {
-				*cs->v ++ = md->g->v[b.i];
+			case BC_SETGLOBAL: {
+				md->g->v[b.x] = c->l[b.y];
 			} break;
-			case BYTE_SETGLOBAL: {
-				LASSERT(lang_leftover(cs) >= 1);
-				md->g->v[b.i] = *(-- cs->v);
+			case BC_TABLE: {
+				c->l[b.x].tag = TAG_TABLE;
+				c->l[b.x].t   = langH_new(cs);
 			} break;
-			case BYTE_TABLE: {
-				lang_pushnewtable(cs);
-			} break;
-			case BYTE_SETFIELD: {
+			case BC_SETFIELD: {
 				lValue t = cs->v[-3];
 				lValue k = cs->v[-2];
 				lValue v = cs->v[-1];
 				cs->v -= 2;
-				if (t.tag == VALUE_TABLE) {
+				if (t.tag == TAG_TABLE) {
 					langH_insert(t.t,k,v);
 				} else {
 					LNOBRANCH;
 				}
 			} break;
-			case BYTE_SETINDEX: {
+			case BC_SETINDEX: {
 				lValue t = cs->v[-3];
 				lValue k = cs->v[-2];
 				lValue v = cs->v[-1];
@@ -338,20 +309,20 @@ int lang_resume(lRuntime *cs) {
 						LNOBRANCH;
 					}
 				} else
-				if (t.tag == VALUE_TABLE) {
+				if (t.tag == TAG_TABLE) {
 					langH_insert(t.t,k,v);
 				} else {
 					LNOBRANCH;
 				}
 			} break;
-			case BYTE_FIELD: {
+			case BC_FIELD: {
 				cs->v -= 2;
 				lValue t,k;
 				t = cs->v[0];
 				k = cs->v[1];
 				lang_pushvalue(cs,langH_lookup(t.t,k));
 			} break;
-			case BYTE_INDEX: {
+			case BC_INDEX: {
 				cs->v -= 2;
 				lValue t,k;
 				t = cs->v[0];
@@ -363,14 +334,14 @@ int lang_resume(lRuntime *cs) {
 						LNOBRANCH;
 					}
 				} else
-				if (t.tag == VALUE_TABLE) {
+				if (t.tag == TAG_TABLE) {
 					lang_pushvalue(cs,langH_lookup(t.t,k));
 				} else {
 					lang_pushnil(cs);
 				}
 			} break;
 
-			case BYTE_METACALL: {
+			case BC_METACALL: {
 				cs->v -= 2;
 				lValue o = cs->v[0];
 				lValue m = cs->v[1];
@@ -382,7 +353,7 @@ int lang_resume(lRuntime *cs) {
 					lang_bind(cs,o.j,d,b.x,b.y);
 				}
 			} break;
-			case BYTE_CALL: {
+			case BC_CALL: {
 				lValue v = *(-- cs->v);
 				if (v.tag == VALUE_FUNC) {
 					lang_call(cs,0,v.f,b.x,b.y);
@@ -395,7 +366,7 @@ int lang_resume(lRuntime *cs) {
 					lang_logerror("not a function");
 				}
 			} break;
-			case BYTE_ISNIL: {
+			case BC_ISNIL: {
 				cs->v -= 1;
 				lValue x = cs->v[0];
 				if (x.tag == TAG_INTEGER || x.tag == TAG_NUMBER) {
@@ -404,8 +375,8 @@ int lang_resume(lRuntime *cs) {
 					lang_pushlong(cs,x.i == 0);
 				}
 			} break;
-			case BYTE_EQ:
-			case BYTE_NEQ: {
+			case BC_EQ:
+			case BC_NEQ: {
 				cs->v -= 2;
 				lValue x = cs->v[0];
 				lValue y = cs->v[1];
@@ -419,7 +390,7 @@ int lang_resume(lRuntime *cs) {
 					cs->v->i = x.i == y.i;
 				}
 
-				if (b.k == BYTE_NEQ) {
+				if (b.k == BC_NEQ) {
 					cs->v->i = !cs->v->i;
 				}
 
@@ -430,59 +401,54 @@ int lang_resume(lRuntime *cs) {
 			/* todo: make this better */
 			#define CASE_IBOP(OPNAME,OP) \
 			case OPNAME : {\
-				cs->v -= 2;\
-				lValue x = cs->v[0];\
-				lValue y = cs->v[1];\
-				lang_pushlong(cs, ltolong(x) OP ltolong(y));\
+				c->l[b.x].tag = TAG_INTEGER;\
+				c->l[b.x].i   = ltolong(c->l[b.y]) OP ltolong(c->l[b.z]);\
 			} break
 
 			/* todo: make this better */
 			#define CASE_BOP(OPCODE,OP) \
 			case OPCODE : {\
-				cs->v -= 2;\
-				lValue x = cs->v[0];\
-				lValue y = cs->v[1];\
-				if (x.tag == TAG_NUMBER || y.tag == TAG_NUMBER) {\
-					lnumber xx = ltonumber(x);\
-					lnumber yy = ltonumber(y);\
-					lang_pushnum(cs, xx OP yy);\
+				if (c->l[b.y].tag == TAG_NUMBER || c->l[b.z].tag == TAG_NUMBER) {\
+					c->l[b.x].tag = TAG_NUMBER;\
+					c->l[b.x].n   = ltonumber(c->l[b.y]) OP ltonumber(c->l[b.z]);\
 				} else {\
-					llongint xx = ltolong(x);\
-					llongint yy = ltolong(y);\
-					lang_pushlong(cs, xx OP yy);\
+					c->l[b.x].tag = TAG_INTEGER;\
+					c->l[b.x].i   = ltolong(c->l[b.y]) OP ltolong(c->l[b.z]);\
 				}\
 			} break
 
-			case BYTE_LTEQ: {
-				cs->v -= 2;
-				lValue x = cs->v[0];
-				lValue y = cs->v[1];
+			case BC_LTEQ: {
+				lValue x = c->l[b.y];
+				lValue y = c->l[b.z];
 				if (x.tag == TAG_NUMBER || y.tag == TAG_NUMBER) {
-					lang_pushlong(cs, ltonumber(x) <= ltonumber(y));
+					c->l[b.x].tag = TAG_NUMBER;
+					c->l[b.x].n   = ltonumber(x) <= ltonumber(y);
 				} else {
-					lang_pushlong(cs, ltolong(x) <= ltolong(y));
+					c->l[b.x].tag = TAG_INTEGER;
+					c->l[b.x].i   = ltolong(x) <= ltolong(y);
 				}
 			} break;
-			case BYTE_LT: {
-				cs->v -= 2;
-				lValue x = cs->v[0];
-				lValue y = cs->v[1];
+			case BC_LT: {
+				lValue x = c->l[b.y];
+				lValue y = c->l[b.z];
 				if (x.tag == TAG_NUMBER || y.tag == TAG_NUMBER) {
-					lang_pushlong(cs, ltonumber(x) < ltonumber(y));
+					c->l[b.x].tag = TAG_NUMBER;
+					c->l[b.x].n   = ltonumber(x) < ltonumber(y);
 				} else {
-					lang_pushlong(cs, ltolong(x) < ltolong(y));
+					c->l[b.x].tag = TAG_INTEGER;
+					c->l[b.x].i   = ltolong(x) < ltolong(y);
 				}
 			} break;
 
-			CASE_IBOP(BYTE_SHL,  <<);
-			CASE_IBOP(BYTE_SHR,  >>);
-			CASE_IBOP(BYTE_XOR,   ^);
-			CASE_IBOP(BYTE_MOD,   %);
+			CASE_IBOP(BC_SHL,  <<);
+			CASE_IBOP(BC_SHR,  >>);
+			CASE_IBOP(BC_XOR,   ^);
+			CASE_IBOP(BC_MOD,   %);
 
-			CASE_BOP(BYTE_ADD,   +);
-			CASE_BOP(BYTE_SUB,   -);
-			CASE_BOP(BYTE_MUL,   *);
-			CASE_BOP(BYTE_DIV,   /);
+			CASE_BOP(BC_ADD,   +);
+			CASE_BOP(BC_SUB,   -);
+			CASE_BOP(BC_MUL,   *);
+			CASE_BOP(BC_DIV,   /);
 			#undef CASE_BOP
 
 			default: {
@@ -490,7 +456,7 @@ int lang_resume(lRuntime *cs) {
 				LNOBRANCH;
 			} break;
 		}
-		if (cs->v < c->l+fn.nlocals) LNOBRANCH;
+		// if (cs->v < c->l+fn.nlocals) LNOBRANCH;
 	}
 
 	leave:
@@ -603,7 +569,7 @@ void lang_pushclosure(lRuntime *c, lClosure *f) {
 
 
 void lang_pushtable(lRuntime *c, Table *t) {
-	c->v->tag = VALUE_TABLE;
+	c->v->tag = TAG_TABLE;
 	c->v->t = t;
 	++ c->v;
 }

@@ -48,10 +48,10 @@ void langL_begindelayedblock(FileState *fs, char *line, CodeBlock *bl);
 void langL_closedelayedblock(FileState *fs, char *line, CodeBlock *bl);
 
 
-int langL_loadall(FileState *fs, char *line, ltreeid x);
-void langL_loaddrop(FileState *fs, char *line, ltreeid x);
-void langL_loadinto(FileState *fs, char *line, ltreeid x, ltreeid y);
-void langL_load2(FileState *fs, char *line, ltreeid x, llocalid n);
+void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y);
+void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, ltreeid id);
+llocalid langL_load2any(FileState *fs, llineid line, llocalid n, ltreeid t);
+
 
 enum {
 	L_IF  = 0, // JZ

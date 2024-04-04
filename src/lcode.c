@@ -6,6 +6,7 @@
 
 
 int byteeffect(lModule *md, lBytecode b);
+lbyteop treetobyte(ltreetype tt);
 
 
 /* todo: deprecated */
@@ -14,20 +15,35 @@ lbyteid langL_getlabel(FileState *fs) {
 }
 
 
-llocalid langL_stkinctop(FileState *fs, llocalid inc) {
+llocalid langL_localalloc(FileState *fs, llocalid n) {
+	LASSERT(n > NO_SLOT);
+
 	FileFunc *fn = fs->fn;
-	llocalid id = fn->stktop;
-	fn->stktop += inc;
-	if (fn->stklen < fn->stktop) fn->stklen = fn->stktop;
+
+	llocalid id = fn->xlocals;
+	fn->xlocals += n;
+
+	if (fn->nlocals < fn->xlocals) {
+		fn->nlocals = fn->xlocals;
+	}
 	return id;
+}
+
+
+void langL_localdealloc(FileState *fs, llocalid x) {
+	LASSERT(x > NO_SLOT);
+
+	FileFunc *fn = fs->fn;
+
+	LASSERT(x == fn->xlocals-1);
+	fn->xlocals = x;
 }
 
 
 lbyteid langL_addbyte(FileState *fs, llineid line, lBytecode byte) {
 	FileFunc *fn = fs->fn;
 	lModule *md = fs->md;
-	langL_stkinctop(fs,byteeffect(md,byte));
-
+	// langL_localalloc(fs,byteeffect(md,byte));
 	// lang_loginfo("%s %lli: byte: %s, %lli"
 	// , fs->filename,md->nbytes,lang_bytename(byte.k),byte.i);
 	langA_varadd(md->lines,line);
@@ -49,6 +65,15 @@ lbyteid langL_bytexy(FileState *fs, llineid line, lbyteop k, int x, int y) {
 }
 
 
+lbyteid langL_bytexyz(FileState *fs, llineid line, lbyteop k, int x, int y, int z) {
+	lBytecode b = (lBytecode){k};
+	b.x = x;
+	b.y = y;
+	b.z = z;
+	return langL_addbyte(fs,line,b);
+}
+
+
 void langL_tieloosejto(FileState *fs, lbyteid id, lbyteid j) {
 	lModule *md = fs->md;
 	lBytecode *bytes = md->bytes;
@@ -59,13 +84,13 @@ void langL_tieloosejto(FileState *fs, lbyteid id, lbyteid j) {
 	// 	langX_error(fs,md->lines[id],"opt, no jump");
 	// }
 	switch (b.k) {
-		case BYTE_J:
-		case BYTE_JZ:
-		case BYTE_JNZ:
-		case BYTE_DELAY: {
+		case BC_J:
+		case BC_JZ:
+		case BC_JNZ:
+		case BC_DELAY: {
 			bytes[id].i = l;
 		} break;
-		case BYTE_YIELD: {
+		case BC_YIELD: {
 			bytes[id].x = l;
 		} break;
 		default: LNOBRANCH;
@@ -93,18 +118,14 @@ void langL_tieloosejsto(FileState *fs, lbyteid *js, lbyteid j) {
 
 
 lbyteid langL_jump(FileState *fs, llineid line, lbyteid j) {
-	return langL_byte(fs,line,BYTE_J,j-fs->md->nbytes);
+	return langL_byte(fs,line,BC_J,j-fs->md->nbytes);
 }
 
 
-void langL_yield(FileState *fs, llineid line, lbyteid x) {
-	/* todo: add support for multiple results */
-	int y = 0;
-	if (x != NO_TREE) y = langL_loadall(fs,line,x);
-	if (fs->fn->nyield < y) fs->fn->nyield = y;
-	lbyteid j = langL_bytexy(fs,line,BYTE_YIELD,NO_JUMP,y);
-	langA_varadd(fs->fn->yj,j);
-}
+void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y);
+
+
+int langL_localloadadj(FileState *fs, llocalid y, ltreeid *z);
 
 
 void langL_fnepiloge(FileState *fs, llineid line) {
@@ -118,7 +139,7 @@ void langL_fnepiloge(FileState *fs, llineid line) {
 	fn->yj = lnil;
 
 	/* finally, return control flow */
-	langL_byte(fs,line,BYTE_LEAVE,0);
+	langL_byte(fs,line,BC_LEAVE,0);
 }
 
 
@@ -130,14 +151,14 @@ lbyteid langL_jumpif(FileState *fs, ljlist *js, ltreeid x, lbool z) {
 	Tree v = fs->nodes[x];
 	lbyteid jid = NO_BYTE;
 	switch (v.k) {
-		case TREE_LOG_AND: {
+		case Y_LOG_AND: {
 			langL_jumpif(fs,js,v.x,0);
 			langL_tieloosejs(fs,js->t);
 			langA_vardel(js->t);
 			js->t = 0;
 			jid = langL_jumpif(fs,js,v.y,z);
 		} break;
-		case TREE_LOG_OR: {
+		case Y_LOG_OR: {
 			langL_jumpif(fs,js,v.x,1);
 			langL_tieloosejs(fs,js->f);
 			langA_vardel(js->f);
@@ -145,12 +166,12 @@ lbyteid langL_jumpif(FileState *fs, ljlist *js, ltreeid x, lbool z) {
 			jid = langL_jumpif(fs,js,v.y,z);
 		} break;
 		default: {
-			langL_load2(fs,v.line,x,1);
+			llocalid reg = langL_load2any(fs,v.line,1,x);
 			if (z != 0) {
-				jid = langL_byte(fs,v.line,BYTE_JNZ,NO_JUMP);
+				jid = langL_byte(fs,v.line,BC_JNZ,NO_JUMP);
 				langA_varadd(js->t,jid);
 			} else {
-				jid = langL_byte(fs,v.line,BYTE_JZ,NO_JUMP);
+				jid = langL_byte(fs,v.line,BC_JZ,NO_JUMP);
 				langA_varadd(js->f,jid);
 			}
 		} break;
@@ -161,268 +182,254 @@ lbyteid langL_jumpif(FileState *fs, ljlist *js, ltreeid x, lbool z) {
 
 
 lbyteid langL_jumpiffalse(FileState *fs, ljlist *js, ltreeid x) {
-	return langL_jumpif(fs,js,x,0);
+	return langL_jumpif(fs,js,x,lfalse);
 }
 
 
 lbyteid langL_jumpiftrue(FileState *fs, ljlist *js, ltreeid x) {
-	return langL_jumpif(fs,js,x,1);
+	return langL_jumpif(fs,js,x,ltrue);
 }
 
 
-lbyteid langL_push(FileState *fs, llineid line, lbyteid n) {
-	if (n == 0) return NO_BYTE;
-	return langL_byte(fs,line,BYTE_NIL,n);
+
+/* todo: add support for multiple results */
+void langL_yield(FileState *fs, llineid line, ltreeid t) {
+	int n = 0;
+	if (t != NO_TREE) {
+		/* todo: determine the number of values in
+		tree, and allocate that many registers?
+		what if we return a function that returns
+		multiple values? */
+		llocalid x = langL_localalloc(fs,n=1);
+		langL_reload(fs,line,ltrue,x,n,t);
+		langL_localdealloc(fs,x);
+	}
+	if (fs->fn->nyield < n) {
+		fs->fn->nyield = n;
+	}
+	lbyteid j = langL_bytexy(fs,line,BC_YIELD,NO_JUMP,n);
+	langA_varadd(fs->fn->yj,j);
 }
 
 
-lbyteid langL_drop(FileState *fs, llineid line, lbyteid n) {
-	return langL_byte(fs,line,BYTE_DROP,n);
+llocalid langL_load2any(FileState *fs, llineid line, llocalid n, ltreeid id) {
+	if (fs->nodes[id].k != Y_LOCAL) {
+		return fs->nodes[id].x;
+	}
+	llocalid x = langL_localalloc(fs,n);
+	langL_reload(fs,line,lfalse,x,n,id);
+	return x;
 }
 
 
-lbyteid langL_dupl(FileState *fs, llineid line, lbyteid n) {
-	return langL_byte(fs,line,BYTE_DUPL,n);
+/*
+** allocates and loads all one value for each tree
+** in z contiguously, returns number of values in z.
+** y is preallocated space that can be used to put
+** z values in, z values are then deallocated.
+*/
+int langL_localloadadj(FileState *fs, llocalid y, ltreeid *z) {
+	int n = langA_varlen(z);
+	int x = n - y;
+	if (x < 0) x = 0;
+	llocalid id = langL_localalloc(fs,x) - y;
+	langA_varifor(z)
+	/**/langL_reload(fs,NO_LINE,ltrue,id+i,1,z[i]);
+	fs->fn->xlocals = id + y;
+	return n;
 }
 
 
-void langL_loaddrop(FileState *fs, llineid line, ltreeid x) {
-	langL_load2(fs,line,x,0);
-}
-
-
-int langL_loadall(FileState *fs, llineid line, ltreeid x) {
-	langL_load2(fs,line,x,1);
-	/* todo: get this from the node */
-	return 1;
-}
-
-
-void langL_load2(FileState *fs, llineid line, ltreeid x, llocalid y) {
-	Tree v = fs->nodes[x];
-	LASSERT(x >= 0);
+/*
+** x is preallocated stack slot to put the result
+** in, y the number of slots allocated after x.
+** if y is NO_SLOT the instruction is ommitted unless
+** it has side-effects, such as a function call,
+** but no registers are allocated for it, if x.
+** if reload is specified, when the value is already
+** on the stack, then it is reloaded into x.
+*/
+/* -- Some instructions have no side effects,
+- in which case, if the yield count is 0, the
+- instruction is not emitted */
+void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, ltreeid id) {
+	LASSERT(x > NO_SLOT);
+	Tree v = fs->nodes[id];
 	LASSERT(v.level <= fs->level);
 	if (line == 0) line = v.line;
+
 	lModule *md = fs->md;
 
+
 	switch (v.k) {
-		case TREE_GLOBAL: {
-			if (y == 0) return;
-			langL_byte(fs,line,BYTE_GLOBAL,v.x);
-		} break;
-		case TREE_CACHE: {
-			if (y == 0) return;
-			langL_byte(fs,line,BYTE_CACHE,v.x);
-		} break;
-		case TREE_LOCAL: {
-			if (y == 0) return;
-			lBytecode *bytes = md->bytes;
-			lbyteid nbytes = md->nbytes;
-			lBytecode last = bytes[nbytes-1];
-			/* silly opt experiment */
-			if (last.k == BYTE_LOCAL) {
-				if (last.x+last.y == v.x) {
-					++ bytes[nbytes-1].y;
-				} else goto _else;
-			} else { _else:
-				langL_bytexy(fs,line,BYTE_LOCAL,v.x,1);
+		case Y_LOCAL: {
+			if (y == 0) goto leave;
+			if (reload) {
+				langL_bytexy(fs,line,BC_RELOAD,x,v.x);
 			}
 		} break;
-		case TREE_GROUP: {
-			langL_load2(fs,line,v.x,y);
+		case Y_GLOBAL: {
+			if (y == 0) goto leave;
+			langL_bytexy(fs,line,BC_LOADGLOBAL,x,v.x);
 		} break;
-		case TREE_NIL: {
-			langL_byte(fs,line,BYTE_NIL,1);
+		case Y_CACHED: {
+			if (y == 0) goto leave;
+			langL_bytexy(fs,line,BC_LOADCACHED,x,v.x);
 		} break;
-		case TREE_INTEGER: {
-			// llocalid loc = langL_stkinctop(fs,1);
-			// langL_bytexy(fs,line,BYTE_LOADINT,loc,v.lit.i);
-
-			langL_byte(fs,line,BYTE_INT,v.lit.i);
+		case Y_NIL: {
+			if (y == 0) goto leave;
+			/* -- todo: coalesce */
+			langL_bytexy(fs,line,BC_LOADNIL,x,y);
 		} break;
-		case TREE_NUMBER: {
-			langL_byte(fs,line,BYTE_NUM,v.lit.i);
+		case Y_INTEGER: {
+			if (y == 0) goto leave;
+			langL_bytexy(fs,line,BC_LOADINT,x,v.lit.i);
 		} break;
-		case TREE_STRING: {
-			/* todo: allocate this in constant pool */
+		case Y_NUMBER: {
+			if (y == 0) goto leave;
+			langL_bytexy(fs,line,BC_LOADNUM,x,v.lit.i);
+		} break;
+		case Y_STRING: {
+			if (y == 0) goto leave;
+			/* -- todo: allocate this in constant pool */
 			int g = lang_addglobal(fs->md,0,lang_S(langS_new(fs->rt,v.lit.s)));
 
-			langL_byte(fs,line,BYTE_GLOBAL,g);
+			langL_bytexy(fs,line,BC_LOADGLOBAL,x,g);
 		} break;
-		case TREE_FUNCTION: {
-			langA_varifor(v.z) {
-				langL_load2(fs,NO_LINE,v.z[i],1);
-			}
-			langL_byte(fs,line,BYTE_CLOSURE,v.x);
+		case Y_FUNCTION: {
+			if (y == 0) goto leave;
+			llocalid n = langL_localloadadj(fs,y,v.z);
+			langL_bytexyz(fs,line,BC_CLOSURE,x,v.x,n);
 		} break;
-		case TREE_TABLE: {
+		case Y_TABLE: {
 			LASSERT(v.line != 0);
-			/* table is left on the stack */
-			langL_byte(fs,line,BYTE_TABLE,0);
+			/* -- todo: make this faster? */
+			langL_bytexy(fs,line,BC_TABLE,x,0);
 			langA_varifor(v.z) {
+				(void) i;
+				LNOBRANCH;
+				#if 0
 				ltreeid z = v.z[i];
 				LASSERT(z != x);
 				Tree q = fs->nodes[z];
 
 				/* todo: this is temporary */
-				if (q.k == TREE_DESIG) {
-					langL_load2(fs,q.line,q.x,1);
-					langL_load2(fs,q.line,q.y,1);
-					langL_byte(fs,q.line,BYTE_SETFIELD,0);
+				if (q.k == Y_DESIG) {
+					langL_load2any(fs,q.line,q.x,1);
+					langL_load2any(fs,q.line,q.y,1);
+					langL_bytexy(fs,q.line,BC_SETFIELD,0);
 				} else {
-					langL_byte(fs,q.line,BYTE_INT,i);
-					langL_load2(fs,q.line,z,1);
-					langL_byte(fs,q.line,BYTE_SETINDEX,0);
+					langL_byte(fs,q.line,BC_INT,i);
+					langL_localload(fs,q.line,z,1);
+					langL_byte(fs,q.line,BC_SETINDEX,0);
 				}
+				#endif
 			}
 		} break;
-		case TREE_FIELD: {
-			langL_load2(fs,NO_LINE,v.x,1);
-			langL_load2(fs,NO_LINE,v.y,1);
-			langL_byte(fs,line,BYTE_FIELD,0);
+		case Y_FIELD: {
+			LNOBRANCH;
+			// langL_load2any(fs,NO_LINE,v.x,1);
+			// langL_load2any(fs,NO_LINE,v.y,1);
+			// langL_byte(fs,line,BC_FIELD,0);
 		} break;
-		case TREE_INDEX: {
-			langL_load2(fs,NO_LINE,v.x,1);
-			langL_load2(fs,NO_LINE,v.y,1);
-			langL_byte(fs,line,BYTE_INDEX,0);
+		case Y_INDEX: {
+			LNOBRANCH;
+			// langL_load2any(fs,NO_LINE,v.x,1);
+			// langL_load2any(fs,NO_LINE,v.y,1);
+			// langL_byte(fs,line,BC_INDEX,0);
 		} break;
-		case TREE_BUILTIN: {
-			/* host the result registers */
-			langL_push(fs,line,y);
-			int n = langA_varlen(v.z);
-			langA_varifor(v.z) {
-				langL_load2(fs,NO_LINE,v.z[i],1);
-			}
+		case Y_GROUP: {
+			langL_reload(fs,line,reload,x,v.x,y);
+		} break;
+		/* -- todo: this is silly, probably just
+		- do this through a lib or something */
+		case Y_BUILTIN: {
+			int n = langL_localloadadj(fs,y,v.z);
 			if (v.x == TK_STKLEN) {
-				langL_bytexy(fs,line,BYTE_STKLEN,n,y);
+				langL_bytexy(fs,line,x,BC_STKLEN,MAX(n,y));
 			} else
 			if (v.x == TK_STKGET) {
-				langL_bytexy(fs,line,BYTE_STKGET,n,y);
+				langL_bytexy(fs,line,x,BC_STKGET,MAX(n,y));
 			} else LNOBRANCH;
 		} break;
-		case TREE_LOADFILE: {
-			/* host the result registers */
-			langL_push(fs,line,y);
-			langL_load2(fs,line,v.x,1);
-			langL_bytexy(fs,line,BYTE_LOADFILE,0,y);
+		case Y_LOADFILE: {
+			LNOBRANCH;
+			// langL_reload(fs,line,x,v.x,1);
+			// langL_bytexy(fs,line,BC_LOADFILE,x,y);
 		} break;
-		case TREE_MCALL: {
-			/* host the result registers */
-			langL_push(fs,line,y);
-			int n = langA_varlen(v.z);
-			langA_varifor(v.z) {
-				langL_load2(fs,NO_LINE,v.z[i],1);
-			}
-			langL_load2(fs,NO_LINE,v.x,1);
-			langL_load2(fs,NO_LINE,v.y,1);
-			langL_bytexy(fs,line,BYTE_METACALL,n,y);
+		case Y_MCALL: {
+			LNOBRANCH;
+			// int n = langA_varlen(v.z);
+			// llocalid id = langL_localalloc(n);
+			// langA_varifor(v.z) {
+			// 	langL_load2any(fs,NO_LINE,id,v.z[i]);
+			// }
+			// langL_localalloc(-id);
+			// langL_load2any(fs,NO_LINE,v.x,1);
+			// langL_load2any(fs,NO_LINE,v.y,1);
+			// langL_bytexyz(fs,line,BC_METACALL,x,n,v.x,v.y);
 		} break;
-		case TREE_CALL: {
-			/* host the result registers */
-			langL_push(fs,line,y);
-			llocalid n = langA_varlen(v.z);
-			langA_varifor(v.z) {
-				langL_load2(fs,NO_LINE,v.z[i],1);
-			}
-			langL_load2(fs,line,v.x,1);
-			langL_bytexy(fs,line,BYTE_CALL,n,y);
+		case Y_CALL: {
+			int n = langL_localloadadj(fs,y,v.z);
+			langL_bytexyz(fs,line,BC_CALL,x,v.x,MAX(n,y));
 		} break;
-		case TREE_LOG_AND:
-		case TREE_LOG_OR: {
+		case Y_LOG_AND: case Y_LOG_OR: {
 			ljlist js = {0};
 			langL_jumpiffalse(fs,&js,x);
 			langL_tieloosejs(fs,js.t);
 			langA_vardel(js.t);
 			js.t = lnil;
-			langL_byte(fs,line,BYTE_INT,ltrue);
+			langL_byte(fs,line,BC_INT,ltrue);
 			int j = langL_jump(fs,line,-1);
 			langL_tieloosejs(fs,js.f);
 			langA_vardel(js.f);
 			js.f = lnil;
-			langL_byte(fs,line,BYTE_INT,lfalse);
+			langL_byte(fs,line,BC_INT,lfalse);
 			langL_tieloosej(fs,j);
 		} break;
-		/* todo: make these more compact! */
-		case TREE_GT: {
-			langL_load2(fs,line,v.y,1);
-			langL_load2(fs,line,v.x,1);
-			langL_byte(fs,line,BYTE_LT,0);
+		case Y_GT: {
+			llocalid r = langL_localalloc(fs,1);
+			langL_reload(fs,line,NO_SLOT,x,v.y,1);
+			langL_reload(fs,line,NO_SLOT,r,v.x,1);
+			langL_localdealloc(fs,r);
+			langL_byte(fs,line,BC_LT,0);
 		} break;
-		case TREE_GTEQ: {
-			langL_load2(fs,line,v.y,1);
-			langL_load2(fs,line,v.x,1);
-			langL_byte(fs,line,BYTE_LTEQ,0);
+		case Y_GTEQ: {
+			llocalid r = langL_localalloc(fs,1);
+			langL_reload(fs,line,lfalse,x,v.y,1);
+			langL_reload(fs,line,lfalse,r,v.x,1);
+			langL_localdealloc(fs,r);
+			langL_bytexyz(fs,line,BC_LTEQ,x,x,r);
 		} break;
-		case TREE_LT: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_LT,0);
-		} break;
-		case TREE_LTEQ: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_LTEQ,0);
-		} break;
-		case TREE_EQ: {
-			if (fs->nodes[v.y].k == TREE_NIL) {
-				langL_load2(fs,line,v.x,1);
-				langL_byte(fs,line,BYTE_ISNIL,0);
+		case Y_EQ: {
+			if (fs->nodes[v.y].k == Y_NIL) {
+				langL_reload(fs,line,lfalse,x,v.x,1);
+				langL_bytexy(fs,line,BC_ISNIL,x,x);
 			} else {
-				langL_load2(fs,line,v.x,1);
-				langL_load2(fs,line,v.y,1);
-				langL_byte(fs,line,BYTE_EQ,0);
+				llocalid r = langL_localalloc(fs,1);
+				langL_reload(fs,line,lfalse,x,v.x,1);
+				langL_reload(fs,line,lfalse,r,v.y,1);
+				langL_localdealloc(fs,r);
+				langL_bytexyz(fs,line,BC_EQ,x,x,r);
 			}
 		} break;
-		case TREE_NEQ: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_NEQ,0);
-		} break;
-		case TREE_DIV: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_DIV,0);
-		} break;
-		case TREE_MUL: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_MUL,0);
-		} break;
-		case TREE_MOD: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_MOD,0);
-		} break;
-		case TREE_SUB: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_SUB,0);
-		} break;
-		case TREE_ADD: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_ADD,0);
-		} break;
-		case TREE_BSHL: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_SHL,0);
-		} break;
-		case TREE_BSHR: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_SHR,0);
-		} break;
-		case TREE_BXOR: {
-			langL_load2(fs,line,v.x,1);
-			langL_load2(fs,line,v.y,1);
-			langL_byte(fs,line,BYTE_XOR,0);
+		case Y_LT: case Y_LTEQ: case Y_NEQ:
+		case Y_DIV: case Y_MUL: case Y_MOD:
+		case Y_SUB: case Y_ADD:
+		case Y_BSHL: case Y_BSHR: case Y_BXOR: {
+			llocalid r = langL_localalloc(fs,1);
+			langL_reload(fs,line,lfalse,x,v.x,1);
+			langL_reload(fs,line,lfalse,r,v.y,1);
+			langL_localdealloc(fs,r);
+			langL_bytexyz(fs,line,treetobyte(v.k),x,x,r);
 		} break;
 		default: {
 			langX_error(fs,v.line,"unsupported node");
 			LNOBRANCH;
 		} break;
 	}
+
+	leave:;
 }
 
 
@@ -434,38 +441,39 @@ void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y) {
 	if (line == 0) line = v.line;
 
 	switch (v.k) {
-		case TREE_GLOBAL: {
-			langL_load2(fs,line,y,1);
-			langL_byte(fs,line,BYTE_SETGLOBAL,v.x);
+		case Y_GLOBAL: {
+			llocalid r = langL_localalloc(fs,1);
+			langL_reload(fs,line,lfalse,r,y,1);
+			langL_localdealloc(fs,r);
+			langL_bytexy(fs,line,BC_SETGLOBAL,v.x,r);
 		} break;
-		case TREE_LOCAL: {
-			langL_load2(fs,line,y,1);
-			langL_byte(fs,line,BYTE_SETLOCAL,v.x);
+		case Y_LOCAL: {
+			langL_reload(fs,line,lfalse,v.x,1,y);
 		} break;
-		case TREE_INDEX: {
-			langL_load2(fs,line,v.x,1);/* table */
-			langL_load2(fs,line,v.y,1);/* index */
-			langL_load2(fs,line,y,1);/* value */
-			langL_byte(fs,line,BYTE_SETINDEX,0);
-			langL_drop(fs,line,1);/* drop table */
+		case Y_INDEX: {
+			LNOBRANCH;
+			// llocalid table = langL_load2any(fs,line,NO_SLOT,v.x,1);
+			// llocalid index = langL_load2any(fs,line,NO_SLOT,v.y,1);
+			// llocalid value = langL_load2any(fs,line,NO_SLOT,  y,1);
+			// langL_bytexyz(fs,line,BC_SETINDEX,table,index,value);
 		} break;
-		case TREE_FIELD: {
-			langL_load2(fs,line,v.x,1);/* table */
-			langL_load2(fs,line,v.y,1);/* index */
-			langL_load2(fs,line,y,1);/* value */
-			langL_byte(fs,line,BYTE_SETFIELD,0);
-			langL_drop(fs,line,1);/* drop table */
+		case Y_FIELD: {
+			LNOBRANCH;
+			// langL_load2any(fs,line,v.x,1);/* table */
+			// langL_load2any(fs,line,v.y,1);/* index */
+			// langL_load2any(fs,line,  y,1);/* value */
+			// langL_byte(fs,line,BC_SETFIELD,0);
 		} break;
 		// {x}[{x}..{x}] = {y}
-		case TREE_RANGE_INDEX: {
-			Loop l = {0};
-			langL_load2(fs,line,v.x,1);/* table */
-			langL_beginloop(fs,line,&l,-1,v.y);
-			langL_load2(fs,line,l.x,1);/* index */
-			langL_load2(fs,line,y,1);/* value */
-			langL_byte(fs,line,BYTE_SETINDEX,0);
-			langL_closeloop(fs,line,&l);
-			langL_drop(fs,line,1);/* drop table */
+		case Y_RANGE_INDEX: {
+			LNOBRANCH;
+			// Loop l = {0};
+			// langL_load2any(fs,line,v.x,1);/* table */
+			// langL_beginloop(fs,line,&l,-1,v.y);
+			// langL_load2any(fs,line,l.x,1);/* index */
+			// langL_load2any(fs,line,y,1);/* value */
+			// langL_byte(fs,line,BC_SETINDEX,0);
+			// langL_closeloop(fs,line,&l);
 		} break;
 		default: {
 			LNOBRANCH;
@@ -597,7 +605,7 @@ void langL_closewhile(FileState *fs, llineid line, Loop *loop) {
 
 
 void langL_beginloop(FileState *fs, llineid line, Loop *loop, ltreeid x, ltreeid r) {
-	LASSERT(fs->nodes[r].k == TREE_RANGE);
+	LASSERT(fs->nodes[r].k == Y_RANGE);
 	/* todo: */
 	if (x == NO_TREE) {
 		int v = lang_addglobal(fs->md,langS_new(fs->rt,"$temp"),(lValue){VALUE_NONE});
@@ -612,7 +620,7 @@ void langL_beginloop(FileState *fs, llineid line, Loop *loop, ltreeid x, ltreeid
 	loop is closed */
 	langL_loadinto(fs,line,x,lo);
 
-	int c = langY_treexy(fs,NO_LINE,TREE_LT,x,hi);
+	int c = langY_treexy(fs,NO_LINE,Y_LT,x,hi);
 
 	loop->e = langL_getlabel(fs);
 
@@ -631,7 +639,7 @@ void langL_beginloop(FileState *fs, llineid line, Loop *loop, ltreeid x, ltreeid
 void langL_closeloop(FileState *fs, llineid line, Loop *loop) {
 	int x = loop->x;
 
-	int k = langY_treexy(fs,NO_LINE,TREE_ADD,x,langY_treelongint(fs,NO_LINE,1));
+	int k = langY_treexy(fs,NO_LINE,Y_ADD,x,langY_treelongint(fs,NO_LINE,1));
 	langL_loadinto(fs,line,x,k);
 
 	langL_jump(fs,line,loop->e);
@@ -644,7 +652,7 @@ void langL_closeloop(FileState *fs, llineid line, Loop *loop) {
 
 /* todo: merge with aljacent blocks */
 void langL_begindelayedblock(FileState *fs, llineid line, CodeBlock *d) {
-	d->j = langL_byte(fs,line,BYTE_DELAY,NO_JUMP);
+	d->j = langL_byte(fs,line,BC_DELAY,NO_JUMP);
 }
 
 
@@ -653,7 +661,7 @@ void langL_closedelayedblock(FileState *fs, llineid line, CodeBlock *bl) {
 
 	FileFunc *fn = fs->fn;
 
-	langL_byte(fs,line,BYTE_LEAVE,0);
+	langL_byte(fs,line,BC_LEAVE,0);
 	langL_tieloosej(fs,bl->j);
 }
 
@@ -661,89 +669,86 @@ void langL_closedelayedblock(FileState *fs, llineid line, CodeBlock *bl) {
 int byteeffect(lModule *md, lBytecode b) {
 	switch (b.k) {
 		/* -- should have already been allocated */
-		case BYTE_LOADNUM:
-		case BYTE_LOADINT:
-		case BYTE_LOADNIL:
+		case BC_LOADNUM:
+		case BC_LOADINT:
+		case BC_LOADNIL:
 		/* -------------------- */
-		case BYTE_HALT:
-		case BYTE_J:
-		case BYTE_JZ:
-		case BYTE_JNZ:
-		case BYTE_DELAY:
-		case BYTE_LEAVE:
-		case BYTE_YIELD: {
+		case BC_HALT:
+		case BC_J:
+		case BC_JZ:
+		case BC_JNZ:
+		case BC_DELAY:
+		case BC_LEAVE:
+		case BC_YIELD: {
 			return 0;
 		}
-		case BYTE_TABLE:
-		case BYTE_NIL:
-		case BYTE_NUM:
-		case BYTE_INT: {
+		case BC_TABLE:
+		case BC_NIL:
+		case BC_NUM:
+		case BC_INT: {
 			return -0+1;
 		}
-		case BYTE_ISNIL: {
+		case BC_ISNIL: {
 			return -1+1;
 		}
-		case BYTE_NEQ:
-		case BYTE_EQ:
-		case BYTE_LT:
-		case BYTE_LTEQ:
-		case BYTE_ADD:
-		case BYTE_SUB:
-		case BYTE_DIV:
-		case BYTE_MUL:
-		case BYTE_MOD:
-		case BYTE_SHL:
-		case BYTE_SHR:
-		case BYTE_XOR: {
+		case BC_NEQ:
+		case BC_EQ:
+		case BC_LT:
+		case BC_LTEQ:
+		case BC_ADD:
+		case BC_SUB:
+		case BC_DIV:
+		case BC_MUL:
+		case BC_MOD:
+		case BC_SHL:
+		case BC_SHR:
+		case BC_XOR: {
 			return -2+1;
 		}
-		case BYTE_DUPL: {
+		case BC_DUPL: {
 			return b.i;
 		}
-		case BYTE_DROP: {
+		case BC_DROP: {
 			return -1;
 		}
 
-		case BYTE_CALL: {
+		case BC_CALL: {
 			return -b.x;
 		}
-		case BYTE_METACALL: {
+		case BC_METACALL: {
 			return -2 - b.x;
 		}
-		case BYTE_TABLECALL: {
+		case BC_TABLECALL: {
 			return -2 - b.x;
 		}
-		case BYTE_LOADFILE:
-		case BYTE_LOADCLIB: {
+		case BC_LOADFILE:
+		case BC_LOADCLIB: {
 			return -1;
 		}
 
-		case BYTE_STKGET: {
+		case BC_STKGET: {
 			return -1+1;
 		}
-		case BYTE_STKLEN: {
+		case BC_STKLEN: {
 			return -0+1;
 		}
-		case BYTE_LOCAL: {
-			return b.y;
-		}
-		case BYTE_GLOBAL:
-		case BYTE_CACHE:
-		case BYTE_INDEX: {
+		case BC_LOADGLOBAL:
+		case BC_LOADCACHED:
+		case BC_INDEX: {
 			return 1;
 		}
-		case BYTE_FIELD: {
+		case BC_FIELD: {
 			return -2+1;
 		}
-		case BYTE_SETINDEX:
-		case BYTE_SETFIELD: {
+		case BC_SETINDEX:
+		case BC_SETFIELD: {
 			return -3+0;
 		}
-		case BYTE_SETLOCAL:
-		case BYTE_SETGLOBAL: {
+		case BC_RELOAD:
+		case BC_SETGLOBAL: {
 			return -1+0;
 		}
-		case BYTE_CLOSURE: {
+		case BC_CLOSURE: {
 			/* todo?: could also encode this in the byte? */
 			return - md->p[b.i].ncaches;
 		}
@@ -751,4 +756,23 @@ int byteeffect(lModule *md, lBytecode b) {
 
 	LNOBRANCH;
 	return 0;
+}
+
+
+lbyteop treetobyte(ltreetype tt) {
+	switch (tt) {
+		case Y_ADD:     return BC_ADD;
+		case Y_SUB:     return BC_SUB;
+		case Y_DIV:     return BC_DIV;
+		case Y_MUL:     return BC_MUL;
+		case Y_MOD:     return BC_MOD;
+		case Y_NEQ:     return BC_NEQ;
+		case Y_EQ:      return BC_EQ;
+		case Y_LT:      return BC_LT;
+		case Y_LTEQ:    return BC_LTEQ;
+		case Y_BSHL:    return BC_SHL;
+		case Y_BSHR:    return BC_SHR;
+		case Y_BXOR:    return BC_XOR;
+	}
+	return Y_NONE;
 }
