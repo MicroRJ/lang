@@ -27,6 +27,7 @@ lBinding lfndmetafn(lObject *j, lString *name) {
 
 
 int lang_callargs(lRuntime *c, lClosure *cl, int x, int y, ...) {
+	#if 0
 	va_list v;
 	va_start(v,y);
 	for (int i = 0; i < x; ++i) {
@@ -34,22 +35,25 @@ int lang_callargs(lRuntime *c, lClosure *cl, int x, int y, ...) {
 	}
 	va_end(v);
 	return lang_call(c,0,cl,x,y);
+	#endif
+	return 0;
 }
 
 
 /*
-** Calls a binding function, takes an optional
+** , takes an optional
 ** object for meta functions, x and y are the
 ** number of in and out values respectively.
 */
+#if 0
 int lang_bind(lRuntime *c, lObject *obj, lBinding b, int x, int y) {
 	LASSERT(lang_leftover(c) >= x + y);
-	CallFrame s = {0};
+	lContext s = {0};
 	s.obj = obj;
 	s.l = c->v - x;
 	s.x = x;
 	s.y = y;
-	CallFrame *f = c->f;
+	lContext *f = c->f;
 	c->f = &s;
 	int r = b(c);
 	/* move results to hosted registers */
@@ -61,35 +65,57 @@ int lang_bind(lRuntime *c, lObject *obj, lBinding b, int x, int y) {
 	c->v = s.l;
 	return r;
 }
-
+#endif
 
 /*
-** Calls a bytecode function, takes an optional
-** object for meta functions, x and y are the
-** number of in and out values respectively.
+** Calls a function, takes an optional object for meta methodss,
+** x and y are the number of in and out values respectively,
+** r is the local slot where the function value (bytecode or binding)
+** resides.
 */
-int lang_call(lRuntime *c, lObject *obj, lClosure *cl, int x, int y) {
-	LASSERT((c->v-c->s) >= x + y);
+int lang_call(lRuntime *R, lObject *obj, llocalid r, int x, int y) {
+	/* check that number of items on the stack corresponds to
+	x,y and r */
+	LASSERT(R->frame->base+r + MAX(x,y) <= R->top);
 	/* clear the locals? */
-	for (; x < cl->fn.nlocals; ++ x) {
-		c->v->tag = VALUE_NONE;
-		c->v->i   = 0;
-		c->v ++;
+	lContext *caller = R->frame;
+	lValue func = caller->base[r];
+	lContext frame = {0};
+	if (func.tag == TAG_CLOSURE) {
+		frame.cl = func.f;
+		/* todo: replace with faster memset? */
+		for (; x < frame.cl->fn.nlocals; ++ x) {
+			R->top->tag = VALUE_NONE;
+			R->top->i   = 0;
+			R->top ++;
+		}
 	}
-
-	CallFrame s = {0};
-	s.obj = obj;
-	s.cl  = cl;
-	s.l = c->v - x;
-	s.x = x;
-	s.y = y;
-	CallFrame *f = c->f;
-	c->f = &s;
-	llocalid nleft = lang_resume(c);
-	c->f = f;
-	/* all the hosted return registers are above s.l */
-	c->v = s.l;
-	return nleft;
+	frame.obj  = obj;
+	/* -- todo: make first argument start at 1 instead */
+	frame.base = caller->base + r + 1;
+	frame.x = x;
+	frame.y = y;
+	R->frame = &frame;
+	llocalid nyield = 0;
+	if (func.tag == TAG_CLOSURE) {
+		nyield = lang_resume(R);
+	} else
+	if (func.tag == VALUE_BINDING) {
+		if (func.c != lnil) {
+			nyield = func.c(R);
+			/* ensure that the results where pushed to the stack */
+			LASSERT(nyield <= R->top - frame.base);
+			/* move results to hosted registers */
+			int m = nyield < y ? nyield : y;
+			for (int p = 0; p < m; ++ p) {
+				frame.base[p-y] = R->top[p-nyield];
+			}
+		}
+	}
+	/* finally restore stack */
+	R->top = caller->base + r + nyield;
+	R->frame = caller;
+	return nyield;
 }
 
 
@@ -97,7 +123,7 @@ int lang_call(lRuntime *c, lObject *obj, lClosure *cl, int x, int y) {
 ** Loads a file and calls its function,
 ** returns the number of results.
 */
-int lang_loadfile(lRuntime *rt, lString *filename, int y) {
+int lang_loadfile(lRuntime *rt, FileState *fs, lString *filename, int y) {
 
 	char *contents;
 	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
@@ -105,27 +131,27 @@ int lang_loadfile(lRuntime *rt, lString *filename, int y) {
 
 	lModule *md = rt->md;
 
-	FileState fs = {md};
-	fs.rt = rt;
-	fs.md = md;
-	fs.bytes = md->nbytes;
-	fs.filename = filename->string;
-	fs.contents = contents;
-	fs.thischar = contents;
-	fs.linechar = contents;
-	fs.linenumber = 1;
+	fs->rt = rt;
+	fs->md = md;
+	fs->bytes = md->nbytes;
+	fs->filename = filename->string;
+	fs->contents = contents;
+	fs->thischar = contents;
+	fs->linechar = contents;
+	fs->linenumber = 1;
 
 	/* kick start by lexing the first two tokens */
-	langX_yield(&fs);
-	langX_yield(&fs);
+	langX_yield(fs);
+	langX_yield(fs);
 
 
 	FileFunc fn = {0};
-	langY_beginfn(&fs,&fn,fs.tk.line);
-	while (!langX_test(&fs,0)) langY_loadstat(&fs);
-	langY_closefn(&fs);
+	langY_beginfn(fs,&fn,fs->tk.line);
+	while (!langX_test(fs,0)) langY_loadstat(fs);
+	langY_closefn(fs);
 
-
+	/* todo: this is temporary, please remove this or make
+	some sort of object out of it... */
 	lFile fl = {0};
 	fl.bytes = fn.bytes;
 	fl.nbytes = md->nbytes - fn.bytes;
@@ -141,7 +167,7 @@ int lang_loadfile(lRuntime *rt, lString *filename, int y) {
 	cl.fn.bytes = fn.bytes;
 	cl.fn.nbytes = md->nbytes - fn.bytes;
 
-	int nleft = lang_call(rt,lnil,&cl,0,y);
+	int nleft = lang_call(rt,lnil,0,0,y);
 
 	/* todo: lines? */
 	// langM_dealloc(lHEAP,contents);
@@ -163,10 +189,9 @@ int fndfile(lModule *md, llineid line) {
 
 
 int lang_resume(lRuntime *cs) {
-	cs->logging = ltrue;
 
 	lModule *md = cs->md;
-	CallFrame *c = cs->f;
+	lContext *c = cs->f;
 	lClosure *cl = c->cl;
 	lProto fn = cl->fn;
 
@@ -231,7 +256,8 @@ int lang_resume(lRuntime *cs) {
 				LASSERT(cs->v[-1].tag == VALUE_STRING);
 				lString *name = (--cs->v)->s;
 				langGC_markpink((lObject*)name);
-				lang_loadfile(cs,name,b.y);
+				FileState fs = {0};
+				lang_loadfile(cs,&fs,name,b.y);
 				langGC_markwhite((lObject*)name);
 			} break;
 			case BC_J: {
@@ -269,7 +295,7 @@ int lang_resume(lRuntime *cs) {
 			} break;
 			case BC_CLOSURE: {
 				LASSERT(b.i >= 0 && b.i < langA_varlen(md->p));
-				c->l[b.x].tag = VALUE_FUNC;
+				c->l[b.x].tag = TAG_CLOSURE;
 				c->l[b.x].f   = langF_newclosure(cs,md->p[b.i]);
 			} break;
 			case BC_RELOAD: {
@@ -342,29 +368,24 @@ int lang_resume(lRuntime *cs) {
 			} break;
 
 			case BC_METACALL: {
-				cs->v -= 2;
-				lValue o = cs->v[0];
-				lValue m = cs->v[1];
+				LNOBRANCH;
+				// cs->v -= 2;
+				// lValue o = cs->v[0];
+				// lValue m = cs->v[1];
 
-				LASSERT(m.tag == VALUE_STRING);
-				LASSERT(ttisobj(o.tag));
-				lBinding d = lfndmetafn(o.j,m.s);
-				if (d != lnil) {
-					lang_bind(cs,o.j,d,b.x,b.y);
-				}
+				// LASSERT(m.tag == VALUE_STRING);
+				// LASSERT(ttisobj(o.tag));
+				// lBinding d = lfndmetafn(o.j,m.s);
+				// if (d != lnil) {
+				// 	lang_call(cs,o.j,d,b.x,b.y);
+				// }
 			} break;
 			case BC_CALL: {
-				lValue v = *(-- cs->v);
-				if (v.tag == VALUE_FUNC) {
-					lang_call(cs,0,v.f,b.x,b.y);
-				} else
-				if (v.tag == VALUE_BINDING) {
-					if (v.c != 0) {
-						lang_bind(cs,0,v.c,b.x,b.y);
-					}
-				} else {
-					lang_logerror("not a function");
-				}
+				/* arguments are located below b.x, result
+				is to be placed at b.x...b.y-1, so the user
+				should have allocated sufficient space for
+				both the arguments and the returns */
+				lang_call(cs,0,b.x,b.y,b.z);
 			} break;
 			case BC_ISNIL: {
 				cs->v -= 1;
@@ -491,8 +512,13 @@ lapi lString *lang_loadS(lRuntime *c, int x) {
 
 lapi lClosure *lang_loadcl(lRuntime *c, int x) {
 	lValue v = c->f->l[x];
-	LASSERT(v.tag == VALUE_FUNC);
+	LASSERT(v.tag == TAG_CLOSURE);
 	return v.f;
+}
+
+
+lapi void lang_checkcl(lRuntime *c, llocalid x) {
+	LASSERT(c->f->l[x].tag == TAG_CLOSURE);
 }
 
 
@@ -522,8 +548,8 @@ lapi Handle lang_loadhandle(lRuntime *c, llocalid x) {
 
 
 void lang_pushvalue(lRuntime *c, lValue v) {
-	LASSERT(c->v - c->s < c->z);
-	*(c->v ++) = v;
+	LASSERT((c->top - c->stk) < c->stklen);
+	*(c->top ++) = v;
 }
 
 
@@ -562,7 +588,7 @@ void lang_pushString(lRuntime *c, lString *s) {
 
 
 void lang_pushclosure(lRuntime *c, lClosure *f) {
-	c->v->tag = VALUE_FUNC;
+	c->v->tag = TAG_CLOSURE;
 	c->v->f = f;
 	++ c->v;
 }

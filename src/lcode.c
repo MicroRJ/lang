@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** (L) lcode.c
-** Bytecode Generator
+** Bytecode Generator (trees -> bytecode)
 */
 
 
@@ -43,9 +43,10 @@ void langL_localdealloc(FileState *fs, llocalid x) {
 lbyteid langL_addbyte(FileState *fs, llineid line, lBytecode byte) {
 	FileFunc *fn = fs->fn;
 	lModule *md = fs->md;
-	// langL_localalloc(fs,byteeffect(md,byte));
-	// lang_loginfo("%s %lli: byte: %s, %lli"
-	// , fs->filename,md->nbytes,lang_bytename(byte.k),byte.i);
+
+	// bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
+	// langX_error(fs,line,"");
+
 	langA_varadd(md->lines,line);
 	langA_varadd(md->bytes,byte);
 	return md->nbytes ++;
@@ -240,19 +241,19 @@ int langL_localloadadj(FileState *fs, llocalid y, ltreeid *z) {
 }
 
 
-/*
-** x is preallocated stack slot to put the result
-** in, y the number of slots allocated after x.
-** if y is NO_SLOT the instruction is ommitted unless
-** it has side-effects, such as a function call,
-** but no registers are allocated for it, if x.
-** if reload is specified, when the value is already
-** on the stack, then it is reloaded into x.
-*/
-/* -- Some instructions have no side effects,
-- in which case, if the yield count is 0, the
-- instruction is not emitted */
 void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, ltreeid id) {
+	/*
+	** x is preallocated stack slot to put the result
+	** in, y the number of slots allocated after x.
+	** if y is NO_SLOT the instruction is ommitted unless
+	** it has side-effects, such as a function call,
+	** but no registers are allocated for it.
+	** if reload is specified, when the value is already
+	** on the stack, then it is reloaded onto x.
+	*/
+	/* -- Some instructions have no side effects,
+	- in which case, if the yield count is 0, the
+	- instruction is not emitted */
 	LASSERT(x > NO_SLOT);
 	Tree v = fs->nodes[id];
 	LASSERT(v.level <= fs->level);
@@ -370,8 +371,9 @@ void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocali
 			// langL_bytexyz(fs,line,BC_METACALL,x,n,v.x,v.y);
 		} break;
 		case Y_CALL: {
-			int n = langL_localloadadj(fs,y,v.z);
-			langL_bytexyz(fs,line,BC_CALL,x,v.x,MAX(n,y));
+			langL_reload(fs,line,ltrue,x,1,v.x);
+			int n = langL_localloadadj(fs,0,v.z);
+			langL_bytexyz(fs,line,BC_CALL,x,n,y);
 		} break;
 		case Y_LOG_AND: case Y_LOG_OR: {
 			ljlist js = {0};
@@ -389,26 +391,26 @@ void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocali
 		} break;
 		case Y_GT: {
 			llocalid r = langL_localalloc(fs,1);
-			langL_reload(fs,line,NO_SLOT,x,v.y,1);
-			langL_reload(fs,line,NO_SLOT,r,v.x,1);
+			langL_reload(fs,line,NO_SLOT,x,1,v.y);
+			langL_reload(fs,line,NO_SLOT,r,1,v.x);
 			langL_localdealloc(fs,r);
 			langL_byte(fs,line,BC_LT,0);
 		} break;
 		case Y_GTEQ: {
 			llocalid r = langL_localalloc(fs,1);
-			langL_reload(fs,line,lfalse,x,v.y,1);
-			langL_reload(fs,line,lfalse,r,v.x,1);
+			langL_reload(fs,line,lfalse,x,1,v.y);
+			langL_reload(fs,line,lfalse,r,1,v.x);
 			langL_localdealloc(fs,r);
 			langL_bytexyz(fs,line,BC_LTEQ,x,x,r);
 		} break;
 		case Y_EQ: {
 			if (fs->nodes[v.y].k == Y_NIL) {
-				langL_reload(fs,line,lfalse,x,v.x,1);
+				langL_reload(fs,line,lfalse,x,1,v.x);
 				langL_bytexy(fs,line,BC_ISNIL,x,x);
 			} else {
 				llocalid r = langL_localalloc(fs,1);
-				langL_reload(fs,line,lfalse,x,v.x,1);
-				langL_reload(fs,line,lfalse,r,v.y,1);
+				langL_reload(fs,line,lfalse,x,1,v.x);
+				langL_reload(fs,line,lfalse,r,1,v.y);
 				langL_localdealloc(fs,r);
 				langL_bytexyz(fs,line,BC_EQ,x,x,r);
 			}
@@ -418,8 +420,8 @@ void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocali
 		case Y_SUB: case Y_ADD:
 		case Y_BSHL: case Y_BSHR: case Y_BXOR: {
 			llocalid r = langL_localalloc(fs,1);
-			langL_reload(fs,line,lfalse,x,v.x,1);
-			langL_reload(fs,line,lfalse,r,v.y,1);
+			langL_reload(fs,line,lfalse,x,1,v.x);
+			langL_reload(fs,line,lfalse,r,1,v.y);
 			langL_localdealloc(fs,r);
 			langL_bytexyz(fs,line,treetobyte(v.k),x,x,r);
 		} break;
@@ -448,7 +450,8 @@ void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y) {
 			langL_bytexy(fs,line,BC_SETGLOBAL,v.x,r);
 		} break;
 		case Y_LOCAL: {
-			langL_reload(fs,line,lfalse,v.x,1,y);
+			/* -- todo: account for x = x opt ?  */
+			langL_reload(fs,line,ltrue,v.x,1,y);
 		} break;
 		case Y_INDEX: {
 			LNOBRANCH;

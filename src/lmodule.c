@@ -45,22 +45,26 @@ void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
 	fprintf(file," | %-4i %s"
 	,	id, lang_bytename(b.k));
 	if (lang_byteclass(b.k) == BC_CLASS_XYZ) {
-		printf("(x=%i,y=%i,z=%i)",b.x,b.y,b.z);
+		fprintf(file,"(x=%i,y=%i,z=%i)",b.x,b.y,b.z);
 	} else
 	if (lang_byteclass(b.k) == BC_CLASS_XY) {
-		printf("(x=%i,y=%i)",b.x,b.y);
+		fprintf(file,"(x=%i,y=%i)",b.x,b.y);
 	} else {
-		printf("(x=%lli)",b.i);
+		fprintf(file,"(x=%lli)",b.i);
 	}
 	if (b.k == BC_LOADGLOBAL) {
 		fprintf(file,"  // ");
-		syslib_fpfv_(file,md->g->v[b.i],ltrue);
+		syslib_fpfv_(file,md->g->v[b.y],ltrue);
 	}
 	fprintf(file,"\n");
 }
 
 
+void langX_getlocinfo(FileState *fs, char *loc, int *linenum, char **lineloc);
+
+
 void lang_dumpmodule(lModule *md, Handle file) {
+#if 0
 	fprintf(file,"lModule:\n");
 	fprintf(file,"Globals:\n");
 	langA_varifor(md->g->v) {
@@ -68,17 +72,30 @@ void lang_dumpmodule(lModule *md, Handle file) {
 		syslib_fpfv_(file,md->g->v[i],ltrue);
 		fprintf(file,"\n");
 	}
-
+#endif
+	fprintf(file,"-- BYTECODE --\n");
+	langA_varifor(md->files) {
+		lFile ff = md->files[i];
+		fprintf(file,"- FILE (%s):\n",ff.name);
+		fprintf(file,"LINE INDEX INSTRUCTION\n");
+		for (lbyteid j = 0; j < ff.nbytes; ++j) {
+			lBytecode b = md->bytes[ff.bytes+j];
+			int linenum;
+			char *lineloc;
+			langX_getlocinfo(md->file,md->lines[j],&linenum,&lineloc);
+			fprintf(file,"%i:%i",linenum,(int)(md->lines[j]-lineloc));
+			bytefpf(md,file,j,b);
+		}
+	}
+#if 0
 	langA_varifor(md->p) {
 		lProto p = md->p[i];
 		fprintf(file,"FUNC: [%i] %i,%i (%i:%i):\n",(int)i,p.bytes,p.nbytes,p.x,p.nlocals);
-
 		for (lbyteid j = 0; j < p.nbytes; ++j) {
 			lBytecode b = md->bytes[p.bytes+j];
 			bytefpf(md,file,j,b);
 		}
-
 		fprintf(file,"end\n");
 	}
-
+#endif
 }

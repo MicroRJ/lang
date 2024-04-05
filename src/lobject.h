@@ -51,7 +51,7 @@ typedef enum lvaluetag {
 	VALUE_BINDING,
 	VALUE_CUSTOM,
 	VALUE_HANDLE,
-	VALUE_FUNC,
+	TAG_CLOSURE,
 	// VALUE_JITFUNC,
 	VALUE_STRING,
 	VALUE_ARRAY,
@@ -132,7 +132,7 @@ lapi lValue lang_S(lString *s) {
 
 
 lapi lValue lang_F(lClosure *f) {
-	lValue v = (lValue){VALUE_FUNC};
+	lValue v = (lValue){TAG_CLOSURE};
 	v.f = f;
 	return v;
 }

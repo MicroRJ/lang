@@ -244,7 +244,7 @@ int langH_insert_(lRuntime *c) {
 
 int langH_foreach_(lRuntime *c) {
 	LASSERT(c->f->x == 1);
-	LASSERT(lang_load(c,0).tag == VALUE_FUNC);
+	LASSERT(lang_load(c,0).tag == TAG_CLOSURE);
 
 	Table *table = (Table *) c->f->obj;
 
@@ -317,7 +317,7 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 		case TAG_INTEGER:
 		case TAG_NUMBER:
 		case TAG_TABLE:
-		case VALUE_FUNC:
+		case TAG_CLOSURE:
 		case VALUE_BINDING: {
 			return x->i == y->i;
 		}
@@ -335,7 +335,7 @@ llongint langH_hashvalue(lValue v) {
 		}
 		case TAG_NUMBER:
 		case TAG_TABLE:
-		case VALUE_FUNC:
+		case TAG_CLOSURE:
 		case VALUE_BINDING:
 		case TAG_INTEGER: {
 			return langH_hashPtr(v.p);

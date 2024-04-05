@@ -5,8 +5,6 @@
 */
 
 
-
-
 typedef struct ldelaylist ldelaylist;
 typedef struct ldelaylist {
 	ldelaylist *n;
@@ -14,17 +12,19 @@ typedef struct ldelaylist {
 } ldelaylist;
 
 
-typedef struct CallFrame {
+/* -- pretty much a call frame */
+typedef struct lContext {
 	/* -- closure this call frame belongs to */
 	lClosure *cl;
-	/* -- object for meta functions and table
-	- calls */
+	/* -- object for meta functions and table calls */
 	lObject *obj;
 	/* -- pointer to base stack address, which is
 	- also the regress address. when the stack
 	- frame is popped the stack pointer is set
-	- to l, and the return values should before l. */
-	lValue *l;
+	- to base + number of returns. */
+	union {
+		lValue *base,*l;
+	};
 	/* -- next instruction index, not really
 	- used now, but I guess for coroutines? */
 	llongint j;
@@ -43,14 +43,21 @@ typedef struct CallFrame {
 	- on return, 'finally' statements produce
 	- these. */
 	ldelaylist *dl;
-} CallFrame;
+} lContext;
 
 
 typedef struct lRuntime {
 	lModule *md;
-	lValue *s,*v;
-	llocalid z;
-	CallFrame *f;
+	union {
+		lValue *stk,*s;
+	};
+	llocalid stklen;
+	union {
+		lValue *top,*v;
+	};
+	union {
+		lContext *frame,*f;
+	};
 	lObject **gc;
 	llongint gcthreshold;
 	lbool isgcpaused;

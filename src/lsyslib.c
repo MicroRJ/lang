@@ -87,7 +87,7 @@ int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 		case VALUE_HANDLE: return fprintf(file,"h%llX",v.i);
 		case TAG_INTEGER: return fprintf(file,"%lli",v.i);
 		case TAG_NUMBER: return fprintf(file,"%f",v.n);
-		case VALUE_FUNC: return fprintf(file,"F()");
+		case TAG_CLOSURE: return fprintf(file,"F()");
 		case VALUE_BINDING: return fprintf(file,"C()");
 		case TAG_TABLE: {
 			int wrote = 0;
@@ -162,7 +162,7 @@ lbool isvirtual(char const *fn) {
 static lString *keyname;
 static lString *keypath;
 static lString *keyisdir;
-void syslib_listdir_(lRuntime *c, Table *list, Table *flags, lString *d, lClosure *cl) {
+void syslib_listdir_(lRuntime *c, Table *list, Table *flags, lString *d, llocalid cl) {
 	lModule *md = c->md;
 
 	WIN32_FIND_DATAA f;
@@ -196,26 +196,22 @@ void syslib_listdir_(lRuntime *c, Table *list, Table *flags, lString *d, lClosur
 }
 
 
-lapi int syslib_listdir(lRuntime *c) {
-	LASSERT(c->f->x == 2);
+lapi int syslib_listdir(lRuntime *rt) {
+	LASSERT(rt->f->x == 2);
 
-	lString *d = lang_loadS(c,0);
-	lClosure *f = lang_loadcl(c,1);
-
+	lString *d = lang_loadS(rt,0);
+	lang_checkcl(rt,1);
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */
-	keyname = lang_pushnewS(c,"name");
-	keypath = lang_pushnewS(c,"path");
-	keyisdir = lang_pushnewS(c,"isdir");
-
+	keyname = lang_pushnewS(rt,"name");
+	keypath = lang_pushnewS(rt,"path");
+	keyisdir = lang_pushnewS(rt,"isdir");
 	/* push flags temporarily so that it won't be gc'd
 	in between calls to listdir. */
-	Table *flags = lang_pushnewtable(c);
-
+	Table *flags = lang_pushnewtable(rt);
 	/* push list last to serve as return value */
-	Table *list = lang_pushnewtable(c);
-	syslib_listdir_(c,list,flags,d,f);
-
+	Table *list = lang_pushnewtable(rt);
+	syslib_listdir_(rt,list,flags,d,1);
 	return 1;
 }
 

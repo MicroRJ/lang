@@ -109,6 +109,8 @@ lbyteclass lang_byteclass(lbyteop k) {
 		case BC_LOADNUM:
 		case BC_LOADINT:
 		case BC_LOADNIL:
+		case BC_LOADGLOBAL:
+		case BC_LOADCACHED:
 		case BC_RELOAD: {
 			return BC_CLASS_XY;
 		}

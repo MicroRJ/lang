@@ -38,6 +38,7 @@ typedef struct lModule {
 	lbyteid nbytes;
 	char **lines;
 	lFile *files;
+	FileState *file;
 } lModule;
 
 

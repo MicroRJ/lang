@@ -1,8 +1,8 @@
+
+pf("Hello, World!")
 let x = 0
 let y = 1
 x = x + y
-
-// __logging(true)
 
 // let enum xorshift = fun(x) ? {
 // 	x = x + x;

@@ -703,7 +703,9 @@ void langY_loadstat(FileState *fs) {
 				ltreeid y = langY_loadexpr(fs);
 				langL_loadinto(fs,tk.line,x,y);
 			} else {
-				langL_reload(fs,tk.line,lfalse,NO_SLOT,0,x);
+				llocalid r = langL_localalloc(fs,1);
+				langL_reload(fs,tk.line,lfalse,r,0,x);
+				langL_localdealloc(fs,r);
 			}
 		} break;
 	}

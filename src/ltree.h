@@ -15,11 +15,7 @@ typedef int ltreeid;
 - temporarily and then generating bytecode
 - from that, effectively a very simple AST.
 - This largely unnecessary for how simple
-- this language but it makes things easier
-- to understand and flexible should we scale.
-- Trees are stored in a linear buffer and
-- deallocated naturally as they become
-- inaccessible.
+- this language is, period...
 */
 typedef enum ltreetype {
 	Y_NONE = 0,

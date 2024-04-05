@@ -19,17 +19,18 @@ int main(int n, char **c) {
 	lModule md = {0};
 
 	lRuntime rt = {&md};
-	rt.z = 4096;
-	rt.s = langM_clearalloc(lHEAP,sizeof(lValue) * rt.z);
-	rt.v = rt.s;
+	rt.logging = ltrue;
+	rt.stklen = 4096;
+	rt.stk = rt.top = langM_clearalloc(lHEAP,sizeof(lValue) * rt.stklen);
+	lContext root = {0};
+	root.base = rt.top;
+	rt.frame = &root;
 
 	md.g = lang_pushnewtable(&rt);
 
-	/* todo: eventually we'll call this
-	from the source file, each lib will
-	be built independently, or maybe we
-	can add a flag so that we don't load
-	these libraries. */
+	/* todo: eventually we'll call this from the source file,
+	each lib will be built independently, or maybe we can add
+	a flag so that we don't load these libraries. */
 	syslib_load(&rt);
 	tstlib_load(&rt);
 	crtlib_load(&rt);
@@ -40,7 +41,10 @@ int main(int n, char **c) {
 	printf("working in: %s\n",pwd);
 
 	lString *filename = lang_pushnewS(&rt,c[1]);
-	lang_loadfile(&rt,filename,0);
+
+	FileState fs = {0};
+	lang_loadfile(&rt,&fs,filename,0);
+	md.file = &fs;
 
 	Handle file = sys_fopen(".module.ignore","wb");
 	lang_dumpmodule(&md,file);
