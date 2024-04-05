@@ -42,7 +42,7 @@ int linelen(char *p, int m) {
 
 int syslib_fpfv_(FILE *file, lValue v, lbool quotes);
 void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
-	fprintf(file," | %-4i %s"
+	fprintf(file,"%-4i %s"
 	,	id, lang_bytename(b.k));
 	if (lang_byteclass(b.k) == BC_CLASS_XYZ) {
 		fprintf(file,"(x=%i,y=%i,z=%i)",b.x,b.y,b.z);
@@ -77,13 +77,13 @@ void lang_dumpmodule(lModule *md, Handle file) {
 	langA_varifor(md->files) {
 		lFile ff = md->files[i];
 		fprintf(file,"- FILE (%s):\n",ff.name);
-		fprintf(file,"LINE INDEX INSTRUCTION\n");
+		fprintf(file,"INDEX INSTRUCTION\n");
 		for (lbyteid j = 0; j < ff.nbytes; ++j) {
 			lBytecode b = md->bytes[ff.bytes+j];
-			int linenum;
-			char *lineloc;
-			langX_getlocinfo(md->file,md->lines[j],&linenum,&lineloc);
-			fprintf(file,"%i:%i",linenum,(int)(md->lines[j]-lineloc));
+			// int linenum;
+			// char *lineloc;
+			// langX_getlocinfo(md->file,md->lines[j],&linenum,&lineloc);
+			// fprintf(file,"%-3i:%-3i",linenum,(int)(md->lines[j]-lineloc));
 			bytefpf(md,file,j,b);
 		}
 	}

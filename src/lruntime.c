@@ -67,34 +67,36 @@ int lang_bind(lRuntime *c, lObject *obj, lBinding b, int x, int y) {
 }
 #endif
 
+
 /*
-** Calls a function, takes an optional object for meta methodss,
-** x and y are the number of in and out values respectively,
-** r is the local slot where the function value (bytecode or binding)
-** resides.
+** Calls a function, takes an optional object for meta
+** methods, x and y are the number of in and out values
+** respectively, r is the local slot where the function
+** value (bytecode or binding) resides.
 */
 int lang_call(lRuntime *R, lObject *obj, llocalid r, int x, int y) {
-	/* check that number of items on the stack corresponds to
-	x,y and r */
-	LASSERT(R->frame->base+r + MAX(x,y) <= R->top);
+	LASSERT((R->top - R->frame->base) >= r);
 	/* clear the locals? */
 	lContext *caller = R->frame;
 	lValue func = caller->base[r];
+	lValue *base = caller->base + r + 1;
+	lValue *top  = base + x;
 	lContext frame = {0};
+	frame.top  = R->top;
+	frame.obj  = obj;
+	frame.base = base;
+	frame.x = x;
+	frame.y = y;
 	if (func.tag == TAG_CLOSURE) {
 		frame.cl = func.f;
 		/* todo: replace with faster memset? */
 		for (; x < frame.cl->fn.nlocals; ++ x) {
-			R->top->tag = VALUE_NONE;
-			R->top->i   = 0;
-			R->top ++;
+			top->tag = VALUE_NONE;
+			top->i   = 0;
+			top ++;
 		}
 	}
-	frame.obj  = obj;
-	/* -- todo: make first argument start at 1 instead */
-	frame.base = caller->base + r + 1;
-	frame.x = x;
-	frame.y = y;
+	R->top = top;
 	R->frame = &frame;
 	llocalid nyield = 0;
 	if (func.tag == TAG_CLOSURE) {
@@ -108,13 +110,13 @@ int lang_call(lRuntime *R, lObject *obj, llocalid r, int x, int y) {
 			/* move results to hosted registers */
 			int m = nyield < y ? nyield : y;
 			for (int p = 0; p < m; ++ p) {
-				frame.base[p-y] = R->top[p-nyield];
+				frame.base[p-1] = R->top[p-nyield];
 			}
 		}
-	}
+	} else lang_logerror("not a function!");
 	/* finally restore stack */
-	R->top = caller->base + r + nyield;
 	R->frame = caller;
+	R->top = frame.top;
 	return nyield;
 }
 
@@ -161,18 +163,17 @@ int lang_loadfile(lRuntime *rt, FileState *fs, lString *filename, int y) {
 	fl.pathondisk = filename->c;
 	langA_varadd(md->files,fl);
 
+	lProto p = {0};
+	p.nlocals = fn.nlocals;
+	p.bytes = p.bytes;
+	p.nbytes = md->nbytes - fn.bytes;
 
-	lClosure cl = {0};
-	cl.fn.nlocals = fn.nlocals;
-	cl.fn.bytes = fn.bytes;
-	cl.fn.nbytes = md->nbytes - fn.bytes;
-
-	int nleft = lang_call(rt,lnil,0,0,y);
+	llocalid cl = lang_pushnewclosure(rt,p);
+	int nyield = lang_call(rt,lnil,cl,0,y);
 
 	/* todo: lines? */
 	// langM_dealloc(lHEAP,contents);
-
-	return nleft;
+	return nyield;
 }
 
 
@@ -188,10 +189,11 @@ int fndfile(lModule *md, llineid line) {
 }
 
 
-int lang_resume(lRuntime *cs) {
-
-	lModule *md = cs->md;
-	lContext *c = cs->f;
+int lang_resume(lRuntime *R) {
+	lRuntime *cs = R;
+	lContext *c = R->f;
+	lContext *frame = R->frame;
+	lModule *md = R->md;
 	lClosure *cl = c->cl;
 	lProto fn = cl->fn;
 
@@ -201,15 +203,14 @@ int lang_resume(lRuntime *cs) {
 		lBytecode b = md->bytes[bc];
 
 		#if 1
-		if (cs->logging) {
-			bytefpf(md,stdout,c->j,b);
-		}
+		if (R->logging) bytefpf(md,stdout,jp,b);
 		#endif
+
 		switch (b.k) {
 			case BC_LEAVE: {
-				if (c->dl) {
-					c-> j = c->dl->j;
-					c->dl = c->dl->n;
+				if (frame->dl != lnil) {
+					frame-> j = frame->dl->j;
+					frame->dl = frame->dl->n;
 				} else goto leave;
 			} break;
 			case BC_DELAY: {
@@ -223,17 +224,17 @@ int lang_resume(lRuntime *cs) {
 			} break;
 			case BC_YIELD: {
 				LASSERT(b.x >= 0);
-				/* move return values to hosted
-				return registers, discarding
-				any excess returns. */
-				int y = b.y < c->y ? b.y : c->y;
-				for (int p = 0; p < y; ++p) {
-					c->l[p-c->y] = cs->v[p-b.y];
+				/* -- check that we don't exceed number of
+				expected outputs */
+				int z = b.z < frame->y ? b.z : frame->y;
+				/* -- base points to the first local, -1 is where
+				the function value is at and the first yield
+				register */
+				for (int p = 0; p < z; ++p) {
+					frame->base[p-1] = frame->base[b.y+p];
 				}
-				c->y = y;
-				/* todo: this is unnecessary */
-				c->j = jp + b.x;
-				cl->j = c->j;
+				frame->y = z;
+				frame->j = jp + b.x;
 			} break;
 			case BC_STKGET: {
 				LASSERT(b.x == 1);
@@ -264,63 +265,44 @@ int lang_resume(lRuntime *cs) {
 				c->j = jp + b.i;
 			} break;
 			case BC_JZ: {
-				lbool j = (-- cs->v)->i;
-				if (j == 0) c->j = jp + b.i;
+				if (c->base[b.y].i == 0) c->j = jp + b.x;
 			} break;
 			case BC_JNZ: {
-				lbool j = (-- cs->v)->i;
-				if (j != 0) c->j = jp + b.i;
+				if (c->base[b.y].i != 0) c->j = jp + b.x;
 			} break;
-			case BC_DROP: {
-				-- cs->v;
+			case BC_RELOAD: {
+				frame->base[b.x] = frame->base[b.y];
 			} break;
-			case BC_DUPL: {
-				for (int i = 0; i < b.i; ++i) {
-					*cs->v ++ = cs->v[-1];
-				}
+			case BC_LOADGLOBAL: {
+				frame->base[b.x] = md->g->v[b.y];
 			} break;
-			case BC_NIL: {
-				/* todo: i should be how many more */
-				for (int i = 0; i < b.i; ++i) {
-					lang_pushnil(cs);
-				}
+			case BC_SETGLOBAL: {
+				md->g->v[b.x] = frame->base[b.y];
 			} break;
 			case BC_LOADINT: {
-				c->l[b.x].tag = TAG_INTEGER;
-				c->l[b.x].i   = b.i;
+				frame->base[b.x].tag = TAG_INTEGER;
+				frame->base[b.x].i   = b.y;
 			} break;
 			case BC_LOADCACHED: {
 				LASSERT(b.i >= 0 && b.i < fn.ncaches);
-				c->l[b.x] = cl->caches[b.i];
+				frame->base[b.x] = cl->caches[b.i];
 			} break;
 			case BC_CLOSURE: {
-				LASSERT(b.i >= 0 && b.i < langA_varlen(md->p));
-				c->l[b.x].tag = TAG_CLOSURE;
-				c->l[b.x].f   = langF_newclosure(cs,md->p[b.i]);
-			} break;
-			case BC_RELOAD: {
-				c->l[b.x] = c->l[b.y];
-			} break;
-			case BC_LOADGLOBAL: {
-				c->l[b.x] = md->g->v[b.y];
-			} break;
-			case BC_SETGLOBAL: {
-				md->g->v[b.x] = c->l[b.y];
+				LASSERT(b.y >= 0 && b.y < langA_varlen(md->p));
+				frame->base[b.x].tag = TAG_CLOSURE;
+				frame->base[b.x].f   = langF_newclosure(cs,md->p[b.y]);
 			} break;
 			case BC_TABLE: {
-				c->l[b.x].tag = TAG_TABLE;
-				c->l[b.x].t   = langH_new(cs);
+				frame->base[b.x].tag = TAG_TABLE;
+				frame->base[b.x].t   = langH_new(cs);
+			} break;
+			case BC_FIELD: {
+				LASSERT(frame->base[b.y].tag == TAG_TABLE);
+				frame->base[b.x] = langH_lookup(frame->base[b.y].t,frame->base[b.z]);
 			} break;
 			case BC_SETFIELD: {
-				lValue t = cs->v[-3];
-				lValue k = cs->v[-2];
-				lValue v = cs->v[-1];
-				cs->v -= 2;
-				if (t.tag == TAG_TABLE) {
-					langH_insert(t.t,k,v);
-				} else {
-					LNOBRANCH;
-				}
+				LASSERT(frame->base[b.x].tag == TAG_TABLE);
+				langH_insert(frame->base[b.x].t,frame->base[b.y],frame->base[b.z]);
 			} break;
 			case BC_SETINDEX: {
 				lValue t = cs->v[-3];
@@ -340,13 +322,6 @@ int lang_resume(lRuntime *cs) {
 				} else {
 					LNOBRANCH;
 				}
-			} break;
-			case BC_FIELD: {
-				cs->v -= 2;
-				lValue t,k;
-				t = cs->v[0];
-				k = cs->v[1];
-				lang_pushvalue(cs,langH_lookup(t.t,k));
 			} break;
 			case BC_INDEX: {
 				cs->v -= 2;
@@ -381,13 +356,12 @@ int lang_resume(lRuntime *cs) {
 				// }
 			} break;
 			case BC_CALL: {
-				/* arguments are located below b.x, result
-				is to be placed at b.x...b.y-1, so the user
-				should have allocated sufficient space for
-				both the arguments and the returns */
+				if (R->top < frame->base) LNOBRANCH;
 				lang_call(cs,0,b.x,b.y,b.z);
+				if (R->top < frame->base) LNOBRANCH;
 			} break;
 			case BC_ISNIL: {
+				LNOBRANCH;
 				cs->v -= 1;
 				lValue x = cs->v[0];
 				if (x.tag == TAG_INTEGER || x.tag == TAG_NUMBER) {
@@ -396,26 +370,19 @@ int lang_resume(lRuntime *cs) {
 					lang_pushlong(cs,x.i == 0);
 				}
 			} break;
-			case BC_EQ:
-			case BC_NEQ: {
-				cs->v -= 2;
-				lValue x = cs->v[0];
-				lValue y = cs->v[1];
-
-				cs->v->tag = TAG_INTEGER;
-				cs->v->i = lfalse;
-
+			case BC_EQ: case BC_NEQ: {
+				lValue x = frame->base[b.y];
+				lValue y = frame->base[b.z];
+				lbool eq = lfalse;
 				if (x.tag == VALUE_STRING && y.tag == VALUE_STRING) {
-					cs->v->i = langS_eq(x.s,y.s);
+					eq = langS_eq(x.s,y.s);
 				} else {
-					cs->v->i = x.i == y.i;
+					eq = x.i == y.i;
 				}
+				if (b.k == BC_NEQ) eq = !eq;
 
-				if (b.k == BC_NEQ) {
-					cs->v->i = !cs->v->i;
-				}
-
-				++ cs->v;
+				frame->base[b.x].tag = TAG_INTEGER;
+				frame->base[b.x].i   = eq;
 			} break;
 
 
@@ -477,7 +444,6 @@ int lang_resume(lRuntime *cs) {
 				LNOBRANCH;
 			} break;
 		}
-		// if (cs->v < c->l+fn.nlocals) LNOBRANCH;
 	}
 
 	leave:
@@ -587,10 +553,10 @@ void lang_pushString(lRuntime *c, lString *s) {
 }
 
 
-void lang_pushclosure(lRuntime *c, lClosure *f) {
-	c->v->tag = TAG_CLOSURE;
-	c->v->f = f;
-	++ c->v;
+llocalid lang_pushclosure(lRuntime *R, lClosure *cl) {
+	R->top->tag = TAG_CLOSURE;
+	R->top->f   = cl;
+	return R->top ++ - R->frame->base;
 }
 
 
@@ -622,14 +588,13 @@ lString *lang_pushnewS(lRuntime *c, char const *junk) {
 }
 
 
-lClosure *lang_pushnewcl(lRuntime *c, lProto fn) {
-	lClosure *cl = langF_newclosure(c,fn);
-	LASSERT(lang_leftover(c) >= fn.ncaches);
-	c->v -= fn.ncaches;
+llocalid lang_pushnewclosure(lRuntime *R, lProto fn) {
+	lClosure *cl = langF_newclosure(R,fn);
+	LASSERT(lang_leftover(R) >= fn.ncaches);
+	R->top -= fn.ncaches;
 	int i;
 	for (i=0; i<fn.ncaches; ++i) {
-		cl->caches[i] = c->v[i];
+		cl->caches[i] = R->top[i];
 	}
-	lang_pushclosure(c,cl);
-	return cl;
+	return lang_pushclosure(R,cl);
 }

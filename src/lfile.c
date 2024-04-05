@@ -177,7 +177,7 @@ lentityid langY_fndentity(FileState *fs, llineid line, char *name) {
 ** function, if already declared issue a warning
 ** but still return a valid id.
 */
-llocalid langY_newloctag(FileState *fs, llineid line, char *name, lbool enm) {
+ltreeid langY_newloctag(FileState *fs, llineid line, char *name, lbool enm) {
 	FileFunc *fn = fs->fn;
 	lentityid id = langY_fndentity(fs,line,name);
 	if (id == NO_ENTITY) {
@@ -379,12 +379,12 @@ ltreeid langY_loadfn(FileState *fs) {
 
 ltreeid langY_loadtable(FileState *fs) {
 	ltoken tk = fs->tk;
-	langX_take(fs,TK_CURLY_LEFT);
 	ltreeid *z = lnil;
+	langX_take(fs,TK_CURLY_LEFT);
 	if (!langX_test(fs,TK_CURLY_RIGHT)) {
 		do {
 			ltreeid x = langY_loadexpr(fs);
-			if (x == -1) break;
+			if (x == NO_TREE) break;
 
 			if (langX_test(fs,TK_ASSIGN)) {
 				tk = langX_yield(fs);
@@ -623,9 +623,9 @@ void langY_loadstat(FileState *fs) {
 			langX_take(fs,TK_QMARK);
 
 			Loop loop = {0};
-			langL_beginloop(fs,tk.line,&loop,x,y);
+			langL_beginrangedloop(fs,tk.line,&loop,x,y);
 			langY_loadstat(fs);
-			langL_closeloop(fs,tk.line,&loop);
+			langL_closerangedloop(fs,tk.line,&loop);
 		} break;
 		case TK_IF:
 		case TK_IFF: {
@@ -678,6 +678,8 @@ void langY_loadstat(FileState *fs) {
 				ltreeid x = langY_newloctag(fs,n.line,(char*)n.s,enm);
 				if (langX_pick(fs,TK_ASSIGN)) {
 					tk = fs->lasttk;
+
+					langY_checkassign(fs,tk.line,x);
 					ltreeid y = langY_loadexpr(fs);
 					langL_loadinto(fs,tk.line,x,y);
 				}
@@ -686,14 +688,13 @@ void langY_loadstat(FileState *fs) {
 		} break;
 		default: {
 			ltreeid x = langY_loadexpr(fs);
-
 			ltoken tk = fs->tk;
 			if (langX_pick(fs,TK_ASSIGN_QUESTION)) {
 				langY_checkassign(fs,tk.line,x);
 				ltreeid c = langY_treexy(fs,tk.line,Y_EQ,x,langY_treenil(fs,tk.line));
 				ltreeid y = langY_loadexpr(fs);
 				ljlist js = {0};
-				langL_jumpiffalse(fs,&js,c);
+				langL_branchiffalse(fs,&js,NO_SLOT,c);
 				langL_tieloosejs(fs,js.t);
 				langL_loadinto(fs,tk.line,x,y);
 				langL_tieloosejs(fs,js.f);
@@ -704,7 +705,7 @@ void langY_loadstat(FileState *fs) {
 				langL_loadinto(fs,tk.line,x,y);
 			} else {
 				llocalid r = langL_localalloc(fs,1);
-				langL_reload(fs,tk.line,lfalse,r,0,x);
+				langL_load(fs,tk.line,lfalse,r,0,x);
 				langL_localdealloc(fs,r);
 			}
 		} break;

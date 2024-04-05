@@ -1,20 +1,64 @@
 
-pf("Hello, World!")
-let x = 0
-let y = 1
-x = x + y
+{
+	__logging(true)
+	let istrue = 1 && 1
+	__logging(false)
+}
 
-// let enum xorshift = fun(x) ? {
-// 	x = x + x;
+// let table = {}
+// table.a = "a"
+// table.b = "b"
+// table.c = "c"
+// table.d = "d"
+// pf(table)
+
+let test = fun(x,y) ? {
+	iff x == y ? pf("failed")
+}
+
+while 0 ? pf("failed")
+do pf("success") while 0
+
+test(1 == 1 && 1 == 1, true)
+test(1 == 1 && 1 == 0, false)
+test(1,1)
+test(0,0)
+test(0 <= 1, true)
+test(0 <= 1, true)
+test(1 <= 1, true)
+test(0 >= 0, true)
+test(1 >= 1, true)
+test(1 >= 0, true)
+test(0 && 0 && 0 && 0, 0)
+test(0 || 0 || 0 || 0, 0)
+test(0 && 0 || 0, 0)
+test(0 && 0 || 1, 1)
+test(0 && 1 || 2, 1)
+test(0 && 0, 0)
+test(0 && 1, 0)
+test(1 && 1, 1)
+test(0 || 0, 0)
+test(0 || 1, 1)
+test(1 || 1, 1)
+test(0 && 0 || 0, 0)
+
+// if 1 && 1 ? pf("welcome")
+
+// let xorshift = fun(x) ? {
 // 	x = x ^ x << 13
 // 	x = x ^ x >> 7
 // 	x = x ^ x << 17
 // 	leave x
 // }
-// pf("xor: ", xorshift(5280))
+// let inn = xorshift(5280)
+// pf("xor: ", inn)
+// // // pf(1,2,3,4,5,6,7,8,9)
+// // // let foo = fun() ? (2)
+// // // let x = foo()
+// // // pf(x)
 
-// /* clearly this is not how you do jitting,
-// we don't even know the types of anything */
-// let enum xorshiftjit = jit(xorshift)
+// // /* clearly this is not how you do jitting,
+// // we don't even know the types of anything */
+// // let enum xorshiftjit = jit(xorshift)
 
 

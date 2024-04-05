@@ -18,13 +18,14 @@ typedef struct lContext {
 	lClosure *cl;
 	/* -- object for meta functions and table calls */
 	lObject *obj;
-	/* -- pointer to base stack address, which is
-	- also the regress address. when the stack
-	- frame is popped the stack pointer is set
-	- to base + number of returns. */
+	/* -- pointer to base stack address, 'rbp', yields
+	- to here at -1. should have base[-1..y) registers
+	- to write to. */
 	union {
 		lValue *base,*l;
 	};
+	/* -- regress address */
+	lValue *top;
 	/* -- next instruction index, not really
 	- used now, but I guess for coroutines? */
 	llongint j;

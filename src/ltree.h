@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** (Y) ltree.h
-** Simple AST
+** Simple AST or really high level IR, idk at this point...
 */
 
 
@@ -18,8 +18,21 @@ typedef int ltreeid;
 - this language is, period...
 */
 typedef enum ltreetype {
-	Y_NONE = 0,
-
+	Y_NONE = -1,
+	/* -- the following are set up in counterpart pairs.
+	- this enables us to easily derive their opposite
+	- operation by simply applying the (^1) operation.
+	- must be even odd pairs and must start on an even value.
+	- learned this trick from Mike Pall @ LuaJIT */
+	Y_LOG_AND, Y_LOG_OR,
+	Y_NEQ, Y_EQ,
+	Y_BSHL, Y_BSHR,
+	Y_ADD, Y_SUB,
+	Y_MUL, Y_DIV,
+	Y_LT, Y_GT,
+	Y_LTEQ, Y_GTEQ,
+	/* end */
+	Y_BXOR, Y_MOD,
 	Y_GROUP,
 
 	Y_FUNCTION,
@@ -67,22 +80,8 @@ typedef enum ltreetype {
 	assigning these to tokens, but value clashing
 	is annoying. */
 	Y_RANGE,
-	Y_LOG_AND,
-	Y_LOG_OR,
-	Y_ADD,
-	Y_SUB,
-	Y_DIV,
-	Y_MUL,
-	Y_MOD,
-	Y_NEQ,
-	Y_EQ,
-	Y_LT,
-	Y_LTEQ,
-	Y_GT,
-	Y_GTEQ,
-	Y_BSHL,
-	Y_BSHR,
-	Y_BXOR,
+
+
 } ltreetype;
 
 

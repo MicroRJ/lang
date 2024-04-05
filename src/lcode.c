@@ -1,11 +1,10 @@
 /*
 ** See Copyright Notice In lang.h
 ** (L) lcode.c
-** Bytecode Generator (trees -> bytecode)
+** Bytecode Generator (tree -> bytecode)
 */
 
 
-int byteeffect(lModule *md, lBytecode b);
 lbyteop treetobyte(ltreetype tt);
 
 
@@ -43,10 +42,7 @@ void langL_localdealloc(FileState *fs, llocalid x) {
 lbyteid langL_addbyte(FileState *fs, llineid line, lBytecode byte) {
 	FileFunc *fn = fs->fn;
 	lModule *md = fs->md;
-
 	// bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
-	// langX_error(fs,line,"");
-
 	langA_varadd(md->lines,line);
 	langA_varadd(md->bytes,byte);
 	return md->nbytes ++;
@@ -86,11 +82,11 @@ void langL_tieloosejto(FileState *fs, lbyteid id, lbyteid j) {
 	// }
 	switch (b.k) {
 		case BC_J:
-		case BC_JZ:
-		case BC_JNZ:
 		case BC_DELAY: {
 			bytes[id].i = l;
 		} break;
+		case BC_JZ:
+		case BC_JNZ:
 		case BC_YIELD: {
 			bytes[id].x = l;
 		} break;
@@ -123,12 +119,6 @@ lbyteid langL_jump(FileState *fs, llineid line, lbyteid j) {
 }
 
 
-void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y);
-
-
-int langL_localloadadj(FileState *fs, llocalid y, ltreeid *z);
-
-
 void langL_fnepiloge(FileState *fs, llineid line) {
 	lModule *md = fs->md;
 	FileFunc *fn = fs->fn;
@@ -144,51 +134,114 @@ void langL_fnepiloge(FileState *fs, llineid line) {
 }
 
 
+/* --todo: adapt this comment:
+if we got here it means that the expression is not naturally
+a short-circuit and has to be made into one, in which case we
+default to evaluating a boolean expression and adding boolean
+jumps (unless the context calls for a boolean expression).
+a boolean expression is defined as an expression which yields
+either true or false, in which case we need a register to
+put that expression in there and later call either jz or jnz
+on it, unless we want a boolean expression, in which case
+we can write directly to x.
+for instance, `x = b == c`, in this case, there's no need for
+short circuiting, and in many cases there's the contrary,
+no need to generate boolean expressions, for instance
+`if b == c`, this is only true if all the expressions can
+be short-circuited, which is true for all expressions because
+all boolean expressions can be made into short-curcuits by
+adding boolean jumps, this is only beneficial if the context
+calls for it, such as 'and' and 'or' in an if statement.
+if the register x is NO_SLOT, it means the context calls for
+short circuting, in otherwords, it is more beneficial to
+avoid generating boolean expressions, otherwise we can
+directly evaluate a boolean expression into register x,
+of course, this only pays of if the expression is entirely
+boolean, because if not all branches lead to some boolean
+output, we have to synthesize additional ones, we can check
+whether the expression is entirely boolean or not by checking
+the true and false jump lists, if both of them are nil it
+means the expressions is entirely boolean, and there's no
+need to turn it into one. */
+
+
+
+
 /*
-**
-**
+** Evaluates the given boolean or logical expression using short
+** circuit evaluation, creating branches as it evaluates each
+** expression, only one register is necessary, if no registers
+** are given one is allocated.
 */
-lbyteid langL_jumpif(FileState *fs, ljlist *js, ltreeid x, lbool z) {
-	Tree v = fs->nodes[x];
-	lbyteid jid = NO_BYTE;
+lbyteid langL_branchif(FileState *fs, ljlist *js, lbool z, llocalid x, ltreeid id) {
+	Tree v = fs->nodes[id];
+	lbyteid j = NO_BYTE;
+
+	/* allocate temporary register here before we split, this will
+	make is so that we only allocate one temporary register for the
+	whole evaluation, recursive calls to this function won't keep
+	allocating registers, this works because of short circuiting as
+	expressible in the bytecode. */
+	llocalid xx = x;
+	if (xx == NO_SLOT) x = langL_localalloc(fs,1);
+
 	switch (v.k) {
 		case Y_LOG_AND: {
-			langL_jumpif(fs,js,v.x,0);
-			langL_tieloosejs(fs,js->t);
-			langA_vardel(js->t);
-			js->t = 0;
-			jid = langL_jumpif(fs,js,v.y,z);
+			langL_jumpiffalse(fs,js,x,v.x);
+			j = langL_branchif(fs,js,z,x,v.y);
 		} break;
 		case Y_LOG_OR: {
-			langL_jumpif(fs,js,v.x,1);
-			langL_tieloosejs(fs,js->f);
-			langA_vardel(js->f);
-			js->f = 0;
-			jid = langL_jumpif(fs,js,v.y,z);
+			langL_jumpiftrue(fs,js,x,v.x);
+			j = langL_branchif(fs,js,z,x,v.y);
 		} break;
 		default: {
-			llocalid reg = langL_load2any(fs,v.line,1,x);
+			langL_load(fs,NO_LINE,lfalse,x,1,id);
+
 			if (z != 0) {
-				jid = langL_byte(fs,v.line,BC_JNZ,NO_JUMP);
-				langA_varadd(js->t,jid);
+				j = langL_bytexy(fs,v.line,BC_JNZ,NO_JUMP,x);
+				langA_varadd(js->t,j);
 			} else {
-				jid = langL_byte(fs,v.line,BC_JZ,NO_JUMP);
-				langA_varadd(js->f,jid);
+				j = langL_bytexy(fs,v.line,BC_JZ,NO_JUMP,x);
+				langA_varadd(js->f,j);
 			}
 		} break;
 	}
 
-	return jid;
+	if (xx == NO_SLOT) langL_localdealloc(fs,x);
+	return j;
 }
 
 
-lbyteid langL_jumpiffalse(FileState *fs, ljlist *js, ltreeid x) {
-	return langL_jumpif(fs,js,x,lfalse);
+lbyteid langL_branchiffalse(FileState *fs, ljlist *js, llocalid x, ltreeid id) {
+	return langL_branchif(fs,js,lfalse,x,id);
 }
 
 
-lbyteid langL_jumpiftrue(FileState *fs, ljlist *js, ltreeid x) {
-	return langL_jumpif(fs,js,x,ltrue);
+lbyteid langL_branchiftrue(FileState *fs, ljlist *js, llocalid x, ltreeid id) {
+	return langL_branchif(fs,js,ltrue,x,id);
+}
+
+
+/*
+** Similar to branch if true, but additionally this byte
+** address becomes the false target, thus all false branches
+** converge here. all true branches are returned.
+*/
+lbyteid *langL_jumpiftrue(FileState *fs, ljlist *js, llocalid x, ltreeid id) {
+	langL_branchiftrue(fs,js,x,id);
+	langL_tieloosejs(fs,js->f);
+	langA_vardel(js->f);
+	js->f = lnil;
+	return js->t;
+}
+
+
+lbyteid *langL_jumpiffalse(FileState *fs, ljlist *js, llocalid x, ltreeid id) {
+	langL_branchiffalse(fs,js,x,id);
+	langL_tieloosejs(fs,js->t);
+	langA_vardel(js->t);
+	js->t = lnil;
+	return js->f;
 }
 
 
@@ -196,30 +249,21 @@ lbyteid langL_jumpiftrue(FileState *fs, ljlist *js, ltreeid x) {
 /* todo: add support for multiple results */
 void langL_yield(FileState *fs, llineid line, ltreeid t) {
 	int n = 0;
+	llocalid x = 0;
 	if (t != NO_TREE) {
 		/* todo: determine the number of values in
 		tree, and allocate that many registers?
 		what if we return a function that returns
 		multiple values? */
-		llocalid x = langL_localalloc(fs,n=1);
-		langL_reload(fs,line,ltrue,x,n,t);
+		x = langL_localalloc(fs,n=1);
+		langL_load(fs,line,ltrue,x,n,t);
 		langL_localdealloc(fs,x);
 	}
 	if (fs->fn->nyield < n) {
 		fs->fn->nyield = n;
 	}
-	lbyteid j = langL_bytexy(fs,line,BC_YIELD,NO_JUMP,n);
+	lbyteid j = langL_bytexyz(fs,line,BC_YIELD,NO_JUMP,x,n);
 	langA_varadd(fs->fn->yj,j);
-}
-
-
-llocalid langL_load2any(FileState *fs, llineid line, llocalid n, ltreeid id) {
-	if (fs->nodes[id].k != Y_LOCAL) {
-		return fs->nodes[id].x;
-	}
-	llocalid x = langL_localalloc(fs,n);
-	langL_reload(fs,line,lfalse,x,n,id);
-	return x;
 }
 
 
@@ -235,22 +279,32 @@ int langL_localloadadj(FileState *fs, llocalid y, ltreeid *z) {
 	if (x < 0) x = 0;
 	llocalid id = langL_localalloc(fs,x) - y;
 	langA_varifor(z)
-	/**/langL_reload(fs,NO_LINE,ltrue,id+i,1,z[i]);
+	/**/langL_load(fs,NO_LINE,ltrue,id+i,1,z[i]);
 	fs->fn->xlocals = id + y;
 	return n;
 }
 
 
-void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, ltreeid id) {
-	/*
-	** x is preallocated stack slot to put the result
-	** in, y the number of slots allocated after x.
-	** if y is NO_SLOT the instruction is ommitted unless
-	** it has side-effects, such as a function call,
-	** but no registers are allocated for it.
-	** if reload is specified, when the value is already
-	** on the stack, then it is reloaded onto x.
-	*/
+llocalid langL_localize(FileState *fs, llineid line, ltreeid id) {
+	llocalid x = fs->nodes[id].x;
+	if (fs->nodes[id].k != Y_LOCAL) {
+		x = langL_localalloc(fs,1);
+		langL_load(fs,line,lfalse,x,1,id);
+	}
+	return x;
+}
+
+
+/*
+** x is preallocated stack slot to put the result
+** in, y the number of slots allocated after x.
+** if y is NO_SLOT the instruction is ommitted unless
+** it has side-effects, such as a function call,
+** but no registers are allocated for it.
+** if reload is specified, when the value is already
+** on the stack, then it is reloaded onto x.
+*/
+void langL_load(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, ltreeid id) {
 	/* -- Some instructions have no side effects,
 	- in which case, if the yield count is 0, the
 	- instruction is not emitted */
@@ -328,10 +382,11 @@ void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocali
 			}
 		} break;
 		case Y_FIELD: {
-			LNOBRANCH;
-			// langL_load2any(fs,NO_LINE,v.x,1);
-			// langL_load2any(fs,NO_LINE,v.y,1);
-			// langL_byte(fs,line,BC_FIELD,0);
+			llocalid mem = fs->fn->xlocals;
+			llocalid xx = langL_localize(fs,line,v.x);
+			llocalid yy = langL_localize(fs,line,v.y);
+			langL_bytexyz(fs,line,BC_FIELD,x,xx,yy);
+			fs->fn->xlocals = mem;
 		} break;
 		case Y_INDEX: {
 			LNOBRANCH;
@@ -340,7 +395,7 @@ void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocali
 			// langL_byte(fs,line,BC_INDEX,0);
 		} break;
 		case Y_GROUP: {
-			langL_reload(fs,line,reload,x,v.x,y);
+			langL_load(fs,line,reload,x,y,v.x);
 		} break;
 		/* -- todo: this is silly, probably just
 		- do this through a lib or something */
@@ -355,7 +410,7 @@ void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocali
 		} break;
 		case Y_LOADFILE: {
 			LNOBRANCH;
-			// langL_reload(fs,line,x,v.x,1);
+			// langL_load(fs,line,x,v.x,1);
 			// langL_bytexy(fs,line,BC_LOADFILE,x,y);
 		} break;
 		case Y_MCALL: {
@@ -371,59 +426,51 @@ void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocali
 			// langL_bytexyz(fs,line,BC_METACALL,x,n,v.x,v.y);
 		} break;
 		case Y_CALL: {
-			langL_reload(fs,line,ltrue,x,1,v.x);
+			langL_load(fs,line,ltrue,x,1,v.x);
 			int n = langL_localloadadj(fs,0,v.z);
 			langL_bytexyz(fs,line,BC_CALL,x,n,y);
 		} break;
 		case Y_LOG_AND: case Y_LOG_OR: {
+			/* todo: we need to optimize this, better support for
+			boolean expressions */
 			ljlist js = {0};
-			langL_jumpiffalse(fs,&js,x);
+			langL_branchiffalse(fs,&js,x,id);
 			langL_tieloosejs(fs,js.t);
 			langA_vardel(js.t);
 			js.t = lnil;
-			langL_byte(fs,line,BC_INT,ltrue);
+			langL_bytexy(fs,line,BC_LOADINT,x,ltrue);
 			int j = langL_jump(fs,line,-1);
 			langL_tieloosejs(fs,js.f);
 			langA_vardel(js.f);
 			js.f = lnil;
-			langL_byte(fs,line,BC_INT,lfalse);
+			langL_bytexy(fs,line,BC_LOADINT,x,lfalse);
 			langL_tieloosej(fs,j);
+
 		} break;
-		case Y_GT: {
-			llocalid r = langL_localalloc(fs,1);
-			langL_reload(fs,line,NO_SLOT,x,1,v.y);
-			langL_reload(fs,line,NO_SLOT,r,1,v.x);
-			langL_localdealloc(fs,r);
-			langL_byte(fs,line,BC_LT,0);
-		} break;
-		case Y_GTEQ: {
-			llocalid r = langL_localalloc(fs,1);
-			langL_reload(fs,line,lfalse,x,1,v.y);
-			langL_reload(fs,line,lfalse,r,1,v.x);
-			langL_localdealloc(fs,r);
-			langL_bytexyz(fs,line,BC_LTEQ,x,x,r);
-		} break;
-		case Y_EQ: {
-			if (fs->nodes[v.y].k == Y_NIL) {
-				langL_reload(fs,line,lfalse,x,1,v.x);
-				langL_bytexy(fs,line,BC_ISNIL,x,x);
-			} else {
-				llocalid r = langL_localalloc(fs,1);
-				langL_reload(fs,line,lfalse,x,1,v.x);
-				langL_reload(fs,line,lfalse,r,1,v.y);
-				langL_localdealloc(fs,r);
-				langL_bytexyz(fs,line,BC_EQ,x,x,r);
-			}
-		} break;
-		case Y_LT: case Y_LTEQ: case Y_NEQ:
+		case Y_NEQ: case Y_EQ:
+		case Y_GT: case Y_LT: case Y_GTEQ: case Y_LTEQ:
 		case Y_DIV: case Y_MUL: case Y_MOD:
 		case Y_SUB: case Y_ADD:
 		case Y_BSHL: case Y_BSHR: case Y_BXOR: {
-			llocalid r = langL_localalloc(fs,1);
-			langL_reload(fs,line,lfalse,x,1,v.x);
-			langL_reload(fs,line,lfalse,r,1,v.y);
-			langL_localdealloc(fs,r);
-			langL_bytexyz(fs,line,treetobyte(v.k),x,x,r);
+			/* save memory state */
+			llocalid mem = fs->fn->xlocals;
+			if ((v.k == Y_GT) || (v.k == Y_GTEQ)) {
+				llocalid xx = langL_localize(fs,line,v.y);
+				llocalid yy = langL_localize(fs,line,v.x);
+				/* -- see lbyte.h for (v.k^1) */
+				langL_bytexyz(fs,line,treetobyte(v.k^1),x,xx,yy);
+			} else
+			if (v.k == Y_EQ) {
+				if (fs->nodes[v.y].k == Y_NIL) {
+					llocalid xx = langL_localize(fs,line,x);
+					langL_bytexy(fs,line,BC_ISNIL,x,xx);
+				} else goto _join;
+			} else { _join:
+				llocalid xx = langL_localize(fs,line,v.x);
+				llocalid yy = langL_localize(fs,line,v.y);
+				langL_bytexyz(fs,line,treetobyte(v.k),x,xx,yy);
+			}
+			fs->fn->xlocals = mem;
 		} break;
 		default: {
 			langX_error(fs,v.line,"unsupported node");
@@ -445,38 +492,33 @@ void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y) {
 	switch (v.k) {
 		case Y_GLOBAL: {
 			llocalid r = langL_localalloc(fs,1);
-			langL_reload(fs,line,lfalse,r,y,1);
+			langL_load(fs,line,lfalse,r,y,1);
 			langL_localdealloc(fs,r);
 			langL_bytexy(fs,line,BC_SETGLOBAL,v.x,r);
 		} break;
 		case Y_LOCAL: {
 			/* -- todo: account for x = x opt ?  */
-			langL_reload(fs,line,ltrue,v.x,1,y);
+			langL_load(fs,line,ltrue,v.x,1,y);
 		} break;
-		case Y_INDEX: {
-			LNOBRANCH;
-			// llocalid table = langL_load2any(fs,line,NO_SLOT,v.x,1);
-			// llocalid index = langL_load2any(fs,line,NO_SLOT,v.y,1);
-			// llocalid value = langL_load2any(fs,line,NO_SLOT,  y,1);
-			// langL_bytexyz(fs,line,BC_SETINDEX,table,index,value);
-		} break;
-		case Y_FIELD: {
-			LNOBRANCH;
-			// langL_load2any(fs,line,v.x,1);/* table */
-			// langL_load2any(fs,line,v.y,1);/* index */
-			// langL_load2any(fs,line,  y,1);/* value */
-			// langL_byte(fs,line,BC_SETFIELD,0);
+		case Y_INDEX: case Y_FIELD: {
+			llocalid mem = fs->fn->xlocals;
+			llocalid xxx = langL_localize(fs,line,v.x);
+			llocalid yyy = langL_localize(fs,line,v.y);
+			llocalid yy = langL_localize(fs,line,y);
+			langL_bytexyz(fs,line
+			, v.k == Y_INDEX ? BC_SETINDEX : BC_SETFIELD,xxx,yyy,yy);
+			fs->fn->xlocals = mem;
 		} break;
 		// {x}[{x}..{x}] = {y}
 		case Y_RANGE_INDEX: {
 			LNOBRANCH;
 			// Loop l = {0};
 			// langL_load2any(fs,line,v.x,1);/* table */
-			// langL_beginloop(fs,line,&l,-1,v.y);
+			// langL_beginrangedloop(fs,line,&l,-1,v.y);
 			// langL_load2any(fs,line,l.x,1);/* index */
 			// langL_load2any(fs,line,y,1);/* value */
 			// langL_byte(fs,line,BC_SETINDEX,0);
-			// langL_closeloop(fs,line,&l);
+			// langL_closerangedloop(fs,line,&l);
 		} break;
 		default: {
 			LNOBRANCH;
@@ -487,8 +529,7 @@ void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y) {
 
 void langL_beginif(FileState *fs, llineid line, Select *s, ltreeid x, int z) {
 	ljlist js = {0};
-
-	langL_jumpif(fs,&js,x,z);
+	langL_branchif(fs,&js,z,NO_SLOT,x);
 	// if  0 = jz
 	// iff 1 = jnz
 	if (z == L_IF) {
@@ -530,14 +571,12 @@ void langL_addelif(FileState *fs, llineid line, Select *s, int x) {
 
 
 void langL_addthen(FileState *fs, llineid line, Select *s) {
-	/* we don't need to close the previous
-	block, it can just fall through to our
-	branch, do collect all the other exit
-	jumps and tie them to this branch block,
-	naturally we don't need to add an exit
-	jump since this is the last branch as
-	defined in grammar, and even if it wasn't
-	else and elif will close off this block */
+	/* we don't need to close the previous block, it can just fall
+	through to our branch, do collect all the other exit jumps and
+	tie them to this branch block, naturally we don't need to add
+	an exit jump since else and elif or closeif will terminate
+	this block, multiple then blocks are simply chained together
+	naturally. */
 	langL_tieloosejs(fs,s->j);
 	langA_vardel(s->j);
 	s->j = lnil;
@@ -568,46 +607,32 @@ void langL_begindowhile(FileState *fs, llineid line, Loop *loop) {
 
 
 void langL_closedowhile(FileState *fs, llineid line, Loop *loop, ltreeid x) {
-
 	ljlist js = {lnil};
-	langL_jumpiftrue(fs,&js,x);
-	LASSERT(js.t != 0);
+	langL_jumpiftrue(fs,&js,NO_SLOT,x);
 
 	langL_tieloosejsto(fs,js.t,loop->e);
 	langA_vardel(js.t);
 	js.t = lnil;
-
-	langL_tieloosejs(fs,js.f);
-	langA_vardel(js.f);
-	js.f = lnil;
 }
 
 
 void langL_beginwhile(FileState *fs, llineid line, Loop *loop, ltreeid x) {
-
 	loop->e = langL_getlabel(fs);
-
-	ljlist js = {lnil};
-	langL_jumpiffalse(fs,&js,x);
-	langL_tieloosejs(fs,js.t);
-	langA_vardel(js.t);
-	js.t = lnil;
-
 	loop->x = x;
-	loop->f = js.f;
+	ljlist js = {lnil};
+	loop->f = langL_jumpiffalse(fs,&js,NO_SLOT,x);
 }
 
 
 void langL_closewhile(FileState *fs, llineid line, Loop *loop) {
 	langL_jump(fs,line,loop->e);
-
 	langL_tieloosejs(fs,loop->f);
 	langA_vardel(loop->f);
 	loop->f = lnil;
 }
 
 
-void langL_beginloop(FileState *fs, llineid line, Loop *loop, ltreeid x, ltreeid r) {
+void langL_beginrangedloop(FileState *fs, llineid line, Loop *loop, ltreeid x, ltreeid r) {
 	LASSERT(fs->nodes[r].k == Y_RANGE);
 	/* todo: */
 	if (x == NO_TREE) {
@@ -625,21 +650,14 @@ void langL_beginloop(FileState *fs, llineid line, Loop *loop, ltreeid x, ltreeid
 
 	int c = langY_treexy(fs,NO_LINE,Y_LT,x,hi);
 
+	ljlist js = {lnil};
+	loop->f = langL_jumpiffalse(fs,&js,NO_SLOT,c);
 	loop->e = langL_getlabel(fs);
-
-	ljlist js = {0};
-	langL_jumpiffalse(fs,&js,c);
-	LASSERT(js.f != 0);
-
-	langL_tieloosejs(fs,js.t);
-	langA_vardel(js.t);
-
 	loop->x = x;
-	loop->f = js.f;
 }
 
 
-void langL_closeloop(FileState *fs, llineid line, Loop *loop) {
+void langL_closerangedloop(FileState *fs, llineid line, Loop *loop) {
 	int x = loop->x;
 
 	int k = langY_treexy(fs,NO_LINE,Y_ADD,x,langY_treelongint(fs,NO_LINE,1));
@@ -653,7 +671,8 @@ void langL_closeloop(FileState *fs, llineid line, Loop *loop) {
 }
 
 
-/* todo: merge with aljacent blocks */
+/* -- todo? we could merge with adjacent blocks, but this
+would change the order of execution, should leave as is? */
 void langL_begindelayedblock(FileState *fs, llineid line, CodeBlock *d) {
 	d->j = langL_byte(fs,line,BC_DELAY,NO_JUMP);
 }
@@ -666,99 +685,6 @@ void langL_closedelayedblock(FileState *fs, llineid line, CodeBlock *bl) {
 
 	langL_byte(fs,line,BC_LEAVE,0);
 	langL_tieloosej(fs,bl->j);
-}
-
-
-int byteeffect(lModule *md, lBytecode b) {
-	switch (b.k) {
-		/* -- should have already been allocated */
-		case BC_LOADNUM:
-		case BC_LOADINT:
-		case BC_LOADNIL:
-		/* -------------------- */
-		case BC_HALT:
-		case BC_J:
-		case BC_JZ:
-		case BC_JNZ:
-		case BC_DELAY:
-		case BC_LEAVE:
-		case BC_YIELD: {
-			return 0;
-		}
-		case BC_TABLE:
-		case BC_NIL:
-		case BC_NUM:
-		case BC_INT: {
-			return -0+1;
-		}
-		case BC_ISNIL: {
-			return -1+1;
-		}
-		case BC_NEQ:
-		case BC_EQ:
-		case BC_LT:
-		case BC_LTEQ:
-		case BC_ADD:
-		case BC_SUB:
-		case BC_DIV:
-		case BC_MUL:
-		case BC_MOD:
-		case BC_SHL:
-		case BC_SHR:
-		case BC_XOR: {
-			return -2+1;
-		}
-		case BC_DUPL: {
-			return b.i;
-		}
-		case BC_DROP: {
-			return -1;
-		}
-
-		case BC_CALL: {
-			return -b.x;
-		}
-		case BC_METACALL: {
-			return -2 - b.x;
-		}
-		case BC_TABLECALL: {
-			return -2 - b.x;
-		}
-		case BC_LOADFILE:
-		case BC_LOADCLIB: {
-			return -1;
-		}
-
-		case BC_STKGET: {
-			return -1+1;
-		}
-		case BC_STKLEN: {
-			return -0+1;
-		}
-		case BC_LOADGLOBAL:
-		case BC_LOADCACHED:
-		case BC_INDEX: {
-			return 1;
-		}
-		case BC_FIELD: {
-			return -2+1;
-		}
-		case BC_SETINDEX:
-		case BC_SETFIELD: {
-			return -3+0;
-		}
-		case BC_RELOAD:
-		case BC_SETGLOBAL: {
-			return -1+0;
-		}
-		case BC_CLOSURE: {
-			/* todo?: could also encode this in the byte? */
-			return - md->p[b.i].ncaches;
-		}
-	}
-
-	LNOBRANCH;
-	return 0;
 }
 
 
@@ -777,5 +703,7 @@ lbyteop treetobyte(ltreetype tt) {
 		case Y_BSHR:    return BC_SHR;
 		case Y_BXOR:    return BC_XOR;
 	}
+	/* for intended use cases, this is an error */
+	LNOBRANCH;
 	return Y_NONE;
 }

@@ -30,11 +30,11 @@ lapi void lang_pushnum(lRuntime *, lnumber n);
 lapi void lang_pushbinding(lRuntime *, lBinding c);
 lapi void lang_pushhandle(lRuntime *c, Handle h);
 lapi void lang_pushtable(lRuntime *, Table *t);
-lapi void lang_pushclosure(lRuntime *, lClosure *f);
+lapi llocalid lang_pushclosure(lRuntime *, lClosure *f);
 lapi void lang_pushString(lRuntime *, lString *s);
 
 
 lapi Table *lang_pushnewtable(lRuntime *);
 lapi lString *lang_pushnewS(lRuntime *, char const *c);
-lapi lClosure *lang_pushnewcl(lRuntime *, lProto fn);
+lapi llocalid lang_pushnewclosure(lRuntime *, lProto fn);
 

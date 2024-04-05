@@ -44,19 +44,28 @@ typedef struct Loop {
 } Loop;
 
 
+void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y);
+void langL_load(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, ltreeid id);
+llocalid langL_localize(FileState *fs, llineid line, ltreeid id);
+int langL_localloadadj(FileState *fs, llocalid y, ltreeid *z);
+
+
 void langL_begindelayedblock(FileState *fs, char *line, CodeBlock *bl);
 void langL_closedelayedblock(FileState *fs, char *line, CodeBlock *bl);
 
 
-void langL_loadinto(FileState *fs, llineid line, ltreeid x, ltreeid y);
-void langL_reload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, ltreeid id);
-llocalid langL_load2any(FileState *fs, llineid line, llocalid n, ltreeid t);
+lbyteid langL_branchiffalse(FileState *fs, ljlist *js, llocalid x, ltreeid id);
+lbyteid langL_branchiftrue(FileState *fs, ljlist *js, llocalid x, ltreeid id);
+lbyteid *langL_jumpiftrue(FileState *fs, ljlist *js, llocalid x, ltreeid id);
+lbyteid *langL_jumpiffalse(FileState *fs, ljlist *js, llocalid x, ltreeid id);
 
 
 enum {
 	L_IF  = 0, // JZ
 	L_IFF = 1, // JNZ
 };
+
+
 void langL_beginif(FileState *fs, char *line, Select *s, ltreeid x, int z);
 void langL_addelif(FileState *fs, char *line, Select *s, ltreeid x);
 void langL_addelse(FileState *fs, char *line, Select *s);
@@ -64,8 +73,8 @@ void langL_addthen(FileState *fs, char *line, Select *s);
 void langL_closeif(FileState *fs, char *line, Select *s);
 
 
-void langL_beginloop(FileState *fs, char *line, Loop *loop, ltreeid x, ltreeid r);
-void langL_closeloop(FileState *fs, char *line, Loop *loop);
+void langL_beginrangedloop(FileState *fs, char *line, Loop *loop, ltreeid x, ltreeid r);
+void langL_closerangedloop(FileState *fs, char *line, Loop *loop);
 
 void langL_begindowhile(FileState *fs, char *line, Loop *loop);
 void langL_closedowhile(FileState *fs, char *line, Loop *loop, ltreeid x);

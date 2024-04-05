@@ -171,31 +171,6 @@ lBinding jit(lModule *md, lProto fn) {
 	ljnodeid *irtop = irs;
 
 	for (lbyteid i = 0; i < nbytes; ++i) {
-		lBytecode byte = bytes[i];
-		switch (byte.k) {
-			case BC_INT: {
-				top ++->node = emit_irlongint(&js,byte.i);
-			} break;
-			case BC_RELOAD: {
-				for (int y = 0; y < byte.y; ++ y) {
-					top ++->node = emit_irloadlocal(&js,DATA_INT64,0,byte.x+y);
-				}
-			} break;
-			// case BC_RELOAD: {
-			// *irtop++ = emit_irloadintolocal(&js,0,byte.i,top[-1].node);
-			// -- top;
-			// } break;
-			case BC_YIELD:
-			case BC_LEAVE:
-			case BC_XOR:
-			case BC_SHL:
-			case BC_SHR:
-			case BC_ADD: {
-				// instr_byte(0,byte,top[-2].node,top[-1].node);
-				// -- top;
-			} break;
-			default: LNOBRANCH;
-		}
 		#if 0
 		switch (byte.k) {
 			case BC_INT: {
@@ -260,8 +235,6 @@ lBinding jit(lModule *md, lProto fn) {
 
 
 void jittest() {
-	pf("%lli/%lli\n", sizeof(uintptr_t),sizeof(int));
-
 	jit_mem = jit_alloc(4096);
 	jit_fn f = (jit_fn) jit_mem;
 

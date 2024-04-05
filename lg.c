@@ -10,8 +10,6 @@
 int main(int n, char **c) {
 	(void) n;
 
-	printf(".");
-
 	langM_initmemory();
 
 	jittest();
@@ -19,7 +17,7 @@ int main(int n, char **c) {
 	lModule md = {0};
 
 	lRuntime rt = {&md};
-	rt.logging = ltrue;
+	// rt.logging = ltrue;
 	rt.stklen = 4096;
 	rt.stk = rt.top = langM_clearalloc(lHEAP,sizeof(lValue) * rt.stklen);
 	lContext root = {0};

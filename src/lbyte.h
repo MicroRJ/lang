@@ -15,76 +15,53 @@ typedef enum lbyteclass {
 typedef enum lbyteop {
 	BC_HALT = 0,
 	BC_J,
-	BC_JZ,
-	BC_JNZ,
-
-	/* delays the execution n instructions until
-	procedure exits, jumps to the specified byte
-	address. */
-	BC_DELAY,
+	/* counter pairs, must start at even value, ^1 to get opposite */
+	BC_JZ, BC_JNZ,
+	BC_JE, BC_JNE,
+	/* delays the execution of \i instructions until
+	procedure exits by jumping to the specified byte.
+	the byte address of the following instruction
+	after \delay gets saved into the delay list. */
+	BC_DELAY/* (i) */,
+	BC_LOOPER/* (x,y,z) */,
 	/* checks delay list, pops the last delay from it
 	if any and jumps to it, otherwise returns control
 	flow to the calling procedure */
 	BC_LEAVE,
-	/* copies specified values to corresponding return
-	registers */
-	BC_YIELD,
+	/* copies z values starting at y to corresponding return
+	registers, jumps to x */
+	BC_YIELD/*(x,y,z)*/,
 
-	BC_DROP,
-	BC_DUPL,
-
-	/* x, y */
-	BC_LOADNUM,
-	BC_LOADINT,
-	BC_LOADNIL,
 	BC_LOADGLOBAL,
+	BC_LOADNUM, BC_LOADINT, BC_LOADNIL,
 
-	/* -- todo: deprecated */
-	BC_NUM,
-	BC_INT,
-	BC_NIL,
-
-	BC_LOADFILE,
-	BC_LOADCLIB,
-
+	BC_LOADFILE, BC_LOADCLIB,
+	/* BC_CALL(io x,y,z):
+	b.x = function address and first return value
+	b.y = number of inputs
+	b.z = number of outputs
+	-- function is located at b.x and arguments are located below
+	b.x, result is to be placed at b.x through b.y-1, so the user
+	should have allocated sufficient space for both the arguments
+	and the returns. */
 	BC_CALL,
 	BC_METACALL,
 	BC_TABLECALL,
-
-	BC_STKGET,
-	BC_STKLEN,
-
-
-	/* todo: deprecated */
+	BC_STKGET, BC_STKLEN,
 	BC_RELOAD,
-
 	BC_LOADCACHED,
 	BC_INDEX,
 	BC_FIELD,
-
 	BC_SETGLOBAL,
 	BC_SETINDEX,
 	BC_SETFIELD,
-
-	BC_CLOSURE,
-	BC_TABLE,
-
+	BC_TABLE, BC_CLOSURE,
 	BC_ISNIL,
-
-	BC_NEQ,
-	BC_EQ,
-	BC_LT,
-	BC_LTEQ,
-
-	BC_ADD,
-	BC_SUB,
-	BC_DIV,
-	BC_MUL,
-	BC_MOD,
-
-	BC_SHL,
-	BC_SHR,
-	BC_XOR,
+	BC_EQ, BC_NEQ,
+	BC_LT, BC_LTEQ,
+	BC_MUL, BC_DIV, BC_MOD,
+	BC_ADD, BC_SUB,
+	BC_SHL, BC_SHR, BC_XOR,
 } lbyteop;
 
 
@@ -106,6 +83,9 @@ typedef struct lBytecode {
 
 lbyteclass lang_byteclass(lbyteop k) {
 	switch (k) {
+		case BC_JZ:
+		case BC_JNZ:
+		case BC_SETGLOBAL:
 		case BC_LOADNUM:
 		case BC_LOADINT:
 		case BC_LOADNIL:
@@ -114,6 +94,9 @@ lbyteclass lang_byteclass(lbyteop k) {
 		case BC_RELOAD: {
 			return BC_CLASS_XY;
 		}
+		case BC_FIELD:
+		case BC_SETFIELD:
+		case BC_INDEX:
 		case BC_NEQ: case BC_EQ:
 		case BC_LT: case BC_LTEQ:
 		case BC_ADD: case BC_SUB:
@@ -136,7 +119,6 @@ char const *lang_bytename(lbyteop k) {
 		case BC_LOADNUM: return "loadnum";
 		case BC_LOADINT: return "loadint";
 		case BC_LOADNIL: return "loadnil";
-		case BC_NUM: return "num";
 		case BC_STKGET: return "stkget";
 		case BC_STKLEN: return "stklen";
 		case BC_LEAVE: return "leave";
@@ -145,10 +127,6 @@ char const *lang_bytename(lbyteop k) {
 		case BC_JZ: return "jz";
 		case BC_JNZ: return "jnz";
 		case BC_ISNIL: return "isnil";
-		case BC_DROP: return "drop";
-		case BC_DUPL: return "dupl";
-		case BC_INT: return "int";
-		case BC_NIL: return "nil";
 		case BC_CALL: return "call";
 		case BC_METACALL: return "metacall";
 		case BC_LOADCACHED: return "loadcached";
