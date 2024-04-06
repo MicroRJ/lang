@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** (Y) ltree.h
-** Simple AST or really high level IR, idk at this point...
+** IR?...
 */
 
 
@@ -35,17 +35,14 @@ typedef enum ltreetype {
 	Y_BXOR, Y_MOD,
 	Y_GROUP,
 
-	Y_FUNCTION,
 	Y_LOADFILE,
+	Y_FUNCTION,
 	Y_STRING,
 	Y_TABLE,
-	Y_INTEGER,
-	Y_NUMBER,
+	Y_INTEGER, Y_NUMBER,
 	Y_NIL,
 
-	Y_GLOBAL,
-	Y_LOCAL,
-	Y_CACHED,
+	Y_GLOBAL, Y_LOCAL, Y_CACHED,
 
 	// [{x}..{x}]
 	Y_RANGE_INDEX,
@@ -63,7 +60,7 @@ typedef enum ltreetype {
 	builtin id, (the token type) and z the
 	inputs */
 	Y_BUILTIN,
-	/* Common meta functions */
+
 	Y_MCALL_CLONE,
 	Y_MCALL_SPLIT,
 	Y_MCALL_MATCH,

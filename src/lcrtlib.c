@@ -64,7 +64,6 @@ int crtlib__strtime(lRuntime *rt) {
 }
 
 
-
 int crtlib__unlink(lRuntime *rt) {
 	lString *name = lang_loadS(rt,0);
 	lang_pushlong(rt,_unlink(name->c));

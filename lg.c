@@ -4,6 +4,7 @@
 ** Compiles and runs .lang files
 */
 
+
 #include <lang.h>
 
 
@@ -11,8 +12,6 @@ int main(int n, char **c) {
 	(void) n;
 
 	langM_initmemory();
-
-	jittest();
 
 	lModule md = {0};
 
@@ -32,7 +31,6 @@ int main(int n, char **c) {
 	syslib_load(&rt);
 	tstlib_load(&rt);
 	crtlib_load(&rt);
-	jitlib_load(&rt);
 
 	char pwd[0x100];
 	sys_workdir(sizeof(pwd),pwd);

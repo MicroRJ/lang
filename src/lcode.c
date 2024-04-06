@@ -135,34 +135,35 @@ void langL_fnepiloge(FileState *fs, llineid line) {
 
 
 /* --todo: adapt this comment:
-if we got here it means that the expression is not naturally
-a short-circuit and has to be made into one, in which case we
-default to evaluating a boolean expression and adding boolean
-jumps (unless the context calls for a boolean expression).
-a boolean expression is defined as an expression which yields
-either true or false, in which case we need a register to
-put that expression in there and later call either jz or jnz
-on it, unless we want a boolean expression, in which case
-we can write directly to x.
-for instance, `x = b == c`, in this case, there's no need for
-short circuiting, and in many cases there's the contrary,
-no need to generate boolean expressions, for instance
-`if b == c`, this is only true if all the expressions can
-be short-circuited, which is true for all expressions because
-all boolean expressions can be made into short-curcuits by
-adding boolean jumps, this is only beneficial if the context
-calls for it, such as 'and' and 'or' in an if statement.
-if the register x is NO_SLOT, it means the context calls for
-short circuting, in otherwords, it is more beneficial to
-avoid generating boolean expressions, otherwise we can
-directly evaluate a boolean expression into register x,
-of course, this only pays of if the expression is entirely
-boolean, because if not all branches lead to some boolean
-output, we have to synthesize additional ones, we can check
-whether the expression is entirely boolean or not by checking
-the true and false jump lists, if both of them are nil it
-means the expressions is entirely boolean, and there's no
-need to turn it into one. */
+- 	if we got here it means that the expression is not naturally
+- 	a short-circuit and has to be made into one, in which case we
+- 	default to evaluating a boolean expression and adding boolean
+- 	jumps (unless the context calls for a boolean expression).
+- 	a boolean expression is defined as an expression which yields
+- 	either true or false, in which case we need a register to
+- 	put that expression in there and later call either jz or jnz
+- 	on it, unless we want a boolean expression, in which case
+- 	we can write directly to x.
+- 	for instance, `x = b == c`, in this case, there's no need for
+- 	short circuiting, and in many cases there's the contrary,
+- 	no need to generate boolean expressions, for instance
+- 	`if b == c`, this is only true if all the expressions can
+- 	be short-circuited, which is true for all expressions because
+- 	all boolean expressions can be made into short-curcuits by
+- 	adding boolean jumps, this is only beneficial if the context
+- 	calls for it, such as 'and' and 'or' in an if statement.
+- 	if the register x is NO_SLOT, it means the context calls for
+- 	short circuting, in otherwords, it is more beneficial to
+- 	avoid generating boolean expressions, otherwise we can
+- 	directly evaluate a boolean expression into register x,
+- 	of course, this only pays of if the expression is entirely
+- 	boolean, because if not all branches lead to some boolean
+- 	output, we have to synthesize additional ones, we can check
+- 	whether the expression is entirely boolean or not by checking
+- 	the true and false jump lists, if both of them are nil it
+- 	means the expressions is entirely boolean, and there's no
+- 	need to turn it into one.
+*/
 
 
 
@@ -707,3 +708,4 @@ lbyteop treetobyte(ltreetype tt) {
 	LNOBRANCH;
 	return Y_NONE;
 }
+

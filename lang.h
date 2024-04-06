@@ -120,9 +120,6 @@ typedef struct lClosure lClosure;
 #include <src/lcrtlib.c>
 #include <src/lruntime.c>
 
-/* todo: build this separately */
-#include <src/ljitlib.c>
-
 llongint lang_clocktime() {
 	return sys_clocktime();
 }
