@@ -5,17 +5,6 @@
 */
 
 
-lnodeid langN_clone(FileState *fs, llineid line, lnodeid x) {
-	if (langA_varmin(fs->nodes) <= fs->nnodes) {
-		langA_variadd(fs->nodes,1);
-	}
-	lNode *nd = fs->nodes + fs->nnodes;
-	memcpy(nd,&fs->nodes[x],sizeof(*nd));
-	nd->line = line;
-	return fs->nnodes ++;
-}
-
-
 lnodeid langN_xyz(FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z) {
 	if (langA_varmin(fs->nodes) <= fs->nnodes) {
 		langA_variadd(fs->nodes,1);
@@ -23,7 +12,12 @@ lnodeid langN_xyz(FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, 
 	lNode *nd = fs->nodes + fs->nnodes;
 	nd->level = fs->level;
 	nd->line = line;
-	nd->t = t; nd->k = k; nd->x = x; nd->y = y; nd->z = z;
+	nd->t = t; nd->k = k;
+	nd->r = NO_SLOT;
+	/* todo: temporary */
+	if (k == N_LOCAL) nd->r = x;
+
+	nd->x = x; nd->y = y; nd->z = z;
 	return fs->nnodes ++;
 }
 

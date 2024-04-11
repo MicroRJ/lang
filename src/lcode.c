@@ -5,43 +5,6 @@
 */
 
 
-
-/*
-A \node in the abstract sense has the following main properties:
-takes multiple inputs, singular or no output and is typed.
-
-There are two main ways to access and traverse ir instructions
-I just call them nodes.
-You can traverse them using the node stack, or directly through an
-index where the node is allocated, nodes are deallocated once they
-are done with, since nodes can be moved around, we free them in
-chunks, this way we can still use a linear allocator model. Nodes
-that are no longer in use are replaced with NOP nodes, this is the
-only instance where nodes are modified directly, in practise, nodes
-are immutable. Not all nodes evaluate to some tangible value, this
-is why we have the stack, the stack contains all the nodes that
-yield some value. By design, a node can take multiple inputs and
-yield a single value, this property is beneficial for us.
-
-
-redesign of the ir, instead of using references to the ir
-directly for lower level functions, we can use localids, which
-will map to an ir stack, the ir stack will contian the ir
-instructions, this will allow for a few nifty things, for instance,
-easy static analizys of types, say you have the following code:
-
-let x = 0
-if x == 0 ? {
-	x = {}
-	x = x + 1
-}
-
-here we can mark the block where x = {} as an if block and associate
-it with a local id, this way, we can traverse the stack to find the
-latests store to x to determine the current type and value of x.
-
-*/
-
 lbyteop treetobyte(lnodeop tt);
 
 
@@ -324,13 +287,11 @@ void langL_emit(FileState *fs, llineid line, lnodeid id) {
 
 
 /*
-** emits bytecode to load id into slot x, if y is 0 the instruction
-** is omitted if no side effects.
+** emits bytecode to load id into local x,
+** if y is 0 the instruction is omitted if
+** no side effects.
 */
 void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, lnodeid id) {
-	/* -- Some instructions have no side effects,
-	- in which case, if the yield count is 0, the
-	- instruction is not emitted */
 	LASSERT(x > NO_SLOT);
 	lNode v = fs->nodes[id];
 	LASSERT(v.level <= fs->level);
@@ -338,12 +299,23 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 
 	lModule *md = fs->md;
 
-	/* keep local state, finally free any temporary locals */
+	/* finally restore memory state */
 	llocalid mem = fs->fn->xlocals;
 
+	if ((v.r != NO_SLOT) && (reload != ltrue)) {
+		goto leave;
+	}
+	LASSERT((v.k != N_LOCAL) || (v.r == v.x));
+	LASSERT((v.r < mem));
+
+	fs->nodes[id].r = x;
+
+	/* some instructions have no side effects,
+	in which case, if the yield count is 0, the
+	instruction is not emitted */
 	switch (v.k) {
+		/* todo: remove this? */
 		case N_LOCAL: {
-			if (y == 0) goto leave;
 			if (reload) {
 				langL_bytexy(fs,line,BC_RELOAD,x,v.x);
 			} else goto leave;
@@ -383,11 +355,12 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			LASSERT(v.line != 0);
 			langL_bytexy(fs,line,BC_TABLE,x,0);
 
-			/* -- todo: this is temporary work around to avoid
-			circular deps, otherwise any other instruction that
-			references this one will continue allocating a register
-			for this instruction, this will be replaced with a more
-			robust system in the near future */
+			/* -- todo: this is temporary work around,
+			otherwise any other instruction that circularly
+			references this one will continue allocating
+			a register for this instruction, this will
+			be replaced with a more robust system in
+			the near future */
 			fs->nodes[id].k = N_LOCAL;
 			fs->nodes[id].x = x;
 
