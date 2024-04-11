@@ -13,7 +13,7 @@ enum {
 	LOG_DEBUG,
 };
 
-lapi void lang_log_(int type, ldebugloc source, char const *fmt, ...);
+lapi void lang_log_(int type, ldebugloc loc, char const *fmt, ...);
 
 #define lang_log(TYPE,FORMAT,...) (LCHECKPRINTF(FORMAT,__VA_ARGS__),lang_log_(TYPE,LHERE,FORMAT,__VA_ARGS__))
 #define lang_loginfo(yyy,...) lang_log(LOG_INFO,yyy,__VA_ARGS__)

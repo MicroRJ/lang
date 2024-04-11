@@ -83,7 +83,7 @@ int syslib_fsize(lRuntime *c) {
 
 int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 	switch (v.tag) {
-		case VALUE_NONE: return fprintf(file,"nil");
+		case TAG_NIL: return fprintf(file,"nil");
 		case VALUE_HANDLE: return fprintf(file,"h%llX",v.i);
 		case TAG_INTEGER: return fprintf(file,"%lli",v.i);
 		case TAG_NUMBER: return fprintf(file,"%f",v.n);
@@ -100,7 +100,7 @@ int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 			wrote += fprintf(file,"}");
 			return wrote;
 		} break;
-		case VALUE_STRING: {
+		case TAG_STRING: {
 			if (quotes) {
 				return fprintf(file,"\"%s\"",v.s->string);
 			} else {
@@ -123,7 +123,17 @@ int syslib_fpf(lRuntime *rt) {
 }
 
 
-int syslib_pf_(lRuntime *rt) {
+int syslib_lpf(lRuntime *rt) {
+	for (int i = 0; i < rt->f->x; i ++) {
+		if (i != 0) fprintf(stdout,"\n");
+		syslib_fpfv_(stdout,lang_load(rt,i),lfalse);
+	}
+	fprintf(stdout,"\n");
+	return 0;
+}
+
+
+int syslib_pf(lRuntime *rt) {
 	for (int i = 0; i < rt->f->x; i ++) {
 		syslib_fpfv_(stdout,lang_load(rt,i),lfalse);
 	}
@@ -230,9 +240,10 @@ lapi void syslib_load(lRuntime *rt) {
 	lang_addglobal(md,lang_pushnewS(rt,"fopen"),lang_C(syslib_fopen));
 	lang_addglobal(md,lang_pushnewS(rt,"fclose"),lang_C(syslib_fclose));
 	lang_addglobal(md,lang_pushnewS(rt,"fsize"),lang_C(syslib_fsize));
-	lang_addglobal(md,lang_pushnewS(rt,"fpf"),lang_C(syslib_fpf));
 
-	lang_addglobal(md,lang_pushnewS(rt,"pf"),lang_C(syslib_pf_));
+	lang_addglobal(md,lang_pushnewS(rt,"fpf"),lang_C(syslib_fpf));
+	lang_addglobal(md,lang_pushnewS(rt,"pf"),lang_C(syslib_pf));
+	lang_addglobal(md,lang_pushnewS(rt,"lpf"),lang_C(syslib_lpf));
 
 	lang_addglobal(md,lang_pushnewS(rt,"clocktime"),lang_C(syslib_clocktime));
 	lang_addglobal(md,lang_pushnewS(rt,"timediffs"),lang_C(syslib_timediffs));

@@ -45,7 +45,7 @@ typedef struct lObject {
 
 
 typedef enum lvaluetag {
-	VALUE_NONE,
+	TAG_NIL,
 	TAG_INTEGER,
 	TAG_NUMBER,
 	VALUE_BINDING,
@@ -53,7 +53,7 @@ typedef enum lvaluetag {
 	VALUE_HANDLE,
 	TAG_CLOSURE,
 	// VALUE_JITFUNC,
-	VALUE_STRING,
+	TAG_STRING,
 	VALUE_ARRAY,
 	TAG_TABLE,
 } lvaluetag;
@@ -125,7 +125,7 @@ lapi lValue lang_H(Handle h) {
 
 
 lapi lValue lang_S(lString *s) {
-	lValue v = (lValue){VALUE_STRING};
+	lValue v = (lValue){TAG_STRING};
 	v.s = s;
 	return v;
 }

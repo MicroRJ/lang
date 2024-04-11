@@ -13,10 +13,14 @@ int main(int n, char **c) {
 
 	langM_initmemory();
 
+	char pwd[0x100];
+	sys_workdir(sizeof(pwd),pwd);
+	printf("working in: %s\n",pwd);
+
 	lModule md = {0};
 
 	lRuntime rt = {&md};
-	// rt.logging = ltrue;
+	rt.logging = ltrue;
 	rt.stklen = 4096;
 	rt.stk = rt.top = langM_clearalloc(lHEAP,sizeof(lValue) * rt.stklen);
 	lContext root = {0};
@@ -32,14 +36,13 @@ int main(int n, char **c) {
 	tstlib_load(&rt);
 	crtlib_load(&rt);
 
-	char pwd[0x100];
-	sys_workdir(sizeof(pwd),pwd);
-	printf("working in: %s\n",pwd);
-
+	lContext frame = {0};
+	frame.base = rt.top;
+	rt.frame = &frame;
 	lString *filename = lang_pushnewS(&rt,c[1]);
-
 	FileState fs = {0};
-	lang_loadfile(&rt,&fs,filename,0);
+	lang_loadfile(&rt,&fs,filename,0,0);
+	/* todo: this is temporary */
 	md.file = &fs;
 
 	Handle file = sys_fopen(".module.ignore","wb");

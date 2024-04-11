@@ -24,16 +24,17 @@ typedef struct lFile {
 ** same global by name, no matter the order in which
 ** they were loaded, or the means, runtime/compiletime.
 ** This is because we use a symbol table that maps a
-** name at jit time to an index in the global values.
+** name at compile time to an index in the global values.
 ** Even if a file is loaded at runtime, the compilation
 ** process finds the global symbol and maps it to the
-** target index. Lookups are effectively done at jit
+** target index. Lookups are effectively done at compile
 ** time.
 **
 */
 typedef struct lModule {
 	Table *g;
 	lProto *p;
+	lnumber *kn;
 	lBytecode *bytes;
 	lbyteid nbytes;
 	char **lines;

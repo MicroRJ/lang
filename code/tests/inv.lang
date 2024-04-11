@@ -1,0 +1,16 @@
+// x -> y ~= y -> x
+ordinal = fun(x,y,z) -> {
+	0,0,0  -> "zero"
+	0,0,1  -> "one"
+	0,1,0  -> "two"
+	0,1,1  -> "three"
+	1,0,0  -> "four"
+	1,0,1  -> "five"
+	1,1,0  -> "six"
+	1,1,1  -> "seven"
+	else -> "invalid"
+}
+add = fun(x,y) ? (x + y)
+sub = ~add
+mul = fun(x,y) ? (x * y)
+div = ~mul

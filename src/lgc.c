@@ -30,6 +30,7 @@ void langGC_markwhite(lObject *obj) {
 
 
 void *langGC_allocobj(lRuntime *rt, ObjectType type, llongint length) {
+#if 0
 	if (rt != 0) {
 		if (!rt->isgcpaused) {
 			if (rt->gcthreshold <= 0) {
@@ -41,7 +42,7 @@ void *langGC_allocobj(lRuntime *rt, ObjectType type, llongint length) {
 			}
 		}
 	}
-
+#endif
 
 	lObject *obj = langM_clearalloc(lHEAP,length);
 	obj->type = type;
@@ -64,7 +65,7 @@ void langGC_remobj(lRuntime *fs, llongint i) {
 
 
 lbool ttisobj(lvaluetag tag) {
-	if (tag == VALUE_STRING) return ltrue;
+	if (tag == TAG_STRING) return ltrue;
 	if (tag == TAG_TABLE) return ltrue;
 	if (tag == TAG_CLOSURE) return ltrue;
 	if (tag == VALUE_CUSTOM) return ltrue;
@@ -76,7 +77,7 @@ lvaluetag ttobj2val(ObjectType type) {
 	switch(type) {
 		case OBJ_CLOSURE: return TAG_CLOSURE;
 		case OBJ_TABLE: return TAG_TABLE;
-		case OBJ_STRING: return VALUE_STRING;
+		case OBJ_STRING: return TAG_STRING;
 	}
 	LNOBRANCH;
 	return -1;

@@ -1,28 +1,28 @@
 let enum _time = clocktime()
-finally pf(" loaded lgi, took: ", timediffs(_time))
+finally pf(" loaded lgi, took: ",timediffs(_time))
 
 lgi ?= {}
 lgi.lib ?= loadlib("build/lgilib.exe")
 
-
 let enum lgilib = lgi.lib
-
 let lgifn = fun(name) ? libfn(lgilib,name)
 
 lgi_initWindowed = lgifn("lgilib_initWindowed")
-lgi_clearBackground = lgifn("lgilib_clearBackground")
 lgi_tick = lgifn("lgilib_tick")
+lgi_clearBackground = lgifn("lgilib_clearBackground")
 lgi_testKey = lgifn("lgilib_testKey")
 lgi_drawQuad_ = lgifn("lgilib_drawQuad")
 lgi_time = lgifn("lgilib_time")
 lgi_deltatime = lgifn("lgilib_deltatime")
+lgi_getSizeX = lgifn("lgilib_getSizeX")
+lgi_getSizeY = lgifn("lgilib_getSizeY")
+
+// lgi_initWindowed(720,720,"test")
+// do { lgi_clearBackground();
+// } while lgi_tick()
 
 
 lgi_drawQuad = fun (color,x,y,w,h) ? {
-	if color == nil ? {
-		pf("error")
-		leave 0
-	}
 	let r = color.r
 	let g = color.g
 	let b = color.b
@@ -42,14 +42,12 @@ let enum RGB = fun(r,g,b) ? {
 }
 
 
-let enum RGBU = fun(r,g,b) ? {
-	leave RGB(r/255.,g/255.,b/255.)
-}
-
+let enum RGBU = fun(r,g,b) ? RGB(r/255.,g/255.,b/255.)
 
 
 lgi_CLEAR = RGBU(0xFF, 0xFF, 0xFF, 0x00)
 lgi_WHITE = RGBU(0xFF, 0xFF, 0xFF, 0xFF)
+lgi_GRAY = RGBU(0x80, 0x80, 0x80, 0xFF)
 lgi_BLACK = RGBU(0x00, 0x00, 0x00, 0xFF)
 lgi_RED = RGBU(0xFF, 0x00, 0x00, 0xFF)
 lgi_GREEN = RGBU(0x00, 0xFF, 0x00, 0xFF)

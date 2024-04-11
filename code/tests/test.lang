@@ -1,35 +1,32 @@
-
-let _globaltime = clocktime()
-finally pf(" total elapsed: ", timediffs(_globaltime))
-
-
+__logging(false)
 let prevdir = pwd()
 let workdir = pwd()
 pf("workdir: ", workdir)
 workdir = "code/tests"
 pf("switching to: ", workdir)
-setpwd(workdir)
+load "fib.test.lang"
 
-// load "fib.test.lang"
+// setpwd(workdir)
 
-let sysfile = fopen("tests.ignore","wb")
-fpf(sysfile,"test scores:\n")
-finally fpf(sysfile,"end of test run");
 
-let list = listdir(".",fun(file,flags) ? {
-	if file.name == "test.lang" ? leave false
-	iff file.name:match("*.test.lang") ? leave false
-	pf("============== test: ", file.name)
+// let sysfile = fopen("tests.ignore","wb")
+// fpf(sysfile,"test scores:\n")
+// finally fpf(sysfile,"end of test run");
 
-	let _time = clocktime()
-	finally pf(" => took: ", timediffs(_time))
+// let list = listdir(".",fun(file,flags) ? {
+// 	if file.name == "test.lang" ? leave false
+// 	iff file.name:match("*.test.lang") ? leave false
+// 	pf("============== test: ", file.name)
 
-	let failed = load file.path
-	if failed ? {
-		pf("	 #FAILED: ")
-	}
-	leave true
-})
+// 	let _time = clocktime()
+// 	finally pf(" => took: ", timediffs(_time))
 
-pf("prevdir: ", prevdir)
-setpwd(prevdir)
+// 	let failed = load file.path
+// 	if failed ? {
+// 		pf("	 #FAILED: ")
+// 	}
+// 	leave true
+// })
+
+// pf("prevdir: ", prevdir)
+// setpwd(prevdir)

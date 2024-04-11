@@ -4,23 +4,17 @@
 ** JIT Experiments
 */
 
-
-
-
-/* -- bunch of playing around code */
-
-
-
-
 #define pf printf
 
+typedef uintptr_t jit_llu;
 typedef int (*jit_fn)(int);
 unsigned char *jit_mem;
 int jit_cur;
 
-typedef uintptr_t jit_llu;
 
-
+/* -- todo: this is a security risk, instead allocated
+regular memory, then after all code has been generated,
+make readonly and executable */
 char *jit_alloc(int length) {
 	return VirtualAlloc(NULL,length,MEM_RESERVE|MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 }
@@ -158,17 +152,6 @@ lBinding jit(lModule *md, lProto fn) {
 
 	lBytecode *bytes = md->bytes + fn.bytes;
 	lbyteid nbytes = fn.nbytes;
-
-
-	ljNode nodes[0x100];
-	ljState js = {0};
-	js.nodes = nodes;
-
-	ljValue stack[0x100];
-	ljValue *top = stack;
-
-	ljnodeid irs[0x100];
-	ljnodeid *irtop = irs;
 
 	for (lbyteid i = 0; i < nbytes; ++i) {
 		#if 0

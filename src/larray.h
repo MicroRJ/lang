@@ -42,7 +42,7 @@ typedef struct Array {
 #define langA_varnadd2(var,res,com) ((var) + langA_varadd_((void**)&(var),sizeof(*var),res,com))
 #define langA_variadd(var,num) (langA_varadd_((void**)&(var),sizeof(*var),num,num))
 #define langA_varnadd(var,num) ((var) + langA_variadd(var,num))
-#define langA_varadd(var,t) (langA_varnadd(var,1)[0] = t)
+#define langA_varadd(var,t) ((void)(langA_varnadd(var,1)[0] = t))
 #define langA_varlen langA_varmin
 
 

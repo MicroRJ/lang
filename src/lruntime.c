@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** lruntime.c
-** lRuntime
+** Runtime
 */
 
 
@@ -41,34 +41,6 @@ int lang_callargs(lRuntime *c, lClosure *cl, int x, int y, ...) {
 
 
 /*
-** , takes an optional
-** object for meta functions, x and y are the
-** number of in and out values respectively.
-*/
-#if 0
-int lang_bind(lRuntime *c, lObject *obj, lBinding b, int x, int y) {
-	LASSERT(lang_leftover(c) >= x + y);
-	lContext s = {0};
-	s.obj = obj;
-	s.l = c->v - x;
-	s.x = x;
-	s.y = y;
-	lContext *f = c->f;
-	c->f = &s;
-	int r = b(c);
-	/* move results to hosted registers */
-	int m = r < y ? r : y;
-	for (int p = 0; p < m; ++ p) {
-		s.l[p-y] = c->v[p-r];
-	}
-	c->f = f;
-	c->v = s.l;
-	return r;
-}
-#endif
-
-
-/*
 ** Calls a function, takes an optional object for meta
 ** methods, x and y are the number of in and out values
 ** respectively, r is the local slot where the function
@@ -91,7 +63,7 @@ int lang_call(lRuntime *R, lObject *obj, llocalid r, int x, int y) {
 		frame.cl = func.f;
 		/* todo: replace with faster memset? */
 		for (; x < frame.cl->fn.nlocals; ++ x) {
-			top->tag = VALUE_NONE;
+			top->tag = TAG_NIL;
 			top->i   = 0;
 			top ++;
 		}
@@ -125,7 +97,9 @@ int lang_call(lRuntime *R, lObject *obj, llocalid r, int x, int y) {
 ** Loads a file and calls its function,
 ** returns the number of results.
 */
-int lang_loadfile(lRuntime *rt, FileState *fs, lString *filename, int y) {
+int lang_loadfile(lRuntime *rt, FileState *fs, lString *filename, llocalid x, int y) {
+
+	if (filename == lnil) filename = lang_checkString(rt,x);
 
 	char *contents;
 	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
@@ -136,7 +110,7 @@ int lang_loadfile(lRuntime *rt, FileState *fs, lString *filename, int y) {
 	fs->rt = rt;
 	fs->md = md;
 	fs->bytes = md->nbytes;
-	fs->filename = filename->string;
+	fs->filename = filename->c;
 	fs->contents = contents;
 	fs->thischar = contents;
 	fs->linechar = contents;
@@ -165,11 +139,15 @@ int lang_loadfile(lRuntime *rt, FileState *fs, lString *filename, int y) {
 
 	lProto p = {0};
 	p.nlocals = fn.nlocals;
-	p.bytes = p.bytes;
+	p.bytes = fn.bytes;
 	p.nbytes = md->nbytes - fn.bytes;
 
-	llocalid cl = lang_pushnewclosure(rt,p);
-	int nyield = lang_call(rt,lnil,cl,0,y);
+	/* -- todo: can we do this better? convert string to closure */
+	rt->frame->base[x].tag = TAG_CLOSURE;
+	rt->frame->base[x].f   = langF_newclosure(rt,p);
+	if (rt->top == rt->frame->base) ++ rt->top;
+
+	int nyield = lang_call(rt,lnil,x,0,y);
 
 	/* todo: lines? */
 	// langM_dealloc(lHEAP,contents);
@@ -214,6 +192,7 @@ int lang_resume(lRuntime *R) {
 				} else goto leave;
 			} break;
 			case BC_DELAY: {
+				/* todo: can we make this better */
 				ldelaylist *dl = langM_alloc(lHEAP,sizeof(ldelaylist));
 				dl->n = c->dl;
 				dl->j = c->j;
@@ -253,13 +232,8 @@ int lang_resume(lRuntime *R) {
 				}
 			} break;
 			case BC_LOADFILE: {
-				LASSERT(lang_leftover(cs) >= 1);
-				LASSERT(cs->v[-1].tag == VALUE_STRING);
-				lString *name = (--cs->v)->s;
-				langGC_markpink((lObject*)name);
 				FileState fs = {0};
-				lang_loadfile(cs,&fs,name,b.y);
-				langGC_markwhite((lObject*)name);
+				lang_loadfile(R,&fs,lnil,b.x,b.y);
 			} break;
 			case BC_J: {
 				c->j = jp + b.i;
@@ -279,102 +253,69 @@ int lang_resume(lRuntime *R) {
 			case BC_SETGLOBAL: {
 				md->g->v[b.x] = frame->base[b.y];
 			} break;
+			case BC_LOADNIL: {
+				frame->base[b.x].tag = TAG_NIL;
+				frame->base[b.x].i   = 0;
+			} break;
 			case BC_LOADINT: {
 				frame->base[b.x].tag = TAG_INTEGER;
 				frame->base[b.x].i   = b.y;
 			} break;
+			case BC_LOADNUM: {
+				frame->base[b.x].tag = TAG_NUMBER;
+				frame->base[b.x].n   = md->kn[b.y];
+			} break;
 			case BC_LOADCACHED: {
-				LASSERT(b.i >= 0 && b.i < fn.ncaches);
-				frame->base[b.x] = cl->caches[b.i];
+				LASSERT(b.y >= 0 && b.y < fn.ncaches);
+				frame->base[b.x] = cl->caches[b.y];
 			} break;
 			case BC_CLOSURE: {
 				LASSERT(b.y >= 0 && b.y < langA_varlen(md->p));
+				lProto p = md->p[b.y];
+				lClosure *ncl = langF_newclosure(cs,p);
+				for (int i = 0; i < p.ncaches; ++i) {
+					ncl->caches[i] = frame->base[b.x+i];
+				}
 				frame->base[b.x].tag = TAG_CLOSURE;
-				frame->base[b.x].f   = langF_newclosure(cs,md->p[b.y]);
+				frame->base[b.x].f   = ncl;
 			} break;
 			case BC_TABLE: {
 				frame->base[b.x].tag = TAG_TABLE;
 				frame->base[b.x].t   = langH_new(cs);
 			} break;
-			case BC_FIELD: {
-				LASSERT(frame->base[b.y].tag == TAG_TABLE);
-				frame->base[b.x] = langH_lookup(frame->base[b.y].t,frame->base[b.z]);
+			case BC_INDEX: case BC_FIELD: {
+				#define LNIL (lValue){TAG_NIL}
+				if (frame->base[b.y].tag == TAG_TABLE) {
+					frame->base[b.x] = langH_lookup(frame->base[b.y].t,frame->base[b.z]);
+				} else frame->base[b.x] = LNIL;
 			} break;
 			case BC_SETFIELD: {
-				LASSERT(frame->base[b.x].tag == TAG_TABLE);
-				langH_insert(frame->base[b.x].t,frame->base[b.y],frame->base[b.z]);
+				if (frame->base[b.x].tag == TAG_TABLE) {
+					langH_insert(frame->base[b.x].t,frame->base[b.y],frame->base[b.z]);
+				} else LNOBRANCH;
 			} break;
 			case BC_SETINDEX: {
-				lValue t = cs->v[-3];
-				lValue k = cs->v[-2];
-				lValue v = cs->v[-1];
-				cs->v -= 2;
-
-				if (t.tag == VALUE_STRING) {
-					if (v.tag == TAG_INTEGER) {
-						t.s->c[k.i] = v.i;
-					} else {
-						LNOBRANCH;
-					}
-				} else
-				if (t.tag == TAG_TABLE) {
-					langH_insert(t.t,k,v);
-				} else {
-					LNOBRANCH;
-				}
+				if (frame->base[b.x].tag == TAG_TABLE) {
+					langH_insert(frame->base[b.x].t,frame->base[b.y],frame->base[b.z]);
+				} else LNOBRANCH;
 			} break;
-			case BC_INDEX: {
-				cs->v -= 2;
-				lValue t,k;
-				t = cs->v[0];
-				k = cs->v[1];
-				if (t.tag == VALUE_STRING) {
-					if (k.tag == TAG_INTEGER) {
-						lang_pushlong(cs,t.s->c[k.i]);
-					} else {
-						LNOBRANCH;
-					}
-				} else
-				if (t.tag == TAG_TABLE) {
-					lang_pushvalue(cs,langH_lookup(t.t,k));
-				} else {
-					lang_pushnil(cs);
-				}
-			} break;
-
 			case BC_METACALL: {
 				LNOBRANCH;
-				// cs->v -= 2;
-				// lValue o = cs->v[0];
-				// lValue m = cs->v[1];
-
-				// LASSERT(m.tag == VALUE_STRING);
-				// LASSERT(ttisobj(o.tag));
-				// lBinding d = lfndmetafn(o.j,m.s);
-				// if (d != lnil) {
-				// 	lang_call(cs,o.j,d,b.x,b.y);
-				// }
 			} break;
 			case BC_CALL: {
-				if (R->top < frame->base) LNOBRANCH;
 				lang_call(cs,0,b.x,b.y,b.z);
-				if (R->top < frame->base) LNOBRANCH;
 			} break;
 			case BC_ISNIL: {
-				LNOBRANCH;
-				cs->v -= 1;
-				lValue x = cs->v[0];
-				if (x.tag == TAG_INTEGER || x.tag == TAG_NUMBER) {
-					lang_pushlong(cs,0);
-				} else {
-					lang_pushlong(cs,x.i == 0);
-				}
+				lValue x = frame->base[b.y];
+				lbool nan = x.tag != TAG_INTEGER && x.tag != TAG_NUMBER;
+				frame->base[b.x].tag = TAG_INTEGER;
+				frame->base[b.x].i   = x.tag == TAG_NIL || (nan && x.i == 0);
 			} break;
 			case BC_EQ: case BC_NEQ: {
 				lValue x = frame->base[b.y];
 				lValue y = frame->base[b.z];
 				lbool eq = lfalse;
-				if (x.tag == VALUE_STRING && y.tag == VALUE_STRING) {
+				if (x.tag == TAG_STRING && y.tag == TAG_STRING) {
 					eq = langS_eq(x.s,y.s);
 				} else {
 					eq = x.i == y.i;
@@ -459,8 +400,8 @@ lapi llongint lang_poplong(lRuntime *c) {
 }
 
 
-lapi llongint lang_leftover(lRuntime *c) {
-	return c->v - c->f->l;
+lapi llongint lang_topop(lRuntime *R) {
+	return R->top - R->frame->base;
 }
 
 
@@ -471,7 +412,7 @@ lapi lValue lang_load(lRuntime *c, int x) {
 
 lapi lString *lang_loadS(lRuntime *c, int x) {
 	lValue v = c->f->l[x];
-	LASSERT(v.tag == VALUE_STRING);
+	LASSERT(v.tag == TAG_STRING);
 	return v.s;
 }
 
@@ -485,6 +426,12 @@ lapi lClosure *lang_loadcl(lRuntime *c, int x) {
 
 lapi void lang_checkcl(lRuntime *c, llocalid x) {
 	LASSERT(c->f->l[x].tag == TAG_CLOSURE);
+}
+
+
+lapi lString *lang_checkString(lRuntime *c, llocalid x) {
+	LASSERT(c->f->l[x].tag == TAG_STRING);
+	return c->f->l[x].s;
 }
 
 
@@ -520,7 +467,7 @@ void lang_pushvalue(lRuntime *c, lValue v) {
 
 
 void lang_pushnil(lRuntime *c) {
-	c->v->tag = VALUE_NONE;
+	c->v->tag = TAG_NIL;
 	++ c->v;
 }
 
@@ -547,7 +494,7 @@ void lang_pushhandle(lRuntime *c, Handle h) {
 
 
 void lang_pushString(lRuntime *c, lString *s) {
-	c->v->tag = VALUE_STRING;
+	c->v->tag = TAG_STRING;
 	c->v->s = s;
 	++ c->v;
 }
@@ -590,7 +537,7 @@ lString *lang_pushnewS(lRuntime *c, char const *junk) {
 
 llocalid lang_pushnewclosure(lRuntime *R, lProto fn) {
 	lClosure *cl = langF_newclosure(R,fn);
-	LASSERT(lang_leftover(R) >= fn.ncaches);
+	LASSERT(lang_topop(R) >= fn.ncaches);
 	R->top -= fn.ncaches;
 	int i;
 	for (i=0; i<fn.ncaches; ++i) {

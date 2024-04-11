@@ -10,7 +10,9 @@ lglobalid lang_addsymbol(lModule *md, lString *name) {
 	if (name == 0) {
 		return langA_variadd(md->g->v,1);
 	}
-	return langH_take(md->g,lang_S(name));
+	lglobalid id = langH_take(md->g,lang_S(name));
+	// lang_logdebug("global '%s' -> %i",name->c,id);
+	return id;
 }
 
 
@@ -42,7 +44,7 @@ int linelen(char *p, int m) {
 
 int syslib_fpfv_(FILE *file, lValue v, lbool quotes);
 void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
-	fprintf(file,"%-4i %s"
+	fprintf(file,"%04i\t%s"
 	,	id, lang_bytename(b.k));
 	if (lang_byteclass(b.k) == BC_CLASS_XYZ) {
 		fprintf(file,"(x=%i,y=%i,z=%i)",b.x,b.y,b.z);

@@ -84,7 +84,7 @@ typedef struct lClosure lClosure;
 #include <src/lstring.h>
 #include <src/larray.h>
 #include <src/ltable.h>
-#include <src/ltree.h>
+#include <src/lnode.h>
 #include <src/lcode.h>
 #include <src/lfile.h>
 
@@ -112,7 +112,7 @@ typedef struct lClosure lClosure;
 #include <src/ltable.c>
 #include <src/lfunc.c>
 #include <src/llexer.c>
-#include <src/ltree.c>
+#include <src/lnode.c>
 #include <src/lcode.c>
 #include <src/lfile.c>
 #include <src/ltest.c>

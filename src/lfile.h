@@ -5,10 +5,10 @@
 */
 
 
-#define NO_ENTITY (-1)
+#define NO_ENTITY (lentityid){-1}
 
 
-typedef int lentityid;
+typedef struct { int x; } lentityid;
 
 
 /* -- for scoping, binds a name to some local
@@ -28,21 +28,21 @@ typedef struct FileFunc FileFunc;
 typedef struct FileFunc {
 	FileFunc *enclosing;
 	llineid line;
-	/* number of locals for this function,
-	allocated once at runtime, each bytecode
-	instruction explicity addresses one of
-	these slots. */
+	/* for the basic register allocation system, where we have
+	an infinite number of register, but we still want to keep
+	the number of registers to a minimum, we resort to using to
+	counters, nlocals and xlocals */
+	/* maximum number of local register used concurrently
+	at any point for this function */
 	llocalid nlocals;
-	/* current number of locals, can be less
-	than nlocals but never less, in other words,
-	nlocals grows to accommodate xlocals */
+	/* current number of local registers that are
+	being used at this point */
 	llocalid xlocals;
-	/* index to first entity within entities
-	in enclosing scope. */
-	lentityid entitys;
-	/* array of locals from enclosing function
+	/* index to first entity within entity list in file. */
+	int entities;
+	/* array of entities from enclosing function
 	that are to be cached */
-	llocalid *caches;
+	lentityid *captures;
 	/* this is needed to emit instructions
 	relative to the current function we're
 	parsing, there's always an active function,
@@ -70,8 +70,8 @@ typedef struct FileState {
 	int linenumber;
 	ltoken lasttk,tk,thentk;
 	/* buffer for nodes */
-	Tree *nodes;
-	ltreeid nnodes;
+	lNode *nodes;
+	lnodeid nnodes;
 	/* the current level, level is incremented
 	per level, block or statement or whenever
 	it makes sense, represents a visibility
@@ -81,17 +81,19 @@ typedef struct FileState {
 	- function stack, each function points to a base local
 	- tag defined here by index.
 	-- remaining locals are file locals, at file level. */
-	lentity *entitys;
-	int nentitys;
+	lentity *entities;
+	int nentities;
 
 	/* hierarchical list of loading functions,
 	each allocated in C stack by caller function */
 	FileFunc *fn;
 
 	lbyteid bytes;
+
+	unsigned statbreak: 1;
 } FileState;
 
 
-ltreeid langY_loadexpr(FileState *fs);
-ltreeid langY_loadunary(FileState *fs);
+lnodeid langY_loadexpr(FileState *fs);
+lnodeid langY_loadunary(FileState *fs);
 void langY_loadstat(FileState *fs);

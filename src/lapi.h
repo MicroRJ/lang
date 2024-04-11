@@ -5,7 +5,7 @@
 */
 
 
-lapi llongint lang_leftover(lRuntime *c);
+lapi llongint lang_topop(lRuntime *c);
 
 lapi int lang_resume(lRuntime *);
 lapi int lang_call(lRuntime *, lObject *obj, llocalid r, int x, int y);
@@ -15,6 +15,7 @@ lapi int lang_callargs(lRuntime *, lClosure *cl, int n, int y, ...);
 lapi llongint lang_poplong(lRuntime *c);
 
 lapi void lang_checkcl(lRuntime *c, llocalid x);
+lapi lString *lang_checkString(lRuntime *c, llocalid x);
 
 lapi lValue lang_load(lRuntime *c, llocalid x);
 lapi Handle lang_loadhandle(lRuntime *c, llocalid x);

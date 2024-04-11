@@ -75,7 +75,7 @@ llongint langH_hashin(Table *table, lValue k) {
 	lhashid walk = langH_rehash(hash)|1;
 	do {
 		lValue x = slots[tail].k;
-		if (x.tag == VALUE_NONE) return tail;
+		if (x.tag == TAG_NIL) return tail;
 		if (langH_valueeq(&x,&k)) return tail;
 		tail = (tail+walk) % ntotal;
 		LDODEBUG( table->ncollisions ++ );
@@ -95,7 +95,7 @@ lValue langH_slot2value(Table *table, llongint slot) {
 
 
 lbool langH_slotiskey(Table *table, llongint slot) {
-	return slot >= 0 && table->slots[slot].k.tag != VALUE_NONE;
+	return slot >= 0 && table->slots[slot].k.tag != TAG_NIL;
 }
 
 
@@ -119,7 +119,7 @@ void langH_checkthreshold(Table *table) {
 
 		for (int i = 0; i < table->ntotal; ++ i) {
 			HashSlot slot = table->slots[i];
-			if (slot.k.tag == VALUE_NONE) continue;
+			if (slot.k.tag == TAG_NIL) continue;
 
 			llongint newslot = langH_hashin(&newtable,slot.k);
 
@@ -160,7 +160,7 @@ lValue langH_lookup(Table *table, lValue k) {
 	if (langH_slotiskey(table,slot)) {
 		return langH_slot2value(table,slot);
 	}
-	return (lValue){VALUE_NONE,0};
+	return (lValue){TAG_NIL,0};
 }
 
 
@@ -172,7 +172,7 @@ llongint langH_take(Table *table, lValue k) {
 	if (slot == -1) LNOBRANCH;
 	if (!langH_slotiskey(table,slot)) {
 		llongint i = langA_variadd(table->v,1);
-		table->v[i] = (lValue){VALUE_NONE};
+		table->v[i] = (lValue){TAG_NIL};
 
 		table->slots[slot].k = k;
 		table->slots[slot].i = i;
@@ -233,7 +233,7 @@ int langH_insert_(lRuntime *c) {
 
 	lValue k = lang_load(c,0);
 
-	lValue j = {VALUE_NONE};
+	lValue j = {TAG_NIL};
 	if (n == 2) j = lang_load(c,1);
 
 	Table *table = (Table*) c->f->obj;
@@ -252,7 +252,7 @@ int langH_foreach_(lRuntime *c) {
 
 	for (int i = 0; i < table->ntotal; ++ i) {
 		HashSlot slot = table->slots[i];
-		if (slot.k.tag != VALUE_NONE) {
+		if (slot.k.tag != TAG_NIL) {
 			/* call the iterator function with two arguments */
 			lang_callargs(c,cl,2,0,slot.k,table->v[slot.i]);
 		}
@@ -311,7 +311,7 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 	}
 
 	switch (x->tag) {
-		case VALUE_STRING: {
+		case TAG_STRING: {
 			return langS_eq(x->s,y->s);
 		}
 		case TAG_INTEGER:
@@ -330,7 +330,7 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 
 llongint langH_hashvalue(lValue v) {
 	switch (v.tag) {
-		case VALUE_STRING: {
+		case TAG_STRING: {
 			return v.s->hash;
 		}
 		case TAG_NUMBER:
@@ -361,13 +361,13 @@ void langH_mergesort_(Table *h, int level, llongint x, llongint z, lProto *fn) {
 	for (;;) {
 		int i = 0;
 
-		for (; i < z-y && s[i].k.tag == VALUE_NONE; ++i);
-		if (s[i].k.tag == VALUE_NONE) break;
+		for (; i < z-y && s[i].k.tag == TAG_NIL; ++i);
+		if (s[i].k.tag == TAG_NIL) break;
 
 		HashSlot xs = table->slots[i];
 
-		for (; i < z-y && s[i].k.tag == VALUE_NONE; ++i);
-		if (s[i].k.tag == VALUE_NONE) break;
+		for (; i < z-y && s[i].k.tag == TAG_NIL; ++i);
+		if (s[i].k.tag == TAG_NIL) break;
 
 		HashSlot ys = table->slots[i];
 

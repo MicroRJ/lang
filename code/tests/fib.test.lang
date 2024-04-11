@@ -1,15 +1,15 @@
-
+__logging(false)
 fibcache = {}
 
-fibcached = fun (n) ? {
-	if n < 2 ? leave n
-	if fibcache:haskey(n) ? {
-		leave fibcache:lookup(n)
-	}
-	r = fibcached(n - 1) + fibcached(n - 2)
-	fibcache:hashin(n,r)
-	leave r
-}
+// fibcached = fun (n) ? {
+// 	if n < 2 ? leave n
+// 	if fibcache:haskey(n) ? {
+// 		leave fibcache:lookup(n)
+// 	}
+// 	r = fibcached(n - 1) + fibcached(n - 2)
+// 	fibcache:hashin(n,r)
+// 	leave r
+// }
 
 fib = fun (n) ? {
 	if n < 2 ? leave n
@@ -19,8 +19,9 @@ fib = fun (n) ? {
 failed = false
 
 let test = fun (x,y) ? {
-	let k = fibcached(x)
+	let k = fib(x)
 	failed ?= k != y
+	pf("fib(", x , ") => ", y)
 	if k != y ? pf("	failed: got ", x, " instead of ", y)
 }
 

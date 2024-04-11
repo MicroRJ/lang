@@ -94,9 +94,11 @@ lbyteclass lang_byteclass(lbyteop k) {
 		case BC_RELOAD: {
 			return BC_CLASS_XY;
 		}
+		case BC_CLOSURE:
 		case BC_FIELD:
-		case BC_SETFIELD:
+		case BC_SETFIELD: case BC_SETINDEX:
 		case BC_INDEX:
+		case BC_ISNIL:
 		case BC_NEQ: case BC_EQ:
 		case BC_LT: case BC_LTEQ:
 		case BC_ADD: case BC_SUB:

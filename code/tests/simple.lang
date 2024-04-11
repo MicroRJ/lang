@@ -1,0 +1,47 @@
+
+
+{
+	/* -- 4.10.24
+	| the loop does not execute, remove "__logging(true)" and
+	| it works again  */
+	let x = 0
+	let y = 12
+	__logging(true)
+	for i in x..y ? pf("bug")
+	/*
+	---- BYTECODE ---- [WORKING]
+	0000    loadint(x=0,y=0)
+	0001    loadint(x=1,y=12)
+	0002    lt(x=3,y=2,z=1)
+	0003    jz(x=7,y=3)
+	0004    loadglobal(x=3,y=9)  // C()
+	0005    loadglobal(x=4,y=44)  // "bug"
+	0006    call(x=3,y=1,z=0)
+	....
+	---- BYTECODE ---- [FAILING]
+	0000    loadint(x=0,y=0)
+	0001    loadint(x=1,y=12)
+	0002    loadglobal(x=2,y=19)  // C()
+	0003    loadint(x=3,y=1)
+	0004    call(x=2,y=1,z=0)
+	0005    lt(x=3,y=2,z=1)
+	0006    jz(x=7,y=3)
+	0013    leave(x=0) */
+}
+
+
+// let fn = fun(x) ? {
+// 	if x == lnil ? x = 1
+// 	for i in 0..12 ? pf("welcome")
+// }
+
+// let fn = fun() ? (0)
+
+// lgi ?= {}
+// lgi.lib ?= fn()
+
+// pf(xx)
+// let x = 0
+// let y = 0
+// if x == 0 ? x = 1 else x = 2
+// y = x * x
