@@ -275,20 +275,20 @@ lnodeop tktonode(ltokentype tk) {
 		case TK_DOT_DOT:            return Y_RANGE;
 		case TK_LOG_AND:            return Y_LOG_AND;
 		case TK_LOG_OR:             return Y_LOG_OR;
-		case TK_ADD:                return Y_ADD;
-		case TK_SUB:                return Y_SUB;
-		case TK_DIV:                return Y_DIV;
-		case TK_MUL:                return Y_MUL;
-		case TK_MODULUS:            return Y_MOD;
-		case TK_NOT_EQUALS:         return Y_NEQ;
-		case TK_EQUALS:             return Y_EQ;
-		case TK_GREATER_THAN:       return Y_GT;
-		case TK_GREATER_THAN_EQUAL: return Y_GTEQ;
-		case TK_LESS_THAN:          return Y_LT;
-		case TK_LESS_THAN_EQUAL:    return Y_LTEQ;
-		case TK_LEFT_SHIFT:         return Y_BSHL;
-		case TK_RIGHT_SHIFT:        return Y_BSHR;
-		case TK_BIT_XOR:            return Y_BXOR;
+		case TK_ADD:                return NODE_ADD;
+		case TK_SUB:                return NODE_SUB;
+		case TK_DIV:                return NODE_DIV;
+		case TK_MUL:                return NODE_MUL;
+		case TK_MODULUS:            return NODE_MOD;
+		case TK_NOT_EQUALS:         return NODE_NEQ;
+		case TK_EQUALS:             return NODE_EQ;
+		case TK_GREATER_THAN:       return NODE_GT;
+		case TK_GREATER_THAN_EQUAL: return NODE_GTEQ;
+		case TK_LESS_THAN:          return NODE_LT;
+		case TK_LESS_THAN_EQUAL:    return NODE_LTEQ;
+		case TK_LEFT_SHIFT:         return NODE_SHL;
+		case TK_RIGHT_SHIFT:        return NODE_SHR;
+		case TK_BIT_XOR:            return NODE_XOR;
 	}
 	return Y_NONE;
 }
@@ -421,14 +421,21 @@ lnodeid langY_loadtable(FileState *fs) {
 	int index = 0;
 	if (!langX_test(fs,TK_CURLY_RIGHT)) do {
 		if (langX_testthen(fs,TK_ASSIGN)) {
-			if (langX_choose(fs,TK_WORD,TK_STRING)) {
-				lnodeid key = langN_string(fs,fs->lasttk.line,fs->lasttk.s);
+			/* -- todo: we could support any arbitrary expression here,
+			to do this, flag the loadexpr so that it doesn't bind entities
+			at first, otherwise the result of that expression should be
+			the key */
+			if (langX_pick(fs,TK_WORD) || langX_choose(fs,TK_INTEGER,TK_STRING)) {
+				tk = fs->lasttk;
+				lnodeid key;
+				if (tk.type == TK_INTEGER) key = langN_longint(fs,tk.line,tk.i);
+				else key = langN_string(fs,tk.line,tk.s);
 				langX_take(fs,TK_ASSIGN);
 				lnodeid val = langY_loadexpr(fs);
 				if (langX_checkexpr(fs,fs->tk.line,val)) break;
 				lnodeid f = langN_load(fs,fs->lasttk.line,langN_field(fs,fs->lasttk.line,table,key),val);
 				langA_varadd(z,f);
-			} else langX_error(fs,fs->tk.line,"expected either string or name for key-value designator");
+			} else langX_error(fs,fs->tk.line,"expected either word, string or integer for key-value designator");
 		} else if (langX_test(fs,TK_COMMA) || langX_test(fs,TK_CURLY_RIGHT)) {
 			/* trap */
 		} else {
@@ -466,7 +473,7 @@ lnodeid langY_loadunary(FileState *fs) {
 		case TK_SUB: {
 			langX_yield(fs);
 			v = langY_loadexpr(fs);
-			v = langN_xy(fs,tk.line,Y_SUB,NT_INT,langN_longint(fs,tk.line,0),v);
+			v = langN_xy(fs,tk.line,NODE_SUB,NT_INT,langN_longint(fs,tk.line,0),v);
 		} break;
 		case TK_ADD: {
 			langX_yield(fs);
@@ -703,11 +710,12 @@ void langY_loadstat(FileState *fs) {
 				langY_loadenumlist(fs);
 				langX_take(fs,TK_CURLY_RIGHT);
 			} else {
-				ltoken n = langX_take(fs,TK_WORD);
-				lnodeid x = langY_newlocalentity(fs,n.line,n.s,enm);
-				langY_maybeassign(fs,x);
+				do {
+					ltoken n = langX_take(fs,TK_WORD);
+					lnodeid x = langY_newlocalentity(fs,n.line,n.s,enm);
+					langY_maybeassign(fs,x);
+				} while (langX_pick(fs,TK_COMMA));
 			}
-
 		} break;
 		default: {
 			llocalid mem = fs->fn->xlocals;

@@ -1,8 +1,6 @@
 // NOTE:
-// this is a crude tetris clone and it is probably the worst implementation ever since
-// rotations are not even right!
-
-// todo: draw projections shapes
+// this is a crude tetris clone and it is probably the worst
+// implementation ever since rotations are not even right!
 // todo: projections
 // todo: reflections
 // todo: wall kicks
@@ -23,12 +21,13 @@ let enum vec2_add = fun(x,y) ? vec2(x.x+y.x,x.y+y.y)
 // expired, right...?
 TURN_TIME = .5
 
-thisid = 2
 
 let enum {
-	FLOOR = "F",
-	WALL  = "W",
+	ID_FLOOR = 0,
+	ID_WALL  = 1,
 }
+ID_NEXT = 2
+
 
 let enum idtocolor = {
 	"F" = lgi_BLACK,
@@ -42,19 +41,27 @@ let enum idtocolor = {
 
 let enum BAG = {
 	// [ ][*][ ][ ]
-	I = {id="I",pt={vec2(0,0),vec2(-1,0),vec2(+1,0),vec2(+2,0)}},
+	I = {id="I",p={vec2(0,0),vec2(-1,0),vec2(+1,0),vec2(+2,0)}},
 	// [*][ ][ ]
 	// [ ]
-	L = {id="L",pt={vec2(0,0),vec2(1,0),vec2(2,0),vec2(0,-1)}},
+	L = {id="L",p={vec2(0,0),vec2(1,0),vec2(2,0),vec2(0,-1)}},
 	// [ ][*][ ]
 	// 	[ ]
-	T = {id="T",pt={vec2(0,0),vec2(-1,0),vec2(+1,0),vec2(0,-1)}},
+	T = {id="T",p={vec2(0,0),vec2(-1,0),vec2(+1,0),vec2(0,-1)}},
 	//  [*][ ]
 	//  [ ][ ]
-	O = {id="O",pt={vec2(0,0),vec2(1,0),vec2(0,-1),vec2(1,-1)}},
+	O = {id="O",p={vec2(0,0),vec2(1,0),vec2(0,-1),vec2(1,-1)}},
 	//     [*][ ]
 	//  [ ][ ]
-	S = {id="S",pt={vec2(0,0),vec2(0,-1),vec2(1,0),vec2(-1,-1)}},
+	S = {id="S",p={vec2(0,0),vec2(0,-1),vec2(1,0),vec2(-1,-1)}},
+}
+
+let enum MAP = {
+	0 = "I",
+	1 = "L",
+	2 = "T",
+	3 = "O",
+	4 = "S",
 }
 
 let enum makecell = fun(colorid,stateid) ? ({"colorid"=colorid,"stateid"=stateid})
@@ -66,15 +73,18 @@ makecell evaluate once or per each item? can we support both
 behaviors? can we extend this language feature to name the index
 variable? */
 // grid[0..512] = makecell(FLOOR,0)
-for i in 0..512 ? grid[i] = makecell(FLOOR,0)
+for i in 0..512 ? grid[i] = makecell("F",FLOOR)
 
-let grid_x = 10
-let grid_y = 20
-let cellpx = 28
-let next_shape = {}
-let this_shape = {}
-let position = vec2(5,20-3)
-let rotation = {}
+let enum {
+	grid_x = 10,
+	grid_y = 20,
+	cellpx = 28,
+}
+
+next_shape = {}
+this_shape = {}
+position = vec2(5,20-3)
+rotation = {}
 
 
 let enum get = fun (x,y) ? (grid[12 * y + x])
@@ -83,32 +93,26 @@ let enum get = fun (x,y) ? (grid[12 * y + x])
 // 	ret game.grid[12 * xy.y + xy.x]
 // }
 
-let enum set = fun (x,y,s,c) ? {
+let enum plot = fun (x,y,s,c) ? {
 	let cell = get(x,y)
 	cell.stateid = s
 	cell.colorid = c
 }
 
 
-// // return true if found cell at row 'y'
-// hscan :: (game: Game *, y: int) -> int {
-// 	for x in 1..11 ? {
-// 		if get2(game,x,y).stateid != 0 ? {
-// 			ret 1
-// 		}
-// 	}
-// 	ret 0
-// }
+let enum hscan = fun (y) ? {
+	for x in 1..11 ? {
+		if get(x,y).stateid != FLOOR ? {
+			leave true
+		}
+	}
+	leave false
+}
 
-// hline :: (game: Game *, y: int) -> int {
-// 	for x in 1..11 ? {
-// 		cell = get2(game,x,y)
-// 		if cell.stateid == 0 ? {
-// 			ret 0
-// 		}
-// 	}
-// 	ret 1
-// }
+let enum hline = fun (y) ? {
+	for x in 1..11 ? if get(x,y).stateid == 0 ? leave false
+	leave true
+}
 
 
 let enum xorshift = fun(x) ? {
@@ -130,168 +134,128 @@ let enum rnd = fun (x,y) ? {
 let enum next = fun() ? {
 	position.x = 5
 	position.y = 21
-	thisid = thisid + 1
+	ID_NEXT = ID_NEXT + 1
 	length = 5 /* todo: BAG:length */
 	index = rnd(0,length - 1)
-	this_shape = BAG[index]
-	ret 1
+	this_shape = BAG[MAP[index]]
+	leave 1
 }
 
-// // 2d perp operator, left and right rotation
-// prp :: (v: vec2 *, clockwise: int) -> vec2 * {
-// 	x: int
-// 	y: int
 
-// 	if clockwise == 1 ? {
-// 		x = v.y
-// 		y = 0 - v.x
-// 	}
-
-// 	if clockwise == 0 ? {
-// 		x = 0 - v.y
-// 		y = v.x
-// 	}
-
-// 	ret new vec2{x,y}
-// }
-
-// // whether the current shape can place a point at xy
-// can :: (game: Game *, xy: vec2 *) -> int {
-// 	mystateid := game.thisid
-// 	if 10 < xy.x ? {
-// 		ret 0
-// 	}
-// 	if xy.x <= 0 ? {
-// 		ret 0
-// 	}
-// 	if xy.y <= 0 ? {
-// 		ret 0
-// 	}
-// 	cell = get(game,xy)
-// 	if cell.stateid != mystateid ? {
-// 		if cell.stateid != 0 ? {
-// 			ret 0
-// 		}
-// 	}
-// 	ret 1
-// }
-
-// plot :: (game: Game *, pts: vec2*[1]*, stateid: int, colorid: int) -> int {
-// 	p := game.position
-// 	for i in 0..lengthOf(pts) ? set(game,vec2_add(p,pts[i]),stateid,colorid)
-// 	ret 1
-// }
-
-// clear_shape :: (game: Game *) -> int {
-// 	ret plot(game,game.this_shape.pt,0,0)
-// }
-
-// redraw_shape :: (game: Game *) -> int {
-// 	ret plot(game,game.this_shape.pt,game.thisid,game.this_shape.colorid)
-// }
+let enum prp = fun (v,clockwise) ? (vec2(v.y-(1-clockwise),(1-clockwise)-v.x))
 
 
-// move :: (game: Game *, dx: int, dy: int) -> int {
-// 	pts := game.this_shape.pt
-// 	ps := vec2_add(game.position,new vec2{dx,dy})
-
-// 	for i in 0..lengthOf(pts) ? {
-// 		if can(game,vec2_add(ps,pts[i])) != true ? {
-// 			ret 0
-// 		}
-// 	}
-// 	clear_shape(game)
-// 	game.position = ps
-// 	redraw_shape(game)
-// 	ret 1
-// }
-
-// // copy src row to dst row
-// rowcopy :: (game: Game *, dy: int, sy: int) -> int {
-// 	for x in 1..11 ? {
-// 		dc := get2(game,x,dy)
-// 		sc := get2(game,x,sy)
-// 		dc.colorid = sc.colorid
-// 		dc.stateid = sc.stateid
-// 	}
-// 	ret 1
-// }
-
-// // shift down n items starting at y such that y.. = (y + n)..
-// vshft :: (game: Game *, y: int, n: int) -> int {
-// 	c := 20 - y - n
-// 	for i in 0..c ? {
-// 		rowcopy(game,y+i,y+i+n)
-// 	}
-// 	ret 1
-// }
-
-// nline :: (game: Game *, y: int) -> int {
-// 	n := 0
-// 	for hline(game,y) ? {
-// 		y = y + 1
-// 		n = n + 1
-// 	}
-// 	ret n
-// }
-
-// // do this before the next shape is generated, otherwise it'll shift it too
-// line :: (game: Game *) -> int {
-// 	for y in 1..20 ? {
-// 		// is this a line
-// 		is := hline(game,y)
-// 		if is ? {
-// 			// count number of lines after the one we found
-// 			n := nline(game,y+1)
-// 			vshft(game,y,n+1)
-// 			y = y + n
-// 		}
-// 	}
-// 	ret 0
-// }
-
-// rotate :: (game: Game *, clockwise: int) -> int {
-// 	pts := game.this_shape.pt
-// 	ps := game.position
-
-// 	for i in 0..lengthOf(pts) ? {
-// 		if can(game,vec2_add(ps,prp(pts[i],clockwise))) != 1 ? {
-// 			ret 0
-// 		}
-// 	}
-
-// 	clear_shape(game)
-// 	// cache the rotation
-// 	for j in 0..lengthOf(pts) ? {
-// 		pts[j] = prp(pts[j],clockwise)
-// 	}
-// 	redraw_shape(game)
-// 	ret 1
-// }
-
-
-
-let enum vbeam = fun (x,y,c,l) ? {
-	if l == nil ? l = 22
-	for i in y..l ? set(x,i,0,c)
+let enum can = fun (x,y) ? {
+	if x >= 11 ? leave 0
+	elif x <=  0 ? leave 0
+	elif y <=  0 ? leave 0
+	else {
+		let cell = get(x,y)
+		if cell.stateid != ID_NEXT ? {
+			if cell.stateid != ID_FLOOR ? {
+				leave false
+			}
+		}
+	}
+	leave true
 }
 
-let enum hbeam = fun (x,y,c,l) ? {
-	if l == nil ? l = 12
-	for i in x..l ? set(i,y,0,c)
+let enum move = fun (dx,dy) ? {
+	let p = this_shape.p
+	let x = position.x
+	let y = position.y
+	let px = x + dx
+	let py = y + dy
+	for i in 0..4 ? iff can(px+p[i].x,py+p[i].y) ? leave(false)
+	position.x = px
+	position.y = py
+	let c = this_shape.id
+			/* clear previous shape */
+	for i in 0..4 ? plot(x+p[i].x,y+p[i].y,ID_FLOOR,"F")
+			/* draw new one */
+	for i in 0..4 ? plot(px+p[i].x,py+p[i].y,ID_NEXT,c)
+
+	leave(true)
 }
 
+// copy src row to dst row
+let rowcopy = fun (dy,sy) ? {
+	for x in 1..11 ? {
+		let dc = get(x,dy)
+		let sc = get(x,sy)
+		dc.colorid = sc.colorid
+		dc.stateid = sc.stateid
+	}
+}
+
+// shift down n items starting at y such that y.. = (y + n)..
+let vshft = fun (y,n) ? {
+	let c = 20 - y - n
+	for i in 0..c ? {
+		rowcopy(y+i,y+i+n)
+	}
+}
+
+let enum nline = fun (y) ? {
+	let n = 0
+	while hline(y) ? {
+		y = y + 1
+		n = n + 1
+	}
+	leave n
+}
+
+// do this before the next shape is generated,
+// otherwise it'll shift it too
+let enum line = fun () ? {
+	for y in 1..20 ? {
+		if hline(y) ? {
+			// count number of lines after the one we found
+			let n = nline(y+1)
+			vshft(y,n+1)
+			y = y + n
+		}
+	}
+}
+
+let enum rotate = fun(clockwise) ? {
+	let p = this_shape.p
+	let q = position
+	for i in 0..4 ? {
+		let r = prp(p[i],clockwise)
+		let x = q.x + r.x
+		let y = q.y + r.y
+		iff can(x,y) ? leave false
+	}
+	let c = this_shape.id
+		/* clear previous shape */
+	for i in 0..4 ? plot(q.x+p[i].x,q.y+p[i].y,ID_FLOOR,"F")
+		/* store rotated points */
+	for i in 0..4 ? p[i] = prp(p[i],clockwise)
+		/* draw new points */
+	for i in 0..4 ? plot(q.x+p[i].x,q.y+p[i].y,ID_NEXT,c)
+	leave true
+}
+
+
+
+let enum vtrace = fun (x,y,c,l) ? {
+	for i in y..l ? plot(x,i,0,c)
+}
+let enum htrace = fun (x,y,c,l) ? {
+	for i in x..l ? plot(i,y,0,c)
+}
 let enum clear = fun() ? {
-	hbeam(0,0,WALL,lnil)
-	vbeam(0,0,WALL,lnil)
-	vbeam(11,0,WALL,lnil)
-	for i in 1..22 ? hbeam(1,i,FLOOR,11)
+	htrace( 0,0,"W",12)
+	vtrace( 0,0,"W",22)
+	vtrace(11,0,"W",22)
+	for i in 1..22 ? htrace(1,i,"F",11)
 }
 
 lgi_initWindowed(28*(12+2)+(16*2), 28*(22+2)+(16*2), "tetris")
 clear()
 next()
-
+move(0,0) /* trigger draw */
 
 let size_x = lgi_getSizeX()
 let size_y = lgi_getSizeY()
@@ -300,9 +264,8 @@ let size_y = lgi_getSizeY()
 let turn_timer = TURN_TIME
 let gameover = false
 do {
-	let delta = lgi_time()
+	let delta = lgi_deltatime()
 	turn_timer = turn_timer - delta
-	/* instead this should be lgi.sizex and lgi.sizey */
 	if lgi_testKey('A') ? {
 		move(-1,0)
 	} elif lgi_testKey('D') ? {
@@ -312,23 +275,17 @@ do {
 	} elif lgi_testKey('S') ? {
 		turn_timer = 0.
 	}
-
-
-	// if turn_timer <= 0. ? {
-	// 	turn_timer = TURN_TIME
-	// 	let could = move(0,-1)
-	// 	if could != true ? {
-	// 		/* do this before the bext shape is generated and
-	// 		plotted */
-	// 		if hscan(G,20) ? {
-	// 			clear(G)
-	// 		}
-	// 		/* then */
-	// 		line()
-	// 		next()
-	// 	}
-	// }
-
+	if turn_timer <= 0. ? {
+		turn_timer = TURN_TIME
+		iff move(0,-1) ? {
+		 	// do this before the next shape is
+		 	// generated and plotted
+			if hscan(20) ? clear()
+			/* then */
+			line()
+			next()
+		}
+	}
 
 	lgi_clearBackground(lgi_BLACK)
 	for y in 0..22  ? {

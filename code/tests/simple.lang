@@ -1,7 +1,5 @@
-
-
-{
-	/* -- 4.10.24
+if 0 ? {
+	/* -- 4.10.24 [FIXED]
 	| the loop does not execute, remove "__logging(true)" and
 	| it works again  */
 	let x = 0

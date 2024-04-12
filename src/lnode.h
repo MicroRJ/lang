@@ -27,14 +27,14 @@ typedef enum lnodeop {
 	must be even odd pairs and must start on an even
 	value - learned this trick from Mike Pall @ LuaJIT */
 	Y_LOG_AND, Y_LOG_OR,
-	Y_EQ, Y_NEQ,
-	Y_BSHL, Y_BSHR,
-	Y_ADD, Y_SUB,
-	Y_MUL, Y_DIV,
-	Y_LT, Y_GT,
-	Y_LTEQ, Y_GTEQ,
+	NODE_EQ, NODE_NEQ,
+	NODE_SHL, NODE_SHR,
+	NODE_ADD, NODE_SUB,
+	NODE_MUL, NODE_DIV,
+	NODE_LT, NODE_GT,
+	NODE_LTEQ, NODE_GTEQ,
 
-	Y_BXOR, Y_MOD,
+	NODE_XOR, NODE_MOD,
 
 	NODE_LOAD,
 
@@ -49,10 +49,10 @@ typedef enum lnodeop {
 	source is x */
 	Y_GLOBAL, N_LOCAL, N_CACHE,
 
-	N_INDEX,// {x}[{x}]
-	N_FIELD,// {x}.{x}
-	Y_CALL,// {x}({x})
-	Y_MCALL,// {x}:{x}({x})
+	NODE_INDEX,// {x}[{x}]
+	NODE_FIELD,// {x}.{x}
+	NODE_CALL,// {x}({x})
+	NODE_METACALL,// {x}:{x}({x})
 	/* some builtin instruction node, x is the
 	builtin id, (the token type) and z the
 	inputs */
@@ -81,7 +81,7 @@ typedef struct lNode {
 	/* todo: eventually remove this */
 	int level;
 	/* --- x,y are node inputs/operands, if more
-	than 2 are required, use z* once a node is
+	than 2 are required, use z*, once a node is
 	processed in its entirety, it is allocated
 	somewhere, in which case we transition to
 	using r, which represents a tangible memory
@@ -148,16 +148,15 @@ IR System (Nodes):
 Notes for the learner:
 
 -- What is an IR?
-By definition IR stands for intermediate
-representation, and as the name implies
-it is the transitionary medium between
-source and machine/bytecode code.
+By definition IR stands for intermediate representation,
+and as the name implies it is the transitionary medium
+between source and machine/bytecode code.
 -- Why do you need an IR?
 Generally you start needing an IR when you want
 to apply more advanced optimization passes.
-Simply put (as it should) it is easier to apply
-optimizations on some sort of well behaved graph
-than machine code.
+Simply put it is easier to apply optimizations
+on some sort of well behaved graph than
+machine code.
 This tends to be a very general pattern in
 software, for the most part it is useful to have
 useful constructs... and that is IR, something
@@ -314,59 +313,5 @@ starts to come up with ideas for generating
 optimized code, and naturally, you end up realizing
 that use sort of intermediary step could be
 useful.
-
-
-
-A \node in the abstract sense has the following
-main properties:
-
-Takes multiple inputs, singular or no output and
-is typed.
-
-There are two main ways to access or traverse
-nodes.
-
-Using the node stack, or directly through an
-index where the node is allocated.
-
-Nodes are deallocated once they are done with,
-since nodes can be moved around, we free them in
-chunks, this way we can still use a simple linear
-allocator model.
-
-Nodes that are no longer in use are replaced with
-NOP nodes, this is the only instance where a node
-is to be modified directly, in practice, nodes
-are immutable.
-
-Not all nodes evaluate to some tangible value,
-their main purpose is expression some sort of
-dependency, which in turn implies flow or order.
-On the other hand, Some nodes serve as pseudo
-instructions, meaning that they may not necessarily
-adhere to to the typical rule-set but nevertheless
-are useful.
-
-this
-is why we have the stack, the stack contains all the nodes that
-yield some value. By design, a node can take multiple inputs and
-yield a single value, this property is beneficial for us.
-
-
-redesign of the ir, instead of using references to the ir
-directly for lower level functions, we can use localids, which
-will map to an ir stack, the ir stack will contian the ir
-instructions, this will allow for a few nifty things, for instance,
-easy static analizys of types, say you have the following code:
-
-let x = 0
-if x == 0 ? {
-	x = {}
-	x = x + 1
-}
-
-here we can mark the block where x = {} as an if block and associate
-it with a local id, this way, we can traverse the stack to find the
-latests store to x to determine the current type and value of x.
 
 */

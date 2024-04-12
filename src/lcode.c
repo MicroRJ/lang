@@ -218,7 +218,7 @@ lbyteid *langL_jumpiffalse(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 
 
 lbyteid *langL_jumpifnotnil(FileState *fs, llineid line, ljlist *js, lnodeid id) {
-	return langL_jumpiffalse(fs,js,NO_SLOT,langN_xy(fs,line,Y_EQ,NT_BOL,id,langN_nil(fs,line)));
+	return langL_jumpiffalse(fs,js,NO_SLOT,langN_xy(fs,line,NODE_EQ,NT_BOL,id,langN_nil(fs,line)));
 }
 
 
@@ -255,12 +255,14 @@ llocalid langL_loadadjoined(FileState *fs, llineid line, llocalid adj, lnodeid i
 
 
 llocalid langL_localize(FileState *fs, llineid line, lnodeid id) {
-	llocalid x = fs->nodes[id].x;
-	if (fs->nodes[id].k != N_LOCAL) {
-		x = langL_localalloc(fs,1);
-		langL_localload(fs,line,lfalse,x,1,id);
-	}
-	return x;
+	lNode v = fs->nodes[id];
+	llocalid r = v.r;
+	/* the node is currently allocated */
+	if ((r != NO_SLOT) && (r < fs->fn->xlocals)) {
+		goto then;
+	} else r = langL_localalloc(fs,1);
+	langL_localload(fs,line,lfalse,r,1,id);
+	then: return r;
 }
 
 
@@ -272,11 +274,11 @@ void langL_emit(FileState *fs, llineid line, lnodeid id) {
 			if ((x.k == N_LOCAL)) {
 				LNOBRANCH;
 			} else
-			if ((x.k == N_FIELD) || (x.k == N_INDEX)) {
+			if ((x.k == NODE_FIELD) || (x.k == NODE_INDEX)) {
 				llocalid xx = langL_localize(fs,line,x.x);
 				llocalid xy = langL_localize(fs,line,x.y);
 				llocalid yy = langL_localize(fs,line,v.y);
-				if (x.k == N_FIELD) {
+				if (x.k == NODE_FIELD) {
 					langL_bytexyz(fs,line,BC_SETFIELD,xx,xy,yy);
 				} else langL_bytexyz(fs,line,BC_SETINDEX,xx,xy,yy);
 			} else LNOBRANCH;
@@ -303,7 +305,8 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 	llocalid mem = fs->fn->xlocals;
 
 	if ((v.r != NO_SLOT) && (reload != ltrue)) {
-		goto leave;
+		if (v.r <= mem) goto leave;
+		v.r = NO_SLOT;
 	}
 	LASSERT((v.k != N_LOCAL) || (v.r == v.x));
 	LASSERT((v.r < mem));
@@ -366,7 +369,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 
 			langA_varifor(v.z) langL_emit(fs,line,v.z[i]);
 		} break;
-		case N_FIELD: case N_INDEX: {
+		case NODE_FIELD: case NODE_INDEX: {
 			if (y == 0) goto leave;
 			llocalid xx = langL_localize(fs,line,v.x);
 			llocalid yy = langL_localize(fs,line,v.y);
@@ -404,10 +407,10 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 				langL_bytexy(fs,line,x,BC_STKGET,MAX(n,y));
 			} else LNOBRANCH;
 		} break;
-		case Y_CALL: case Y_MCALL: {
+		case NODE_CALL: case NODE_METACALL: {
 			llocalid xx = x;
 			langL_localload(fs,NO_LINE,ltrue,xx ++,1,v.x);
-			if (v.k == Y_MCALL) {
+			if (v.k == NODE_METACALL) {
 				langL_loadadjoined(fs,NO_LINE,xx ++,v.y);
 			}
 			langA_varifor(v.z) {
@@ -440,19 +443,20 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			langL_bytexy(fs,line,BC_LOADINT,x,lfalse);
 			langL_tieloosej(fs,j);
 		} break;
-		case Y_NEQ: case Y_EQ:
-		case Y_GT: case Y_LT: case Y_GTEQ: case Y_LTEQ:
-		case Y_DIV: case Y_MUL: case Y_MOD:
-		case Y_SUB: case Y_ADD:
-		case Y_BSHL: case Y_BSHR: case Y_BXOR: {
+		case NODE_NEQ: case NODE_EQ:
+		case NODE_GT: case NODE_LT:
+		case NODE_GTEQ: case NODE_LTEQ:
+		case NODE_DIV: case NODE_MUL: case NODE_MOD:
+		case NODE_SUB: case NODE_ADD:
+		case NODE_SHL: case NODE_SHR: case NODE_XOR: {
 			if (y == 0) goto leave;
-			if ((v.k == Y_GT) || (v.k == Y_GTEQ)) {
+			if ((v.k == NODE_GT) || (v.k == NODE_GTEQ)) {
 				llocalid xx = langL_localize(fs,line,v.y);
 				llocalid yy = langL_localize(fs,line,v.x);
 				/* -- see lbyte.h for (v.k^1) */
 				langL_bytexyz(fs,line,treetobyte(v.k^1),x,xx,yy);
 			} else
-			if (v.k == Y_EQ) {
+			if (v.k == NODE_EQ) {
 				if(1) goto _else;
 				if (fs->nodes[v.y].k == N_NIL) {
 					llocalid xx = langL_localize(fs,line,v.y);
@@ -486,15 +490,18 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 			llocalid yy = langL_localize(fs,line,y);
 			langL_bytexy(fs,line,BC_SETGLOBAL,v.x,yy);
 		} break;
+		case N_CACHE: {
+			langX_error(fs,line,"assignment to cache value is not supported yet");
+		} break;
 		case N_LOCAL: {
 			/* -- todo: account for {x = x} opt ?  */
 			langL_localload(fs,line,ltrue,v.x,1,y);
 		} break;
-		case N_INDEX: case N_FIELD: {
+		case NODE_INDEX: case NODE_FIELD: {
 			llocalid xx = langL_localize(fs,line,v.x);
 			llocalid ii = langL_localize(fs,line,v.y);
 			llocalid yy = langL_localize(fs,line,y);
-			lnodeop op = v.k == N_INDEX ? BC_SETINDEX : BC_SETFIELD;
+			lnodeop op = v.k == NODE_INDEX ? BC_SETINDEX : BC_SETFIELD;
 			langL_bytexyz(fs,line,op,xx,ii,yy);
 		} break;
 		// {x}[{x}..{x}] = {y}
@@ -631,7 +638,7 @@ void langL_beginrangedloop(FileState *fs, llineid line, Loop *loop, lnodeid x, l
 
 	langL_localload(fs,line,ltrue,loop->r,1,lo);
 
-	int c = langN_xy(fs,line,Y_LT,NT_BOL,loop->x,hi);
+	int c = langN_xy(fs,line,NODE_LT,NT_BOL,loop->x,hi);
 	loop->e = langL_getlabel(fs);
 
 	ljlist js = {lnil};
@@ -641,7 +648,7 @@ void langL_beginrangedloop(FileState *fs, llineid line, Loop *loop, lnodeid x, l
 
 void langL_closerangedloop(FileState *fs, llineid line, Loop *loop) {
 	int x = loop->x;
-	int k = langN_xy(fs,NO_LINE,Y_ADD,NT_INT,x,langN_longint(fs,NO_LINE,1));
+	int k = langN_xy(fs,NO_LINE,NODE_ADD,NT_INT,x,langN_longint(fs,NO_LINE,1));
 	langL_moveto(fs,line,x,k);
 	langL_jump(fs,line,loop->e);
 	langL_tieloosejs(fs,loop->f);
@@ -670,22 +677,22 @@ void langL_closedelayedblock(FileState *fs, llineid line, CodeBlock *bl) {
 
 lbyteop treetobyte(lnodeop tt) {
 	switch (tt) {
-		case N_FIELD: 	 return BC_FIELD;
-		case N_INDEX: 	 return BC_INDEX;
-		case Y_CALL:    return BC_CALL;
-		case Y_MCALL: 	 return BC_METACALL;
-		case Y_ADD:     return BC_ADD;
-		case Y_SUB:     return BC_SUB;
-		case Y_DIV:     return BC_DIV;
-		case Y_MUL:     return BC_MUL;
-		case Y_MOD:     return BC_MOD;
-		case Y_NEQ:     return BC_NEQ;
-		case Y_EQ:      return BC_EQ;
-		case Y_LT:      return BC_LT;
-		case Y_LTEQ:    return BC_LTEQ;
-		case Y_BSHL:    return BC_SHL;
-		case Y_BSHR:    return BC_SHR;
-		case Y_BXOR:    return BC_XOR;
+		case NODE_FIELD: 	  	return BC_FIELD;
+		case NODE_INDEX: 	  	return BC_INDEX;
+		case NODE_CALL:     	return BC_CALL;
+		case NODE_METACALL: 	return BC_METACALL;
+		case NODE_ADD:     	return BC_ADD;
+		case NODE_SUB:     	return BC_SUB;
+		case NODE_DIV:     	return BC_DIV;
+		case NODE_MUL:     	return BC_MUL;
+		case NODE_MOD:     	return BC_MOD;
+		case NODE_NEQ:     	return BC_NEQ;
+		case NODE_EQ:      	return BC_EQ;
+		case NODE_LT:      	return BC_LT;
+		case NODE_LTEQ:    	return BC_LTEQ;
+		case NODE_SHL:    	return BC_SHL;
+		case NODE_SHR:    	return BC_SHR;
+		case NODE_XOR:    	return BC_XOR;
 	}
 	/* for intended use cases, this is an error */
 	LNOBRANCH;

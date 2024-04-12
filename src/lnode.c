@@ -99,12 +99,12 @@ lnodeid langN_global(FileState *fs, llineid line, lglobalid x) {
 
 
 lnodeid langN_field(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	return langN_xy(fs,line,N_FIELD,NT_ANY,x,y);
+	return langN_xy(fs,line,NODE_FIELD,NT_ANY,x,y);
 }
 
 
 lnodeid langN_index(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	return langN_xy(fs,line,N_INDEX,NT_ANY,x,y);
+	return langN_xy(fs,line,NODE_INDEX,NT_ANY,x,y);
 }
 
 
@@ -114,12 +114,12 @@ lnodeid langN_rangedindex(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 
 
 lnodeid langN_metacall(FileState *fs, llineid line, lnodeid x, lnodeid y, lnodeid *z) {
-	return langN_xyz(fs,line,Y_MCALL,NT_ANY,x,y,z);
+	return langN_xyz(fs,line,NODE_METACALL,NT_ANY,x,y,z);
 }
 
 
 lnodeid langN_call(FileState *fs, llineid line, lnodeid x, lnodeid *z) {
-	return langN_xyz(fs,line,Y_CALL,NT_ANY,x,NO_NODE,z);
+	return langN_xyz(fs,line,NODE_CALL,NT_ANY,x,NO_NODE,z);
 }
 
 

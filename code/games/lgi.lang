@@ -23,6 +23,7 @@ lgi_getSizeY = lgifn("lgilib_getSizeY")
 
 
 lgi_drawQuad = fun (color,x,y,w,h) ? {
+	color ?= lgi_WHITE
 	let r = color.r
 	let g = color.g
 	let b = color.b
