@@ -32,9 +32,12 @@ typedef struct lFile {
 **
 */
 typedef struct lModule {
-	Table *g;
+	lTable *g;
+
 	lProto *p;
 	lnumber *kn;
+	llongint *ki;
+
 	lBytecode *bytes;
 	lbyteid nbytes;
 	char **lines;

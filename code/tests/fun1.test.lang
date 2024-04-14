@@ -1,0 +1,4 @@
+failed = true
+(fun()?(fun()?(fun()?(fun()?{failed=false})))) ()()()()
+
+if failed ? pf("failed") else pf("success")

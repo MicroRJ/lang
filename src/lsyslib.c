@@ -84,14 +84,14 @@ int syslib_fsize(lRuntime *c) {
 int syslib_fpfv_(FILE *file, lValue v, lbool quotes) {
 	switch (v.tag) {
 		case TAG_NIL: return fprintf(file,"nil");
-		case VALUE_HANDLE: return fprintf(file,"h%llX",v.i);
+		case TAG_HANDLE: return fprintf(file,"h%llX",v.i);
 		case TAG_INTEGER: return fprintf(file,"%lli",v.i);
 		case TAG_NUMBER: return fprintf(file,"%f",v.n);
 		case TAG_CLOSURE: return fprintf(file,"F()");
-		case VALUE_BINDING: return fprintf(file,"C()");
+		case TAG_BINDING: return fprintf(file,"C()");
 		case TAG_TABLE: {
 			int wrote = 0;
-			Table *t = v.t;
+			lTable *t = v.t;
 			wrote += fprintf(file,"{");
 			langA_varifor(t->v) {
 				if (i != 0) wrote += fprintf(file,", ");
@@ -169,11 +169,11 @@ lbool isvirtual(char const *fn) {
 }
 
 
-static lString *keyname;
-static lString *keypath;
-static lString *keyisdir;
-void syslib_listdir_(lRuntime *c, Table *list, Table *flags, lString *d, llocalid cl) {
-	lModule *md = c->md;
+lglobaldecl lString *keyname;
+lglobaldecl lString *keypath;
+lglobaldecl lString *keyisdir;
+void syslib_listdir_(lRuntime *R, lString *d, lTable *list, lTable *flags, lClosure *cl) {
+	lModule *md = R->md;
 
 	WIN32_FIND_DATAA f;
 	HANDLE h = FindFirstFileA(S_tpf("%s\\*",d->string),&f);
@@ -183,45 +183,40 @@ void syslib_listdir_(lRuntime *c, Table *list, Table *flags, lString *d, llocali
 
 		int isdir = 0 != (f.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 
-		lString *name = langS_new(c,f.cFileName);
-		lString *path = langS_new(c,S_tpf("%s\\%s",d->string,f.cFileName));
+		lString *name = langS_new(R,f.cFileName);
+		lString *path = langS_new(R,S_tpf("%s\\%s",d->string,f.cFileName));
 
-		lang_pushlong(c,ltrue);
-		Table *file = lang_pushnewtable(c);
+		llocalid base = lang_pushclosure(R,cl);
+		lTable *file = lang_pushnewtable(R);
+		lang_pushtable(R,flags);
 		langH_insert(file,lang_S(keyname),lang_S(name));
 		langH_insert(file,lang_S(keypath),lang_S(path));
 		langH_insert(file,lang_S(keyisdir),lang_I(isdir));
-		lang_pushtable(c,flags);
 
-		int r = lang_call(c,0,cl,2,1);
-		LASSERT(r == 1);
-		int addit = lang_poplong(c);
-		if (addit) {
+		int r = lang_call(R,0,base,2,1);
+		if ((r > 0) && lang_loadlong(R,base)) {
 			langH_insert(list,lang_S(path),lang_T(file));
 			if (isdir) {
-				syslib_listdir_(c,list,flags,path,cl);
+				syslib_listdir_(R,path,list,flags,cl);
 			}
 		}
 	} while (FindNextFileA(h,&f));
 }
 
 
-lapi int syslib_listdir(lRuntime *rt) {
-	LASSERT(rt->f->x == 2);
-
-	lString *d = lang_loadS(rt,0);
-	lang_checkcl(rt,1);
+lapi int syslib_listdir(lRuntime *R) {
+	LASSERT(R->frame->x == 2);
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */
-	keyname = lang_pushnewS(rt,"name");
-	keypath = lang_pushnewS(rt,"path");
-	keyisdir = lang_pushnewS(rt,"isdir");
-	/* push flags temporarily so that it won't be gc'd
-	in between calls to listdir. */
-	Table *flags = lang_pushnewtable(rt);
+	keyname = lang_pushnewS(R,"name");
+	keypath = lang_pushnewS(R,"path");
+	keyisdir = lang_pushnewS(R,"isdir");
+	lClosure *cl = lang_loadcl(R,1);
+	lString *dir = lang_loadS(R,0);
+	lTable *flags = lang_pushnewtable(R);
 	/* push list last to serve as return value */
-	Table *list = lang_pushnewtable(rt);
-	syslib_listdir_(rt,list,flags,d,1);
+	lTable *list = lang_pushnewtable(R);
+	syslib_listdir_(R,dir,list,flags,cl);
 	return 1;
 }
 

@@ -63,7 +63,7 @@
 
 typedef struct lRuntime lRuntime;
 typedef struct FileState FileState;
-typedef struct Table Table;
+typedef struct lTable lTable;
 typedef struct lString lString;
 typedef struct lObject lObject;
 typedef struct lClosure lClosure;

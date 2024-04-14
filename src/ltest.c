@@ -5,7 +5,7 @@
 */
 
 
-void sets(lRuntime *c, Table *table, char const *k) {
+void sets(lRuntime *c, lTable *table, char const *k) {
 	langH_insert(table,lang_S(langS_new(c,k)),* -- c->v);
 }
 

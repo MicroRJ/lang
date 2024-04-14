@@ -54,6 +54,12 @@ void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
 	} else {
 		fprintf(file,"(x=%lli)",b.i);
 	}
+	if (b.k == BC_LOADINT) {
+		fprintf(file," #%lli",md->ki[b.y]);
+	} else
+	if (b.k == BC_LOADNUM) {
+		fprintf(file," #%f",md->kn[b.y]);
+	} else
 	if (b.k == BC_LOADGLOBAL) {
 		fprintf(file,"  // ");
 		syslib_fpfv_(file,md->g->v[b.y],ltrue);
@@ -62,7 +68,7 @@ void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
 }
 
 
-void langX_getlocinfo(FileState *fs, char *loc, int *linenum, char **lineloc);
+void langX_getlocinfo(char *q, char *p, int *linenum, char **lineloc);
 
 
 void lang_dumpmodule(lModule *md, Handle file) {

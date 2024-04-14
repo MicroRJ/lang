@@ -1,23 +1,16 @@
-
 failed = false
-
 let test = fun(x,y) ? {
 	if x != y ? pf("failed")
 	if x != y ? failed = true
 }
-
 test("":match("*"),true)
 test("":match("?"),false)
-
 test("file.obj":match("*.obj|*.dll"),true)
 test("file.dll":match("*.obj|*.dll"),true)
-
 test("xxxyyyzzz":match("xxx*www"),false)
-
 test("x.x":match("x?x"),true)
 test(".x.":match("?x?"),true)
 test(".x.":match("?y?"),false)
-
 test("x.x":match("*x"),true)
 test("x.x":match("x*"),true)
 test("x.x":match("x*x"),true)

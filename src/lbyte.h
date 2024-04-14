@@ -21,7 +21,7 @@ typedef enum lbyteop {
 	/* delays the execution of \i instructions until
 	procedure exits by jumping to the specified byte.
 	the byte address of the following instruction
-	after \delay gets saved into the delay list. */
+	gets saved into the delay list. */
 	BC_DELAY/* (i) */,
 	BC_LOOPER/* (x,y,z) */,
 	/* checks delay list, pops the last delay from it
@@ -45,6 +45,7 @@ typedef enum lbyteop {
 	should have allocated sufficient space for both the arguments
 	and the returns. */
 	BC_CALL,
+	BC_METANAME,
 	BC_METACALL,
 	BC_TABLECALL,
 	BC_STKGET, BC_STKLEN,
@@ -86,6 +87,7 @@ lbyteclass lang_byteclass(lbyteop k) {
 		case BC_JZ:
 		case BC_JNZ:
 		case BC_SETGLOBAL:
+		case BC_STKGET:
 		case BC_LOADNUM:
 		case BC_LOADINT:
 		case BC_LOADNIL:
@@ -107,6 +109,7 @@ lbyteclass lang_byteclass(lbyteop k) {
 		case BC_XOR:
 		case BC_CALL:
 		case BC_YIELD:
+		case BC_METANAME:
 		case BC_METACALL:
 		case BC_LOADFILE: {
 			return BC_CLASS_XYZ;
@@ -130,6 +133,7 @@ char const *lang_bytename(lbyteop k) {
 		case BC_JNZ: return "jnz";
 		case BC_ISNIL: return "isnil";
 		case BC_CALL: return "call";
+		case BC_METANAME: return "metaname";
 		case BC_METACALL: return "metacall";
 		case BC_LOADCACHED: return "loadcached";
 		case BC_LOADGLOBAL: return "loadglobal";

@@ -73,7 +73,15 @@ makecell evaluate once or per each item? can we support both
 behaviors? can we extend this language feature to name the index
 variable? */
 // grid[0..512] = makecell(FLOOR,0)
+
 for i in 0..512 ? grid[i] = makecell("F",FLOOR)
+
+
+__logging(true)
+let len = grid:length
+pf(len)
+__logging(false)
+
 
 let enum {
 	grid_x = 10,

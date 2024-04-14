@@ -12,6 +12,7 @@
 typedef struct ltoken {
 	enum ltokentype type;
 	llineid line;
+	unsigned int eol: 1;
 	union {
 		char    *s;
 		llongint i;
@@ -158,4 +159,5 @@ lglobaldecl ltokenintel langX_tokenintel[] = {
 	{"..",                   1, 0},
 };
 
+// typedef char buffer[_countof(langX_tokenintel) == TK_DOT_DOT+1 ? 1 : -1];
 

@@ -16,7 +16,7 @@ llongint ltolong(lValue v) {
 
 
 /* imagine being fast */
-lBinding lfndmetafn(lObject *j, lString *name) {
+lBinding lang_fndmetafield(lObject *j, lString *name) {
 	for (int i = 0; i < j->_n; i ++) {
 		if (S_eq(j->_m[i].name,name->c)) {
 			return j->_m[i].c;
@@ -26,43 +26,65 @@ lBinding lfndmetafn(lObject *j, lString *name) {
 }
 
 
-int lang_callargs(lRuntime *c, lClosure *cl, int x, int y, ...) {
-	#if 0
-	va_list v;
-	va_start(v,y);
-	for (int i = 0; i < x; ++i) {
-		lang_pushvalue(c,va_arg(v,lValue));
+int fndfile(lModule *md, llineid line) {
+	lFile *files = md->files;
+	int nfiles = langA_varlen(files);
+	for (int x = 0; x < nfiles; ++ x) {
+		if (line < files[x].lines) continue;
+		if (line > files[x].lines+files[x].nlines-1) continue;
+		return x;
 	}
-	va_end(v);
-	return lang_call(c,0,cl,x,y);
-	#endif
-	return 0;
+	return -1;
+}
+
+
+void langR_error(lRuntime *R, lbyteid id, char *error) {
+	lModule *md = R->md;
+	if (id == NO_BYTE) id = R->j;
+	llineid line = md->lines[id];
+	int fileid = fndfile(md,line);
+	if (fileid != -1) {
+		lFile *file = &md->files[fileid];
+		langX_error2(file->name,file->lines,line,error);
+	}
+}
+
+
+void langR_typecheck(lRuntime *R, lbyteid id, lvaluetag x, lvaluetag y) {
+	if (x != y) {
+		langR_error(R,id,S_tpf("expected %s, instead got %s",tag2s[x],tag2s[y]));
+	}
 }
 
 
 /*
 ** Calls a function, takes an optional object for meta
-** methods, x and y are the number of in and out values
-** respectively, r is the local slot where the function
-** value (bytecode or binding) resides.
+** fields, nx and ny are the number of in and out values
+** respectively, rx is the local slot where the function
+** value (bytecode or binding) resides, ry is the first
+** result register (used for metacalls).
 */
-int lang_call(lRuntime *R, lObject *obj, llocalid r, int x, int y) {
-	LASSERT((R->top - R->frame->base) >= r);
+int lang_call(lRuntime *R, lObject *obj, llocalid rx, int nx, int ny) {
+	LASSERT((R->top - R->frame->base) >= rx);
 	/* clear the locals? */
 	lContext *caller = R->frame;
-	lValue func = caller->base[r];
-	lValue *base = caller->base + r + 1;
-	lValue *top  = base + x;
+	lValue func = caller->base[rx];
+	lValue *base = caller->base + rx + 1;
+	/* top always points to one past locals,
+	so far we only have nx argument locals,
+	top is later incremented to match nlocals */
+	lValue *top  = base + nx;
 	lContext frame = {0};
-	frame.top  = R->top;
-	frame.obj  = obj;
+	frame.top = R->top;
+	frame.obj = obj;
 	frame.base = base;
-	frame.x = x;
-	frame.y = y;
+	frame.x = nx;
+	frame.y = ny;
 	if (func.tag == TAG_CLOSURE) {
 		frame.cl = func.f;
+		/* increment top to fill the function's locals */
 		/* todo: replace with faster memset? */
-		for (; x < frame.cl->fn.nlocals; ++ x) {
+		for (; nx < frame.cl->fn.nlocals; ++ nx) {
 			top->tag = TAG_NIL;
 			top->i   = 0;
 			top ++;
@@ -74,18 +96,26 @@ int lang_call(lRuntime *R, lObject *obj, llocalid r, int x, int y) {
 	if (func.tag == TAG_CLOSURE) {
 		nyield = lang_resume(R);
 	} else
-	if (func.tag == VALUE_BINDING) {
+	if (func.tag == TAG_BINDING) {
 		if (func.c != lnil) {
 			nyield = func.c(R);
-			/* ensure that the results where pushed to the stack */
+			/* ensure that the results were pushed to the stack */
 			LASSERT(nyield <= R->top - frame.base);
 			/* move results to hosted registers */
-			int m = nyield < y ? nyield : y;
+			int m = nyield < ny ? nyield : ny;
 			for (int p = 0; p < m; ++ p) {
-				frame.base[p-1] = R->top[p-nyield];
+				if (obj != lnil) {
+					/* todo: */
+					frame.base[p-2] = R->top[p-nyield];
+				} else {
+					frame.base[p-1] = R->top[p-nyield];
+				}
 			}
 		}
-	} else lang_logerror("not a function!");
+	} else {
+		nyield = -1;
+		langR_error(R,NO_BYTE,"not a function");
+	}
 	/* finally restore stack */
 	R->frame = caller;
 	R->top = frame.top;
@@ -155,18 +185,6 @@ int lang_loadfile(lRuntime *rt, FileState *fs, lString *filename, llocalid x, in
 }
 
 
-int fndfile(lModule *md, llineid line) {
-	lFile *files = md->files;
-	int nfiles = langA_varlen(files);
-	for (int x = 0; x < nfiles; ++ x) {
-		if (line < files[x].lines) continue;
-		if (line > files[x].lines+files[x].nlines-1) continue;
-		return x;
-	}
-	return -1;
-}
-
-
 int lang_resume(lRuntime *R) {
 	lRuntime *cs = R;
 	lContext *c = R->f;
@@ -216,20 +234,12 @@ int lang_resume(lRuntime *R) {
 				frame->j = jp + b.x;
 			} break;
 			case BC_STKGET: {
-				LASSERT(b.x == 1);
-				LASSERT(b.y <= 1);
-				llongint i = ltolong(*-- cs->v);
-				if (b.y != 0) {
-					cs->v[-b.y] = c->l[i];
-				}
+				langR_typecheck(R,bc,TAG_INTEGER,frame->base[b.y].tag);
+				frame->base[b.x] = frame->base[frame->base[b.y].i];
 			} break;
 			case BC_STKLEN: {
-				LASSERT(b.x == 0);
-				LASSERT(b.y <= 1);
-				if (b.y != 0) {
-					cs->v[-b.y].tag = TAG_INTEGER;
-					cs->v[-b.y].i   = cs->v - c->l;
-				}
+				frame->base[b.x].tag = TAG_INTEGER;
+				frame->base[b.x].i   = R->top - frame->base;
 			} break;
 			case BC_LOADFILE: {
 				FileState fs = {0};
@@ -259,7 +269,7 @@ int lang_resume(lRuntime *R) {
 			} break;
 			case BC_LOADINT: {
 				frame->base[b.x].tag = TAG_INTEGER;
-				frame->base[b.x].i   = b.y;
+				frame->base[b.x].i   = md->ki[b.y];
 			} break;
 			case BC_LOADNUM: {
 				frame->base[b.x].tag = TAG_NUMBER;
@@ -299,10 +309,16 @@ int lang_resume(lRuntime *R) {
 					langH_insert(frame->base[b.x].t,frame->base[b.y],frame->base[b.z]);
 				} else LNOBRANCH;
 			} break;
+			case BC_METANAME: {
+				frame->base[b.x].tag = TAG_BINDING;
+				frame->base[b.x].c   = lang_fndmetafield(frame->base[b.y].j,frame->base[b.z].s);
+			} break;
 			case BC_METACALL: {
-				LNOBRANCH;
+				cs->j = bc;
+				lang_call(cs,frame->base[b.x].j,b.x+1,b.y,b.z);
 			} break;
 			case BC_CALL: {
+				cs->j = bc;
 				lang_call(cs,0,b.x,b.y,b.z);
 			} break;
 			case BC_ISNIL: {
@@ -350,8 +366,8 @@ int lang_resume(lRuntime *R) {
 				lValue x = c->l[b.y];
 				lValue y = c->l[b.z];
 				if (x.tag == TAG_NUMBER || y.tag == TAG_NUMBER) {
-					c->l[b.x].tag = TAG_NUMBER;
-					c->l[b.x].n   = ltonumber(x) <= ltonumber(y);
+					c->l[b.x].tag = TAG_INTEGER;
+					c->l[b.x].i   = ltonumber(x) <= ltonumber(y);
 				} else {
 					c->l[b.x].tag = TAG_INTEGER;
 					c->l[b.x].i   = ltolong(x) <= ltolong(y);
@@ -455,14 +471,23 @@ lapi lnumber lang_loadnum(lRuntime *c, llocalid x) {
 
 lapi Handle lang_loadhandle(lRuntime *c, llocalid x) {
 	lValue v = c->f->l[x];
-	LASSERT(v.tag == VALUE_HANDLE);
+	LASSERT(v.tag == TAG_HANDLE);
 	return v.h;
 }
 
 
-void lang_pushvalue(lRuntime *c, lValue v) {
-	LASSERT((c->top - c->stk) < c->stklen);
-	*(c->top ++) = v;
+llocalid lang_stkalloc(lRuntime *R, int n) {
+	llocalid stkptr = R->top - R->stk;
+	if (stkptr <= R->stklen) {
+		R->top += n;
+	} else LNOBRANCH;
+	return stkptr;
+}
+
+
+llocalid lang_pushvalue(lRuntime *R, lValue v) {
+	*R->top = v;
+	return lang_stkalloc(R,1);
 }
 
 
@@ -487,7 +512,7 @@ void lang_pushnum(lRuntime *c, lnumber n) {
 
 
 void lang_pushhandle(lRuntime *c, Handle h) {
-	c->v->tag = VALUE_HANDLE;
+	c->v->tag = TAG_HANDLE;
 	c->v->h = h;
 	++ c->v;
 }
@@ -507,7 +532,7 @@ llocalid lang_pushclosure(lRuntime *R, lClosure *cl) {
 }
 
 
-void lang_pushtable(lRuntime *c, Table *t) {
+void lang_pushtable(lRuntime *c, lTable *t) {
 	c->v->tag = TAG_TABLE;
 	c->v->t = t;
 	++ c->v;
@@ -515,14 +540,14 @@ void lang_pushtable(lRuntime *c, Table *t) {
 
 
 void lang_pushbinding(lRuntime *c, lBinding b) {
-	c->v->tag = VALUE_BINDING;
+	c->v->tag = TAG_BINDING;
 	c->v->c = b;
 	++ c->v;
 }
 
 
-Table *lang_pushnewtable(lRuntime *c) {
-	Table *t = langH_new(c);
+lTable *lang_pushnewtable(lRuntime *c) {
+	lTable *t = langH_new(c);
 	lang_pushtable(c,t);
 	return t;
 }

@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** (H) ltable.h
-** Hashing Tools && Table lObject
+** Hashing Tools && lTable lObject
 */
 
 
@@ -13,7 +13,7 @@ typedef struct HashSlot {
 } HashSlot;
 
 
-typedef struct Table {
+typedef struct lTable {
 	lObject      obj;
 	HashSlot *slots;
 	llongint    ntotal;
@@ -21,11 +21,11 @@ typedef struct Table {
 	int ncollisions;
 	/* array object */
 	lValue        *v;
-} Table;
+} lTable;
 
 
-Table *langH_new2(lRuntime *fs, llongint);
-Table *langH_new(lRuntime *fs);
+lTable *langH_new2(lRuntime *fs, llongint);
+lTable *langH_new(lRuntime *fs);
 
 
 int langH_length_(lRuntime *c);
@@ -37,8 +37,8 @@ int langH_sort_(lRuntime *c);
 int langH_collisions_(lRuntime *c);
 
 
-llongint langH_take(Table *table, lValue k);
-void langH_free(Table *t);
+llongint langH_take(lTable *table, lValue k);
+void langH_free(lTable *t);
 
 
 lhashid langH_rehash(lhashid hash);

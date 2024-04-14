@@ -68,7 +68,7 @@ lbool ttisobj(lvaluetag tag) {
 	if (tag == TAG_STRING) return ltrue;
 	if (tag == TAG_TABLE) return ltrue;
 	if (tag == TAG_CLOSURE) return ltrue;
-	if (tag == VALUE_CUSTOM) return ltrue;
+	if (tag == TAG_OBJECT) return ltrue;
 	return lfalse;
 }
 
@@ -86,7 +86,7 @@ lvaluetag ttobj2val(ObjectType type) {
 
 void langGC_deallocobj(lObject *j) {
 	if (j->type == OBJ_TABLE) {
-		langH_free((Table*)j);
+		langH_free((lTable*)j);
 	}
 	langM_dealloc(lHEAP,j);
 }
@@ -100,7 +100,7 @@ void langGC_deallocvalue(lValue v) {
 
 
 lbool langGC_markvalue(lValue *v);
-llongint langGC_marktable(Table *table);
+llongint langGC_marktable(lTable *table);
 
 
 int langGC_markclosure(lClosure *cl) {
@@ -113,7 +113,7 @@ int langGC_markclosure(lClosure *cl) {
 }
 
 
-llongint langGC_marktable(Table *table) {
+llongint langGC_marktable(lTable *table) {
 	llongint n = 0, k = 0;
 	for (k=0; k<table->ntotal; ++k) {
 		n += langGC_markvalue(&table->slots[k].k);
@@ -140,7 +140,7 @@ lbool langGC_markobj(lObject *obj) {
 		return 1 + langGC_markclosure((lClosure*)obj);
 	}
 	if (obj->type == OBJ_TABLE) {
-		return 1 + langGC_marktable((Table*)obj);
+		return 1 + langGC_marktable((lTable*)obj);
 	}
 
 	return 1;

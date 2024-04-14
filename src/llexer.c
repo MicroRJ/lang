@@ -12,8 +12,7 @@ lbool langX_islineend(char x) {
 
 
 /* finds line number and line loc from single source location */
-void langX_getlocinfo(FileState *fs, char *loc, int *linenum, char **lineloc) {
-	char *q = fs->contents;
+void langX_getlocinfo(char *q, char *loc, int *linenum, char **lineloc) {
 	char *c = q;
 	int n = 0;
 	while (q < loc) {
@@ -32,10 +31,10 @@ void langX_getlocinfo(FileState *fs, char *loc, int *linenum, char **lineloc) {
 
 
 /* diagnostics function for syntax errors */
-void langX_error(FileState *fs, char *loc, char const *fmt, ...) {
+void langX_error2(char *filename, char *contents, char *loc, char const *fmt, ...) {
 	int linenum;
 	char *lineloc;
-	langX_getlocinfo(fs,loc,&linenum,&lineloc);
+	langX_getlocinfo(contents,loc,&linenum,&lineloc);
 
 	/* skip initial blank characters for optimal gimmicky */
 	while (*lineloc == '\t' || *lineloc == ' ') {
@@ -68,10 +67,15 @@ void langX_error(FileState *fs, char *loc, char const *fmt, ...) {
 		va_start(v,fmt);
 		stbsp_vsnprintf(b,sizeof(b),fmt,v);
 		va_end(v);
-		printf("%s [%i:%lli]: %s\n",fs->filename,linenum,1+loc-lineloc,b);
+		printf("%s [%i:%lli]: %s\n",filename,linenum,1+loc-lineloc,b);
 	}
 	printf("| %.*s\n",linelen,lineloc);
 	printf("| %.*s\n",underline+1,u);
+}
+
+
+void langX_error(FileState *fs, char *loc, char const *fmt, ...) {
+	langX_error2(fs->filename,fs->contents,loc,fmt);
 }
 
 
@@ -392,6 +396,27 @@ ltoken langX_yield(FileState *file) {
 	}
 
 	leave: ;
+
+	/* for this language, we do context
+	sensitive statement/expression
+	termination, this is one passive way
+	of doing so, we hint the parser that
+	the token is succeed by a eol, and
+	where the parser sees fit (contextually)
+	it'll consult the flag to determine
+	whether to end the expression or not. */
+	while (thischr() == ' '
+	|| 	 thischr() == '\t') movechr();
+
+	if ( thischr() == '/'
+	&& ( thenchr() == '/' || thenchr() == '*') ) {
+		tk.eol = ltrue;
+	}
+	if ( thischr() == ';'
+	|| ( thischr() == '\n' || thischr() == '\r') ) {
+		tk.eol = ltrue;
+	}
+
 	file->lasttk = file->tk;
 	file->tk = file->thentk;
 	file->thentk = tk;

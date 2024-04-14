@@ -31,6 +31,11 @@ lbool langX_term(FileState *fs, ltokentype k) {
 }
 
 
+lbool langX_termeol(FileState *fs) {
+	return fs->tk.type == TK_NONE || fs->lasttk.eol == ltrue;
+}
+
+
 /*
 ** Consumes the current token only if it is a match,
 ** returning whether it was a match or not.
@@ -124,7 +129,7 @@ void langY_enterlevel(FileState *fs) {
 void langY_checkassign(FileState *fs, llineid line, lnodeid x) {
 	/* todo: welp, we can't do this anymore */
 	// lNode n = fs->nodes[x];
-	// if (n.k == N_LOCAL) {
+	// if (n.k == NODE_LOCAL) {
 	// 	lentity fnn = fs->entities[fs->fn->entities+n.x];
 	// 	if (fnn.enm) {
 	// 		langX_error(fs,line,"enum value is constant, you're attempting to modify its value");
@@ -272,9 +277,9 @@ lnodeid *langY_loadcallargs(FileState *fs) {
 - */
 lnodeop tktonode(ltokentype tk) {
 	switch (tk) {
-		case TK_DOT_DOT:            return Y_RANGE;
-		case TK_LOG_AND:            return Y_LOG_AND;
-		case TK_LOG_OR:             return Y_LOG_OR;
+		case TK_DOT_DOT:            return NODE_RANGE;
+		case TK_LOG_AND:            return NODE_AND;
+		case TK_LOG_OR:             return NODE_OR;
 		case TK_ADD:                return NODE_ADD;
 		case TK_SUB:                return NODE_SUB;
 		case TK_DIV:                return NODE_DIV;
@@ -286,9 +291,9 @@ lnodeop tktonode(ltokentype tk) {
 		case TK_GREATER_THAN_EQUAL: return NODE_GTEQ;
 		case TK_LESS_THAN:          return NODE_LT;
 		case TK_LESS_THAN_EQUAL:    return NODE_LTEQ;
-		case TK_LEFT_SHIFT:         return NODE_SHL;
-		case TK_RIGHT_SHIFT:        return NODE_SHR;
-		case TK_BIT_XOR:            return NODE_XOR;
+		case TK_LEFT_SHIFT:         return NODE_BITSHL;
+		case TK_RIGHT_SHIFT:        return NODE_BITSHR;
+		case TK_BIT_XOR:            return NODE_BITXOR;
 	}
 	return Y_NONE;
 }
@@ -429,7 +434,7 @@ lnodeid langY_loadtable(FileState *fs) {
 				tk = fs->lasttk;
 				lnodeid key;
 				if (tk.type == TK_INTEGER) key = langN_longint(fs,tk.line,tk.i);
-				else key = langN_string(fs,tk.line,tk.s);
+				else key = langN_S(fs,tk.line,tk.s);
 				langX_take(fs,TK_ASSIGN);
 				lnodeid val = langY_loadexpr(fs);
 				if (langX_checkexpr(fs,fs->tk.line,val)) break;
@@ -504,8 +509,7 @@ lnodeid langY_loadunary(FileState *fs) {
 			v = langY_loadexpr(fs);
 			v = langN_loadfile(fs,tk.line,v);
 		} break;
-		case TK_WORD: {
-			langX_yield(fs);
+		case TK_WORD: { langX_yield(fs);
 			v = langY_fndnodeentity(fs,tk.line,tk.s);
 			if (v == NO_NODE) {
 				/* todo:! gc'd string */
@@ -516,26 +520,21 @@ lnodeid langY_loadunary(FileState *fs) {
 				langX_error(fs,tk.line,"'%s': undeclared identifier",tk.s);
 			}
 		} break;
-		case TK_NIL: {
-			langX_yield(fs);
+		case TK_NIL: { langX_yield(fs);
 			v = langN_nil(fs,tk.line);
 		} break;
 		/* todo: maybe use proper boolean node? */
-		case TK_TRUE: case TK_FALSE: {
-			langX_yield(fs);
+		case TK_TRUE: case TK_FALSE: { langX_yield(fs);
 			v = langN_longint(fs,tk.line,tk.type == TK_TRUE);
 		} break;
-		case TK_LETTER: case TK_INTEGER: {
-			langX_yield(fs);
+		case TK_LETTER: case TK_INTEGER: { langX_yield(fs);
 			v = langN_longint(fs,tk.line,tk.i);
 		} break;
-		case TK_NUMBER: {
-			langX_yield(fs);
+		case TK_NUMBER: { langX_yield(fs);
 			v = langN_number(fs,tk.line,tk.n);
 		} break;
-		case TK_STRING: {
-			langX_yield(fs);
-			v = langN_string(fs,tk.line,(char*) tk.s);
+		case TK_STRING: { langX_yield(fs);
+			v = langN_S(fs,tk.line,tk.s);
 		} break;
 		default: {
 			langX_error(fs,tk.line,"'%s': unexpected token", langX_tokenintel[tk.type].name);
@@ -543,37 +542,32 @@ lnodeid langY_loadunary(FileState *fs) {
 	}
 
 
-	while (fs->tk.type != TK_NONE) {
+	while (!langX_termeol(fs)) {
 		tk = fs->tk;
 		switch (tk.type) {
-			// x . { y }
-			case TK_DOT: {
-				langX_yield(fs);
+			case TK_DOT: { langX_yield(fs);
 				ltoken n = langX_take(fs,TK_WORD);
-				lnodeid i = langN_string(fs,n.line,(char*) n.s);
+				lnodeid i = langN_S(fs,n.line,n.s);
 				v = langN_field(fs,tk.line,v,i);
 			} break;
-			// {x} . [ {x} ]
 			case TK_SQUARE_LEFT: {
 				langX_take(fs,TK_SQUARE_LEFT);
 				lnodeid i = langY_loadexpr(fs);
 				langX_take(fs,TK_SQUARE_RIGHT);
-				if (fs->nodes[i].k == Y_RANGE_INDEX) {
+				if (fs->nodes[i].k == NODE_RANGE_INDEX) {
 					LNOBRANCH;
 				} else
-				if (fs->nodes[i].k == Y_RANGE) {
+				if (fs->nodes[i].k == NODE_RANGE) {
 					v = langN_rangedindex(fs,tk.line,v,i);
 				} else {
 					v = langN_index(fs,tk.line,v,i);
 				}
 			} break;
-			/* {x} : {x} () */
 			case TK_COLON: {
 				langX_take(fs,TK_COLON);
 				ltoken n = langX_take(fs,TK_WORD);
-				lnodeid y = langN_string(fs,n.line,n.s);
-				lnodeid *z = langY_loadcallargs(fs);
-				v = langN_metacall(fs,tk.line,v,y,z);
+				lnodeid y = langN_S(fs,n.line,n.s);
+				v = langN_metafield(fs,tk.line,v,y);
 			} break;
 			case TK_PAREN_LEFT: {
 				lnodeid *z = langY_loadcallargs(fs);

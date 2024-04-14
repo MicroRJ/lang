@@ -59,6 +59,10 @@ typedef struct lRuntime {
 	union {
 		lContext *frame,*f;
 	};
+
+	/* current byte */
+	llongint j;
+
 	lObject **gc;
 	llongint gcthreshold;
 	lbool isgcpaused;

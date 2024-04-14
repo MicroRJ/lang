@@ -42,9 +42,7 @@ void langL_localdealloc(FileState *fs, llocalid x) {
 lbyteid langL_addbyte(FileState *fs, llineid line, lBytecode byte) {
 	FileFunc *fn = fs->fn;
 	lModule *md = fs->md;
-	if (0) {
-		bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
-	}
+	if (0) bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
 
 	langA_varadd(md->lines,line);
 	langA_varadd(md->bytes,byte);
@@ -148,20 +146,30 @@ lbyteid langL_branchif(FileState *fs, ljlist *js, lbool z, llocalid x, lnodeid i
 	lbyteid j = NO_BYTE;
 
 	llocalid mem = fs->fn->xlocals;
-	/* if not provided one, allocate temporary register here,
-	notice how this is done we keep splitting, this will make
-	is so subsequent recursive calls to this function won't keep
-	allocating registers, we get away with using only one register
-	due to the transitive nature of short circuiting, expressible
-	in the bytecode. */
+	/* -------------------------------
+	if not provided one, allocate temporary
+	register here, notice how this is done
+	before we keep splitting, this will make
+	is so subsequent recursive calls to this
+	function won't keep allocating registers,
+	we get away with using only one register
+	due to the transitive nature of short
+	circuiting, expressible in the bytecode. */
 	if (x == NO_SLOT) x = langL_localalloc(fs,1);
 
 	switch (v.k) {
-		case Y_LOG_AND: {
+		case NODE_GROUP: {
+			j = langL_branchif(fs,js,z,x,v.x);
+		} break;
+		/* '&&' expressions short-circuits to a false
+		jump as early as possible and the opposite
+		is true for the '||' expressions, last jump is
+		whatever the user specified */
+		case NODE_AND: {
 			langL_jumpiffalse(fs,js,x,v.x);
 			j = langL_branchif(fs,js,z,x,v.y);
 		} break;
-		case Y_LOG_OR: {
+		case NODE_OR: {
 			langL_jumpiftrue(fs,js,x,v.x);
 			j = langL_branchif(fs,js,z,x,v.y);
 		} break;
@@ -196,8 +204,8 @@ lbyteid langL_branchiftrue(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 
 /*
 ** Similar to branch if true, but additionally this byte
-** address becomes the false target, thus all false branches
-** converge here. all true branches are returned.
+** address becomes the false target, thus all false
+** branches converge here. all true branches are returned.
 */
 lbyteid *langL_jumpiftrue(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 	langL_branchiftrue(fs,js,x,id);
@@ -242,15 +250,25 @@ void langL_yield(FileState *fs, llineid line, lnodeid t) {
 }
 
 
-llocalid langL_loadadjoined(FileState *fs, llineid line, llocalid adj, lnodeid id) {
-	llocalid x = langL_localalloc(fs,1);
-	if ((x - adj) != 0) {
-		if (line == lnil) line = fs->nodes[id].line;
-		langX_error(fs,line,"internal error, invalid memory state");
-		LNOBRANCH;
+/*
+** Ensures that the next free local is the
+** given one and loads the node to that
+** local.
+*/
+void langL_localloadin(FileState *fs, llineid line, llocalid r, lnodeid id) {
+	/* the user can provide exactly the next free register,
+	or exactly the last allocated register, both are valid
+	memory states, but we want the second one to be true,
+	so we do it here, additionally, we double to check to
+	ensure that is the case, unnecessarily so, if this
+	function fails, is an internal error, or bug. */
+	if ((fs->fn->xlocals - r) == 0) {
+		langL_localalloc(fs,1);
 	}
-	langL_localload(fs,line,ltrue,x,1,id);
-	return x;
+	if ((fs->fn->xlocals - r) != 1) {
+		langX_error(fs,line,"invalid memory state");
+	}
+	langL_localload(fs,line,ltrue,r,1,id);
 }
 
 
@@ -271,7 +289,7 @@ void langL_emit(FileState *fs, llineid line, lnodeid id) {
 	switch (v.k) {
 		case NODE_LOAD: {
 			lNode x = fs->nodes[v.x];
-			if ((x.k == N_LOCAL)) {
+			if ((x.k == NODE_LOCAL)) {
 				LNOBRANCH;
 			} else
 			if ((x.k == NODE_FIELD) || (x.k == NODE_INDEX)) {
@@ -295,21 +313,27 @@ void langL_emit(FileState *fs, llineid line, lnodeid id) {
 */
 void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, lnodeid id) {
 	LASSERT(x > NO_SLOT);
+	LASSERT(x < fs->fn->xlocals);
+
 	lNode v = fs->nodes[id];
 	LASSERT(v.level <= fs->level);
+
 	if (line == 0) line = v.line;
 
 	lModule *md = fs->md;
+	FileFunc *fn = fs->fn;
 
 	/* finally restore memory state */
 	llocalid mem = fs->fn->xlocals;
 
 	if ((v.r != NO_SLOT) && (reload != ltrue)) {
+		/* node is already allocated, and we're
+		not asked to reload it */
 		if (v.r <= mem) goto leave;
 		v.r = NO_SLOT;
 	}
-	LASSERT((v.k != N_LOCAL) || (v.r == v.x));
 	LASSERT((v.r < mem));
+	LASSERT((v.k != NODE_LOCAL) || (v.r == v.x));
 
 	fs->nodes[id].r = x;
 
@@ -318,42 +342,45 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 	instruction is not emitted */
 	switch (v.k) {
 		/* todo: remove this? */
-		case N_LOCAL: {
+		case NODE_LOCAL: {
 			if (reload) {
 				langL_bytexy(fs,line,BC_RELOAD,x,v.x);
 			} else goto leave;
 		} break;
-		case Y_GLOBAL: {
-			if (y == 0) goto leave;
-			langL_bytexy(fs,line,BC_LOADGLOBAL,x,v.x);
-		} break;
-		case N_CACHE: {
+		case NODE_CACHE: {
 			if (y == 0) goto leave;
 			langL_bytexy(fs,line,BC_LOADCACHED,x,v.x);
 		} break;
-		case N_NIL: {
+		case NODE_GLOBAL: {
+			if (y == 0) goto leave;
+			langL_bytexy(fs,line,BC_LOADGLOBAL,x,v.x);
+		} break;
+		case NODE_NIL: {
 			if (y == 0) goto leave;
 			/* -- todo: coalesce */
 			langL_bytexy(fs,line,BC_LOADNIL,x,y);
 		} break;
-		case Y_INTEGER: {
+		case NODE_INTEGER: {
 			if (y == 0) goto leave;
-			langL_bytexy(fs,line,BC_LOADINT,x,v.lit.i);
+			/* todo: interning */
+			int yy = langA_variadd(fs->md->ki,1);
+			fs->md->ki[yy] = v.lit.i;
+			langL_bytexy(fs,line,BC_LOADINT,x,yy);
 		} break;
-		case Y_NUMBER: {
+		case NODE_NUMBER: {
 			if (y == 0) goto leave;
 			/* todo: interning */
 			int yy = langA_variadd(fs->md->kn,1);
 			fs->md->kn[yy] = v.lit.n;
 			langL_bytexy(fs,line,BC_LOADNUM,x,yy);
 		} break;
-		case Y_STRING: {
+		case NODE_STRING: {
 			if (y == 0) goto leave;
 			/* -- todo: allocate this in constant pool */
 			int g = lang_addglobal(fs->md,0,lang_S(langS_new(fs->rt,v.lit.s)));
 			langL_bytexy(fs,line,BC_LOADGLOBAL,x,g);
 		} break;
-		case N_TABLE: {
+		case NODE_TABLE: {
 			if (y == 0) goto leave;
 			LASSERT(v.line != 0);
 			langL_bytexy(fs,line,BC_TABLE,x,0);
@@ -364,7 +391,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			a register for this instruction, this will
 			be replaced with a more robust system in
 			the near future */
-			fs->nodes[id].k = N_LOCAL;
+			fs->nodes[id].k = NODE_LOCAL;
 			fs->nodes[id].x = x;
 
 			langA_varifor(v.z) langL_emit(fs,line,v.z[i]);
@@ -375,7 +402,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			llocalid yy = langL_localize(fs,line,v.y);
 			langL_bytexyz(fs,line,treetobyte(v.k),x,xx,yy);
 		} break;
-		case N_FUN: {
+		case NODE_CLOSURE: {
 			if (y == 0) goto leave;
 			llocalid xx = x;
 			langA_varifor(v.z) {
@@ -385,62 +412,70 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			}
 			langL_bytexy(fs,line,BC_CLOSURE,x,v.x);
 		} break;
-		case Y_GROUP: {
+		case NODE_GROUP: {
 			if (y == 0) goto leave;
 			langL_localload(fs,line,reload,x,y,v.x);
 		} break;
 		/* -- todo: could do through libfn? */
-		case Y_LOADFILE: {
+		case NODE_FILE: {
 			langL_localload(fs,line,ltrue,x,1,v.x);
 			langL_bytexy(fs,line,BC_LOADFILE,x,y);
 		} break;
-		case Y_BUILTIN: { LNOBRANCH;
+		case NODE_BUILTIN: {
 			llocalid xx = x;
 			int n = langA_varlen(v.z);
 			langA_varifor(v.z) {
-				langL_loadadjoined(fs,NO_LINE,xx ++,v.z[i]);
+				langL_localloadin(fs,NO_LINE,xx ++,v.z[i]);
 			}
 			if (v.x == TK_STKLEN) {
-				langL_bytexy(fs,line,x,BC_STKLEN,MAX(n,y));
+				langL_byte(fs,v.line,BC_STKLEN,x);
 			} else
 			if (v.x == TK_STKGET) {
-				langL_bytexy(fs,line,x,BC_STKGET,MAX(n,y));
+				langL_bytexy(fs,v.line,BC_STKGET,x,x);
 			} else LNOBRANCH;
 		} break;
-		case NODE_CALL: case NODE_METACALL: {
-			llocalid xx = x;
-			langL_localload(fs,NO_LINE,ltrue,xx ++,1,v.x);
-			if (v.k == NODE_METACALL) {
-				langL_loadadjoined(fs,NO_LINE,xx ++,v.y);
-			}
-			langA_varifor(v.z) {
-				langL_loadadjoined(fs,NO_LINE,xx ++,v.z[i]);
-			}
-
-			/* todo: should this be done here or not? */
-			/* allocate remaining space for the return registers */
-			llocalid rem = y-xx-x;
-			if (rem > 0) {
-				if ((xx - langL_localalloc(fs,rem)) != 0) {
-					LNOBRANCH;
-				}
-			}
-
-			int n = langA_varlen(v.z);
-			langL_bytexyz(fs,line,treetobyte(v.k),x,n,y);
+		/* a meta field is of the form {x}:{x}, this gets
+		translated into a meta call, but since it is in
+		field form it has no side-effects */
+		case NODE_METAFIELD: {
+			if (y == 0) goto leave;
+			llocalid rx = langL_localize(fs,line,v.x);
+			llocalid ry = langL_localize(fs,line,v.y);
+			langL_bytexyz(fs,line,treetobyte(v.k),x,rx,ry);
 		} break;
-		case Y_LOG_AND: case Y_LOG_OR: {
+		case NODE_CALL: {
+			llocalid hh = x;
+			lNode xx = fs->nodes[v.x];
+			/* allocate v.x.x (the object) here because
+			obviously if we just load v.x it'll reset
+			its memory state and we'll loose v.x, so
+			just do it here beforehand for convenience.
+			once we load v.x, since v.x.x was already
+			allocated and we didn't free it because
+			we're still within the subexpression, it'll
+			reuse that register. */
+			if (xx.k == NODE_METAFIELD) {
+				langL_localloadin(fs,NO_LINE,hh ++,xx.x);
+			}
+			langL_localloadin(fs,NO_LINE,hh ++,v.x);
+			langA_varifor(v.z) {
+				langL_localloadin(fs,NO_LINE,hh ++,v.z[i]);
+			}
+			int n = langA_varlen(v.z);
+			langL_bytexyz(fs,line,xx.k == NODE_METAFIELD ? BC_METACALL : BC_CALL,x,n,y);
+		} break;
+		case NODE_AND: case NODE_OR: {
 			if (y == 0) goto leave;
 			/* todo: we need to optimize this, better support for
 			boolean expressions */
 			ljlist js = {0};
-			langL_jumpiffalse(fs,&js,x,id);
-			langL_bytexy(fs,line,BC_LOADINT,x,ltrue);
+			langL_jumpiffalse(fs,&js,NO_SLOT,id);
+			langL_localload(fs,line,ltrue,x,1,langN_longint(fs,line,ltrue));
 			int j = langL_jump(fs,line,-1);
 			langL_tieloosejs(fs,js.f);
 			langA_vardel(js.f);
 			js.f = lnil;
-			langL_bytexy(fs,line,BC_LOADINT,x,lfalse);
+			langL_localload(fs,line,ltrue,x,1,langN_longint(fs,line,lfalse));
 			langL_tieloosej(fs,j);
 		} break;
 		case NODE_NEQ: case NODE_EQ:
@@ -448,7 +483,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 		case NODE_GTEQ: case NODE_LTEQ:
 		case NODE_DIV: case NODE_MUL: case NODE_MOD:
 		case NODE_SUB: case NODE_ADD:
-		case NODE_SHL: case NODE_SHR: case NODE_XOR: {
+		case NODE_BITSHL: case NODE_BITSHR: case NODE_BITXOR: {
 			if (y == 0) goto leave;
 			if ((v.k == NODE_GT) || (v.k == NODE_GTEQ)) {
 				llocalid xx = langL_localize(fs,line,v.y);
@@ -457,8 +492,9 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 				langL_bytexyz(fs,line,treetobyte(v.k^1),x,xx,yy);
 			} else
 			if (v.k == NODE_EQ) {
+				/* todo: enable this */
 				if(1) goto _else;
-				if (fs->nodes[v.y].k == N_NIL) {
+				if (fs->nodes[v.y].k == NODE_NIL) {
 					llocalid xx = langL_localize(fs,line,v.y);
 					langL_bytexy(fs,line,BC_ISNIL,x,xx);
 				} else goto _else;
@@ -486,14 +522,14 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 	/* keep local state, finally free any temporary locals */
 	llocalid mem = fs->fn->xlocals;
 	switch (v.k) {
-		case Y_GLOBAL: {
+		case NODE_GLOBAL: {
 			llocalid yy = langL_localize(fs,line,y);
 			langL_bytexy(fs,line,BC_SETGLOBAL,v.x,yy);
 		} break;
-		case N_CACHE: {
+		case NODE_CACHE: {
 			langX_error(fs,line,"assignment to cache value is not supported yet");
 		} break;
-		case N_LOCAL: {
+		case NODE_LOCAL: {
 			/* -- todo: account for {x = x} opt ?  */
 			langL_localload(fs,line,ltrue,v.x,1,y);
 		} break;
@@ -505,7 +541,7 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 			langL_bytexyz(fs,line,op,xx,ii,yy);
 		} break;
 		// {x}[{x}..{x}] = {y}
-		case Y_RANGE_INDEX: {
+		case NODE_RANGE_INDEX: {
 			lnodeid lo = fs->nodes[v.y].x;
 			lnodeid hi = fs->nodes[v.y].y;
 			llocalid xx = langL_localize(fs,line,v.x);
@@ -680,7 +716,7 @@ lbyteop treetobyte(lnodeop tt) {
 		case NODE_FIELD: 	  	return BC_FIELD;
 		case NODE_INDEX: 	  	return BC_INDEX;
 		case NODE_CALL:     	return BC_CALL;
-		case NODE_METACALL: 	return BC_METACALL;
+		case NODE_METAFIELD:	return BC_METANAME;
 		case NODE_ADD:     	return BC_ADD;
 		case NODE_SUB:     	return BC_SUB;
 		case NODE_DIV:     	return BC_DIV;
@@ -690,9 +726,9 @@ lbyteop treetobyte(lnodeop tt) {
 		case NODE_EQ:      	return BC_EQ;
 		case NODE_LT:      	return BC_LT;
 		case NODE_LTEQ:    	return BC_LTEQ;
-		case NODE_SHL:    	return BC_SHL;
-		case NODE_SHR:    	return BC_SHR;
-		case NODE_XOR:    	return BC_XOR;
+		case NODE_BITSHL:    	return BC_SHL;
+		case NODE_BITSHR:    	return BC_SHR;
+		case NODE_BITXOR:    	return BC_XOR;
 	}
 	/* for intended use cases, this is an error */
 	LNOBRANCH;

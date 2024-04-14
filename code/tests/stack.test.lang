@@ -1,12 +1,18 @@
-
 failed = false
+
+let enum test = fun(x,y) ? {
+	failed ?= x != y
+	if x != y ? {
+		pf("failed, expected ", y, ", instead got ", x)
+	}
+}
 main = fun(x,y,z) ? {
-	iff stkget(0) == "x" ? failed = true
-	iff stkget(1) == "y" ? failed = true
-	iff stkget(2) == "z" ? failed = true
-	iff stkget(3) ==   1 ? failed = true
-	iff stkget(4) ==   2 ? failed = true
-	iff stkget(5) ==   3 ? failed = true
+	test(stkget(0),"x")
+	test(stkget(1),"y")
+	test(stkget(2),"z")
+	test(stkget(3),1)
+	test(stkget(4),2)
+	test(stkget(5),3)
 }
 main("x","y","z",1,2,3)
 leave failed
