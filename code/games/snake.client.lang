@@ -1,0 +1,97 @@
+__logging(false)
+
+load "code/games/lgi.lang"
+load "code/games/snake.shared.lang"
+
+let enum {
+	SIDELEN = 32,
+	CELLPX  = 32,
+}
+
+grid = {}
+gsize = SIDELEN*SIDELEN
+grid[0..gsize] = FLOOR
+
+
+let redraw = fun () ? {
+	// let _time = clocktime()
+	// finally pf(" => took: ", timediffs(_time))
+	for y in 0..SIDELEN  ? {
+		for x in 0..SIDELEN ? {
+			let i = y * SIDELEN + x
+			let cell = grid[i]
+
+			let color = lgi_BLACK
+			if cell == APPLE ? {
+				color = lgi_GREEN
+			} elif cell == SNAKE ? {
+				color = lgi_RED
+			} then {
+				let box_x = x * CELLPX + x * 2
+				let box_y = y * CELLPX + y * 2
+				lgi_drawQuad(color,box_x,box_y,CELLPX,CELLPX)
+			}
+		}
+	}
+}
+
+// exec("build\\lg.exe code\\games\\snake.server.lang")
+
+pf("connecting...")
+netlib_init() finally netlib_close()
+
+let client = tcpclient("192.168.254.133","4001")
+
+myid = -1
+// the ?? operator
+// let temp = recv(client)
+// temp ?= "0"
+// leave loadexpr(recv(client) ?? "0")
+let recvpayload = fun() ? {
+	let error = recv(client)
+	if error == nil ? leave nil
+	leave loadexpr(error)
+}
+
+let sendpayload = fun(x) ? {
+	x.myid ?= myid
+	let temp = ftemp() finally fclose(temp)
+	x:unload(temp)
+	let data = freadall(temp)
+	send(client,data)
+}
+
+pf("waiting for server...")
+let payload = recvpayload()
+myid = payload.yourid
+ioctl(client)
+
+
+lgi_initWindowed((CELLPX+3)*SIDELEN,(CELLPX+3)*SIDELEN, "snake")
+
+let heading = UP
+do {
+	lgi_clearBackground();
+	if lgi_testKey('W') ? {
+		heading = UP
+	} elif lgi_testKey('D') ? {
+		heading = RIGHT
+	} elif lgi_testKey('A') ? {
+		heading = LEFT
+	} elif lgi_testKey('S') ? {
+		heading = DOWN
+	} then {
+		sendpayload({"move" = heading})
+	}
+	let response = recvpayload()
+	if response != nil ? {
+		if response.grid != nil ? {
+			grid = response.grid
+			// let file = ftemp()
+			// grid:unload(file)
+			// pf("got grid: ", freadall(file))
+			// fclose(file)
+		}
+	}
+	redraw()
+} while lgi_tick()

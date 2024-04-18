@@ -1,0 +1,28 @@
+pf("server - launching...")
+netlib_init() finally netlib_close()
+let socket = tcpserver(nil,"4001")
+/* ipc will screw with printf occasionally */
+// exec("build\\lg.exe code\\examples\\client.lang")
+pf("server - waiting...")
+listen(socket)
+let client = accept(socket)
+pf("server - established connection")
+
+let got = recv(client)
+pf("server - got: ", got)
+
+let table = {}
+table[0..512] = 1
+let x = ftemp()
+table:unload(x)
+let data = freadall(x)
+send(client,data)
+
+for i in 0..100 ? {
+	sleep(250)
+}
+
+
+
+
+

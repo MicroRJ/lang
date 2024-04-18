@@ -32,6 +32,8 @@ typedef enum lbyteop {
 	registers, jumps to x */
 	BC_YIELD/*(x,y,z)*/,
 
+	BC_TYPEGUARD,
+
 	BC_LOADGLOBAL,
 	BC_LOADNUM, BC_LOADINT, BC_LOADNIL,
 
@@ -86,6 +88,7 @@ lbyteclass lang_byteclass(lbyteop k) {
 	switch (k) {
 		case BC_JZ:
 		case BC_JNZ:
+		case BC_TYPEGUARD:
 		case BC_SETGLOBAL:
 		case BC_STKGET:
 		case BC_LOADNUM:
@@ -145,6 +148,7 @@ char const *lang_bytename(lbyteop k) {
 		case BC_FIELD: return "getfield";
 		case BC_SETFIELD: return "setfield";
 		case BC_SETINDEX: return "setindex";
+		case BC_TYPEGUARD: return "typeguard";
 		case BC_ADD: return "add";
 		case BC_SUB: return "sub";
 		case BC_DIV: return "dib";

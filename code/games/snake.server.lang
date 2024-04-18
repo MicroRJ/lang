@@ -1,0 +1,180 @@
+__logging(false)
+/* todo: remove lgi, we only use it to keep
+track of time */
+load "code/games/lgi.lang"
+load "code/games/snake.shared.lang"
+
+let enum {
+	SIDE = 32,
+	SIZE = SIDE*SIDE,
+	GRID    = {},
+	SNAKES  = {},
+}
+
+GRID[0..SIZE] = FLOOR
+
+let enum addapple = fun () ? {
+	papl = 0
+	iapl = SNAKE
+	while iapl != FLOOR ? {
+		papl = rnd(0,SIZE)
+		iapl = GRID[papl]
+	}
+	GRID[papl] = APPLE
+}
+
+
+let enum movesnake = fun (snake, dir) ? {
+	let length = snake.length
+	let body = snake.body
+	let n = int2_add(body[0],dir)
+
+	if (n.x < 0 || n.y < 0) ? {
+	} elif SIDE <= n.x ? {
+	} elif SIDE <= n.y ? {
+	} then {
+		snake.collided = true
+		leave
+	}
+
+	// save the tail in case we eat apple, when we shift the snake forwards we loose the tail so we
+	// need to repopulate it to grow, we also use this for clearing the GRID in case we did not eat an apple,
+	// in which case there will be no snake part present in the tail slot
+	let t = body[length-1]
+	for i in 1..length ? {
+		body[length-i] = body[length-i-1]
+	}
+	body[0] = n
+	// store the previous head value to check for collisions,
+	// don't generate apple yet to avoid overwriting the
+	// apple with a snake part
+	let v = GRID[SIDE * n.y + n.x]
+
+	// if we ate an apple simply restore the tail at one past
+	// the previous tail position
+	if v == APPLE ? {
+		body[length] = t
+		length = length + 1
+	} else {
+		// if we did not grow then clear the old tail, this will
+		// visually glitch the snake if the last tail position
+		// overlaps any part of the snake, which will consequently
+		// get cleared.
+		// The point of the game is for that not to happen, so
+		// it doesn't really matter however, to help a bit
+		//  prevent this.
+		// We do redraw the new head and tail only after we've
+		// cleared, so that could help if we only overlap the
+		// head or tail.
+		GRID[SIDE * t.y + t.x] = FLOOR
+	}
+
+	let p = body[length-1]
+	// redraw the head and tail now that it moved
+	GRID[SIDE * n.y + n.x] = SNAKE
+	GRID[SIDE * p.y + p.x] = SNAKE
+
+	if v == APPLE ? {
+		addapple()
+	}
+	snake.heading = dir
+	snake.length  = length
+}
+
+
+let enum addsnake = fun (pos,length,heading) ? {
+	let body = {}
+	let snake = {}
+	snake.length = length
+	snake.body = body
+	snake.heading = heading
+	snake.collided = false
+
+	for i in 0..length ? {
+		let id = SIDE * pos.y + pos.x
+		GRID[id] = SNAKE
+		body[length-1-i] = int2(pos.x,pos.y)
+		pos.x = pos.x + heading.x
+		pos.y = pos.y + heading.y
+	}
+	leave snake
+}
+
+
+let time = 0
+let lastturntime = 0.
+let TURN = .128
+
+
+// let gameinfo = {"side"=SIDE}
+// let temp = ftemp()
+// let lon = gameinfo:unload(temp)
+// let newgameinfo = loadexpr(freadall(temp))
+// pf( gameinfo )
+// pf( newgameinfo )
+
+netlib_init() finally netlib_close()
+
+let server = tcpserver(nil,"4001")
+ioctl(server)
+listen(server)
+
+exec("build\\lg.exe code\\games\\snake.client.lang")
+exec("build\\lg.exe code\\games\\snake.client.lang")
+
+let clients = {}
+
+let notify = fun(client,x) ? {
+	let temp = ftemp() finally fclose(temp)
+	x:unload(temp)
+	let data = freadall(temp)
+	send(client,data)
+}
+
+
+let notifyall = fun(x) ? {
+	let temp = ftemp() finally fclose(temp)
+	x:unload(temp)
+	let data = freadall(temp)
+	for i in 0..clients:length() ? send(clients:idx(i),data)
+}
+
+
+addapple()
+
+lgi_initWindowed(128,128,"snake-server")
+
+do {
+	{
+		let client = pollclient(server)
+		if client != nil ? {
+			pf("new client: ", client)
+			SNAKES[client] = addsnake(int2(2+i,2),4,UP)
+			notify(client,{"yourid" = client})
+			ioctl(client)
+			clients:add(client)
+		}
+	}
+	for i in 0..clients:length() ? {
+		let client = clients:idx(i)
+		let payload = recv(client)
+		if payload != nil ? {
+			let action = loadexpr(payload)
+			if action.move ? {
+				SNAKES[client].heading = action.move
+			}
+		}
+	}
+	if TURN <= time ? {
+		time = 0
+		for i in 0..clients:length() ? {
+			let snake = SNAKES[clients:idx(i)]
+			movesnake(snake,snake.heading)
+		}
+		notifyall({"grid"=GRID})
+	}
+	time = time + lgi_deltatime()
+} while lgi_tick()
+
+
+

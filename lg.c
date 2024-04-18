@@ -13,9 +13,9 @@ int main(int n, char **c) {
 
 	langM_initmemory();
 
-	char pwd[0x100];
-	sys_workdir(sizeof(pwd),pwd);
-	printf("working in: %s\n",pwd);
+	// char pwd[0x100];
+	// sys_workdir(sizeof(pwd),pwd);
+	// printf("working in: %s\n",pwd);
 
 	lModule md = {0};
 
@@ -23,7 +23,9 @@ int main(int n, char **c) {
 	rt.logging = lfalse;
 	rt.stklen = 4096;
 	rt.stk = rt.top = langM_clearalloc(lHEAP,sizeof(lValue) * rt.stklen);
-	lContext root = {0};
+	rt.classofS = langS_newclass(&rt);
+	rt.classofH = langH_newclass(&rt);
+	lCallFrame root = {0};
 	root.base = rt.top;
 	rt.frame = &root;
 
@@ -32,22 +34,22 @@ int main(int n, char **c) {
 	/* todo: eventually we'll call this from the source file,
 	each lib will be built independently, or maybe we can add
 	a flag so that we don't load these libraries. */
+	netlib_load(&rt);
 	syslib_load(&rt);
 	tstlib_load(&rt);
 	crtlib_load(&rt);
 
-	lContext frame = {0};
+	lCallFrame frame = {0};
 	frame.base = rt.top;
 	rt.frame = &frame;
 	lString *filename = lang_pushnewS(&rt,c[1]);
 	FileState fs = {0};
 	lang_loadfile(&rt,&fs,filename,0,0);
-	/* todo: this is temporary */
-	md.file = &fs;
 
-	Handle file = sys_fopen(".module.ignore","wb");
-	lang_dumpmodule(&md,file);
-
+	FILE *file;
+ 	fopen_s(&file,S_tpf("%s.module.ignore",filename->c),"wb");
+	if (file != lnil) lang_dumpmodule(&md,file);
+	fclose(file);
 
 	printf("exited\n");
 	return 0;

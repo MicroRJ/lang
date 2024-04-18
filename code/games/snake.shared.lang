@@ -1,0 +1,27 @@
+
+FLOOR = 0
+APPLE = 1
+SNAKE = 2
+
+int2 = fun(x,y) ? ({"x"=x,"y"=y})
+int2_add = fun(x,y) ? int2(x.x+y.x,x.y+y.y)
+
+LEFT  = int2(-1, 0)
+RIGHT = int2( 1, 0)
+UP    = int2( 0, 1)
+DOWN  = int2( 0,-1)
+
+xorshift = fun(x) ? {
+	x = x ^ x << 13
+	x = x ^ x >> 7
+	x = x ^ x << 17
+	leave x
+}
+
+rndstate = 5282
+rnd = fun(x,y) ? {
+	rndstate = xorshift(rndstate)
+	if rndstate < 0 ? rndstate = -rndstate
+	leave x + rndstate % (y - x)
+}
+

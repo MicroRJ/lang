@@ -54,6 +54,9 @@ void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
 	} else {
 		fprintf(file,"(x=%lli)",b.i);
 	}
+	if (b.k == BC_TYPEGUARD) {
+		fprintf(file," #%s",tag2s[b.y]);
+	} else
 	if (b.k == BC_LOADINT) {
 		fprintf(file," #%lli",md->ki[b.y]);
 	} else
@@ -71,7 +74,7 @@ void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
 void langX_getlocinfo(char *q, char *p, int *linenum, char **lineloc);
 
 
-void lang_dumpmodule(lModule *md, Handle file) {
+void lang_dumpmodule(lModule *md, lsysobj file) {
 #if 0
 	fprintf(file,"lModule:\n");
 	fprintf(file,"Globals:\n");

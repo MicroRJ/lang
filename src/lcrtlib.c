@@ -64,6 +64,31 @@ int crtlib__strtime(lRuntime *rt) {
 }
 
 
+int crtlib_fopen(lRuntime *c) {
+	lString *name = lang_loadS(c,0);
+	lString *flags = lang_loadS(c,1);
+	FILE *file = lnil;
+	fopen_s(&file,name->c,flags->c);
+	lang_pushsysobj(c,(lsysobj) file);
+	return 1;
+}
+
+
+int crtlib_fclose(lRuntime *c) {
+	lsysobj file = lang_getsysobj(c,0);
+	fclose(file);
+	return 0;
+}
+
+
+int crtlib_fsize(lRuntime *c) {
+	lsysobj file = lang_getsysobj(c,0);
+	fseek(file,0,SEEK_END);
+	lang_pushlong(c,ftell(file));
+	return 1;
+}
+
+
 int crtlib__unlink(lRuntime *rt) {
 	lString *name = lang_loadS(rt,0);
 	lang_pushlong(rt,_unlink(name->c));
@@ -72,14 +97,14 @@ int crtlib__unlink(lRuntime *rt) {
 
 
 int crtlib__unlock_file(lRuntime *rt) {
-	Handle file = lang_loadhandle(rt,0);
+	lsysobj file = lang_getsysobj(rt,0);
 	_unlock_file(file);
 	return 0;
 }
 
 
 int crtlib__write(lRuntime *rt) {
-	Handle file = lang_loadhandle(rt,0);
+	lsysobj file = lang_getsysobj(rt,0);
 	lString *buf = lang_loadS(rt,1);
 	lang_pushlong(rt,_write((llongint)file,buf->c,buf->length));
 	return 1;
@@ -87,14 +112,14 @@ int crtlib__write(lRuntime *rt) {
 
 
 int crtlib__close(lRuntime *rt) {
-	Handle file = lang_loadhandle(rt,0);
+	lsysobj file = lang_getsysobj(rt,0);
 	lang_pushlong(rt,_close((int)(llongint)file));
 	return 1;
 }
 
 
 int crtlib__commit(lRuntime *rt) {
-	Handle file = lang_loadhandle(rt,0);
+	lsysobj file = lang_getsysobj(rt,0);
 	lang_pushlong(rt,_commit((int)(llongint)file));
 	return 1;
 }
@@ -152,6 +177,10 @@ lapi void crtlib_load(lRuntime *rt) {
 	lang_addglobal(md,lang_pushnewS(rt,"_getpid"),lang_C(crtlib__getpid));
 	lang_addglobal(md,lang_pushnewS(rt,"_strdate"),lang_C(crtlib__strdate));
 	lang_addglobal(md,lang_pushnewS(rt,"_strtime"),lang_C(crtlib__strtime));
+
+	lang_addglobal(md,lang_pushnewS(rt,"fopen"),lang_C(crtlib_fopen));
+	lang_addglobal(md,lang_pushnewS(rt,"fclose"),lang_C(crtlib_fclose));
+	lang_addglobal(md,lang_pushnewS(rt,"fsize"),lang_C(crtlib_fsize));
 	lang_addglobal(md,lang_pushnewS(rt,"_unlink"),lang_C(crtlib__unlink));
 	lang_addglobal(md,lang_pushnewS(rt,"_unlock_file"),lang_C(crtlib__unlock_file));
 	lang_addglobal(md,lang_pushnewS(rt,"_write"),lang_C(crtlib__write));

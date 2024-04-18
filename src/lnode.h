@@ -12,10 +12,11 @@ typedef int lnodeid;
 
 
 typedef enum lnodety {
-	NT_ANY = 0,
+	NT_ANY, NT_SYS,
 	NT_NIL, NT_BOL, NT_INT, NT_NUM,
-	NT_TAB, NT_FUN, NT_STR
+	NT_OBJ, NT_TAB, NT_FUN, NT_STR
 } lnodety;
+
 
 typedef enum lnodeop {
 	Y_NONE = 0,
@@ -35,6 +36,9 @@ typedef enum lnodeop {
 	NODE_LTEQ, NODE_GTEQ,
 	/* end */
 	NODE_BITXOR, NODE_MOD,
+
+	NODE_TYPEGUARD,
+
 	NODE_LOAD,
 	NODE_FILE,
 	/* constant values, closure points to prototype
@@ -109,6 +113,7 @@ lnodeid langN_local(FileState *fs, llineid line, lnodeid i);
 lnodeid langN_cache(FileState *fs, llineid line, lnodeid i);
 lnodeid langN_global(FileState *fs, llineid line, lnodeid i);
 
+lnodeid langN_typeguard(FileState *fs, llineid line, lnodeid x, lnodety y);
 lnodeid langN_metafield(FileState *fs, llineid line, lnodeid x, lnodeid y);
 lnodeid langN_field(FileState *fs, llineid line, lnodeid x, lnodeid y);
 lnodeid langN_index(FileState *fs, llineid line, lnodeid x, lnodeid y);
@@ -121,7 +126,15 @@ lnodeid langN_builtincall(FileState *fs, llineid line, ltokentype k, lnodeid *z)
 lnodeid langN_call(FileState *fs, llineid line, lnodeid x, lnodeid *z);
 
 
-
+lvaluetag langN_ttotag(lnodety ty) {
+	switch (ty) {
+		case NT_SYS: return TAG_SYS;
+		case NT_NUM: return TAG_NUM;
+		case NT_INT: return TAG_INT;
+	}
+	LNOBRANCH;
+	return TAG_NIL;
+}
 
 
 

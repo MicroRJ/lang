@@ -12,79 +12,77 @@ typedef struct lValue lValue;
 
 
 typedef enum GCColor {
-   GC_WHITE = 0,
-   GC_BLACK = 1,
-   GC_PINK  = 2,
-   GC_RED   = 3,
+	GC_WHITE = 0,
+	GC_BLACK = 1,
+	GC_PINK  = 2,
+	GC_RED   = 3,
 } GCColor;
 
 
 typedef enum ObjectType {
-   OBJ_NONE = 0,
-   OBJ_CLOSURE,
-   OBJ_STRING,
-   OBJ_ARRAY,
-   OBJ_TABLE,
-   OBJ_CUSTOM,
+	OBJ_NONE = 0,
+	OBJ_CLOSURE,
+	OBJ_STRING,
+	OBJ_ARRAY,
+	OBJ_TABLE,
+	OBJ_CUSTOM,
 } ObjectType;
 
 
 typedef struct MetaFunc {
-   char    *name;
-   lBinding    c;
+	char    *name;
+	lBinding    c;
 } MetaFunc;
 
 
 typedef struct lObject {
-   ObjectType type;
-   GCColor gccolor;
-   /* todo: this should only be for custom objects */
-   int       _n;
-   MetaFunc *_m;
+	ObjectType type;
+	GCColor gccolor;
+	lTable *metaclass;
 } lObject;
 
 
 /* first object tag must be OBJECT, all other
 objects come after it */
 #define TAGLIST(_) \
-_(NIL) _(HANDLE) \
-_(INTEGER) _(NUMBER) _(BINDING) \
-_(OBJECT) _(CLOSURE) _(STRING) _(TABLE) /* end */
+_(NIL) _(SYS) \
+_(INT) _(NUM) _(BID) \
+_(OBJ) _(CLS) _(STR) _(TAB) /* end */
 
 
 #define TAGENUM(NAME) XFUSE(TAG_,NAME),
 typedef enum lvaluetag {
-   TAGLIST(TAGENUM)
+	TAGLIST(TAGENUM)
 } lvaluetag;
 #undef TAGENUM
 
 
 #define TAGENUM(NAME) XSTRINGIFY(NAME),
 lglobaldecl char const *tag2s[] = {
-   TAGLIST(TAGENUM)
+	TAGLIST(TAGENUM)
 };
 #undef TAGENUM
 
 
 
 typedef struct lValue {
-   lvaluetag tag;
-   union {
-      Ptr       p;
-      Handle    h;
-      llongint     i;
-      lnumber   n;
-      lBinding   c;
-      lObject   *j;
-      lTable     *t;
-      lString   *s;
-      lClosure  *f;
-   };
+	lvaluetag tag;
+	union {
+		Ptr       p;
+		lsysobj    h;
+		llongint     i;
+		lnumber   n;
+		lBinding   c;
+		lObject   *j;
+		lTable     *t;
+		lString   *s;
+		lClosure  *f;
+	};
 } lValue;
 
 
 typedef struct lClosure {
-   lObject obj;
+	lObject obj;
    /* I guess one of the things we could do
    if we ever get to having multi-byte encoding,
    is encode the entire prototype in the
@@ -93,11 +91,11 @@ typedef struct lClosure {
    If not, then there's no need to store the
    whole prototype here, we can instead store an
    index into the proto table. */
-   lProto   fn;
+	lProto   fn;
    /* current instruction index (coroutines) */
-   int       j;
+	int       j;
    /* allocated past this point */
-   lValue caches[1];
+	lValue caches[1];
 } lClosure;
 
 
@@ -110,53 +108,85 @@ lapi lValue lang_N(lnumber n);
 
 
 
+lbool ttisnumeric(lvaluetag tag) {
+	return tag == TAG_NUM || tag == TAG_INT;
+}
+
+
+lbool ttisobj(lvaluetag tag) {
+	switch (tag) {
+		case TAG_STR: case TAG_TAB:
+		case TAG_OBJ: case TAG_CLS: {
+			return ltrue;
+		}
+	}
+	return lfalse;
+}
+
+
+lvaluetag ttobj2val(ObjectType type) {
+	switch(type) {
+		case OBJ_CLOSURE: return TAG_CLS;
+		case OBJ_TABLE: return TAG_TAB;
+		case OBJ_STRING: return TAG_STR;
+	}
+	LNOBRANCH;
+	return -1;
+}
+
+
+int tisnil(lValue x) {
+	return (x.tag == TAG_NIL) || (!ttisnumeric(x.tag) && (x.p == lnil));
+}
+
+
 
 lapi lValue lang_T(lTable *t) {
-   lValue v = (lValue){TAG_TABLE};
-   v.t = t;
-   return v;
+	lValue v = (lValue){TAG_TAB};
+	v.t = t;
+	return v;
 }
 
 
 lapi lValue lang_C(lBinding c) {
-   lValue v = (lValue){TAG_BINDING};
-   v.c = c;
-   return v;
+	lValue v = (lValue){TAG_BID};
+	v.c = c;
+	return v;
 }
 
 
-lapi lValue lang_H(Handle h) {
-   lValue v = (lValue){TAG_HANDLE};
-   v.h = h;
-   return v;
+lapi lValue lang_H(lsysobj h) {
+	lValue v = (lValue){TAG_SYS};
+	v.h = h;
+	return v;
 }
 
 
 lapi lValue lang_S(lString *s) {
-   lValue v = (lValue){TAG_STRING};
-   v.s = s;
-   return v;
+	lValue v = (lValue){TAG_STR};
+	v.s = s;
+	return v;
 }
 
 
 lapi lValue lang_F(lClosure *f) {
-   lValue v = (lValue){TAG_CLOSURE};
-   v.f = f;
-   return v;
+	lValue v = (lValue){TAG_CLS};
+	v.f = f;
+	return v;
 }
 
 
 lapi lValue lang_I(llongint i) {
-   lValue v = (lValue){TAG_INTEGER};
-   v.i = i;
-   return v;
+	lValue v = (lValue){TAG_INT};
+	v.i = i;
+	return v;
 }
 
 
 lapi lValue lang_N(lnumber n) {
-   lValue v = (lValue){TAG_NUMBER};
-   v.n = n;
-   return v;
+	lValue v = (lValue){TAG_NUM};
+	v.n = n;
+	return v;
 }
 
 

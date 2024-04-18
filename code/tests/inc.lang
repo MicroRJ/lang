@@ -1,5 +1,3 @@
-
-core ?= {}
 core.xxx = fun(x) ? {	leave 1	}
 core.yyy = fun(x) ? {	leave 2	}
 core.zzz = fun(x) ? {	leave 3	}

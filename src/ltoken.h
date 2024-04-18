@@ -6,7 +6,7 @@
 
 
 #define FIRST_KEYWORD 1
-#define  LAST_KEYWORD 23
+#define  LAST_KEYWORD 24
 
 
 typedef struct ltoken {
@@ -14,9 +14,9 @@ typedef struct ltoken {
 	llineid line;
 	unsigned int eol: 1;
 	union {
-		char    *s;
+		char *s;
 		llongint i;
-		lnumber  n;
+		lnumber n;
 	};
 } ltoken;
 
@@ -31,59 +31,60 @@ typedef enum ltokentype {
 	TK_FINALLY              = 6,
 	TK_IN                   = 7,
 	TK_FOR                  = 8,
-	TK_WHILE                = 9,
-	TK_DO                   = 10,
-	TK_BREAK                = 11,
-	TK_CONTINUE             = 12,
-	TK_LEAVE                = 13,
-	TK_IF                   = 14,
-	TK_IFF                  = 15,
-	TK_ELIF                 = 16,
-	TK_THEN                 = 17,
-	TK_ELSE                 = 18,
-	TK_LOAD                 = 19,
-	TK_TRUE                 = 20,
-	TK_FALSE                = 21,
-	TK_STKGET               = 22,
-	TK_STKLEN               = 23,
-	TK_INTEGER              = 24,
-	TK_NUMBER               = 25,
-	TK_STRING               = 26,
-	TK_LETTER               = 27,
-	TK_WORD                 = 28,
-	TK_QMARK                = 29,
-	TK_NEGATE               = 30,
-	TK_ASSIGN_QUESTION      = 31,
-	TK_ASSIGN               = 32,
-	TK_COLON                = 33,
-	TK_SEMI_COLON           = 34,
-	TK_DOT                  = 35,
-	TK_COMMA                = 36,
-	TK_SQUARE_LEFT          = 37,
-	TK_SQUARE_RIGHT         = 38,
-	TK_CURLY_LEFT           = 39,
-	TK_CURLY_RIGHT          = 40,
-	TK_PAREN_LEFT           = 41,
-	TK_PAREN_RIGHT          = 42,
-	TK_MUL                  = 43,
-	TK_DIV                  = 44,
-	TK_MODULUS              = 45,
-	TK_ADD                  = 46,
-	TK_SUB                  = 47,
-	TK_RIGHT_SHIFT          = 48,
-	TK_LEFT_SHIFT           = 49,
-	TK_LESS_THAN            = 50,
-	TK_LESS_THAN_EQUAL      = 51,
-	TK_GREATER_THAN         = 52,
-	TK_GREATER_THAN_EQUAL   = 53,
-	TK_EQUALS               = 54,
-	TK_NOT_EQUALS           = 55,
-	TK_BIT_AND              = 56,
-	TK_BIT_OR               = 57,
-	TK_BIT_XOR              = 58,
-	TK_LOG_AND              = 59,
-	TK_LOG_OR               = 60,
-	TK_DOT_DOT              = 61,
+	TK_FOREACH              = 9,
+	TK_WHILE                = 10,
+	TK_DO                   = 11,
+	TK_BREAK                = 12,
+	TK_CONTINUE             = 13,
+	TK_LEAVE                = 14,
+	TK_IF                   = 15,
+	TK_IFF                  = 16,
+	TK_ELIF                 = 17,
+	TK_THEN                 = 18,
+	TK_ELSE                 = 19,
+	TK_LOAD                 = 20,
+	TK_TRUE                 = 21,
+	TK_FALSE                = 22,
+	TK_STKGET               = 23,
+	TK_STKLEN               = 24,
+	TK_INTEGER              = 25,
+	TK_NUMBER               = 26,
+	TK_STRING               = 27,
+	TK_LETTER               = 28,
+	TK_WORD                 = 29,
+	TK_QMARK                = 30,
+	TK_NEGATE               = 31,
+	TK_ASSIGN_QUESTION      = 32,
+	TK_ASSIGN               = 33,
+	TK_COLON                = 34,
+	TK_SEMI_COLON           = 35,
+	TK_DOT                  = 36,
+	TK_COMMA                = 37,
+	TK_SQUARE_LEFT          = 38,
+	TK_SQUARE_RIGHT         = 39,
+	TK_CURLY_LEFT           = 40,
+	TK_CURLY_RIGHT          = 41,
+	TK_PAREN_LEFT           = 42,
+	TK_PAREN_RIGHT          = 43,
+	TK_MUL                  = 44,
+	TK_DIV                  = 45,
+	TK_MODULUS              = 46,
+	TK_ADD                  = 47,
+	TK_SUB                  = 48,
+	TK_RIGHT_SHIFT          = 49,
+	TK_LEFT_SHIFT           = 50,
+	TK_LESS_THAN            = 51,
+	TK_LESS_THAN_EQUAL      = 52,
+	TK_GREATER_THAN         = 53,
+	TK_GREATER_THAN_EQUAL   = 54,
+	TK_EQUALS               = 55,
+	TK_NOT_EQUALS           = 56,
+	TK_BIT_AND              = 57,
+	TK_BIT_OR               = 58,
+	TK_BIT_XOR              = 59,
+	TK_LOG_AND              = 60,
+	TK_LOG_OR               = 61,
+	TK_DOT_DOT              = 62,
 } ltokentype;
 
 
@@ -104,6 +105,7 @@ lglobaldecl ltokenintel langX_tokenintel[] = {
 	{"finally",              -1, 2618047400},
 	{"in",                   -1, 1094220446},
 	{"for",                  -1, 2901640080},
+	{"foreach",              -1, 3076491097},
 	{"while",                -1, 231090382},
 	{"do",                   -1, 1646057492},
 	{"break",                -1, 3378807160},
@@ -159,5 +161,4 @@ lglobaldecl ltokenintel langX_tokenintel[] = {
 	{"..",                   1, 0},
 };
 
-// typedef char buffer[_countof(langX_tokenintel) == TK_DOT_DOT+1 ? 1 : -1];
 

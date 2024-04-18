@@ -16,7 +16,9 @@ typedef struct lString {
 } lString;
 
 
+lString *langS_new2(lRuntime *fs, llongint length);
 lString *langS_new(lRuntime *fs, char const *contents);
+lTable *langS_newclass(lRuntime *R);
 
 
 int langS_length_(lRuntime *c);

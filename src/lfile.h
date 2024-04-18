@@ -30,14 +30,14 @@ typedef struct FileFunc {
 	llineid line;
 	/* for the basic register allocation system, where we have
 	an infinite number of register, but we still want to keep
-	the number of registers to a minimum, we resort to using to
-	counters, nlocals and xlocals */
+	the number of registers at a minimum, we resort to using
+	two counters, nlocals and xmemory */
 	/* maximum number of local register used concurrently
 	at any point for this function */
 	llocalid nlocals;
-	/* current number of local registers that are
-	being used at this point */
-	llocalid xlocals;
+	/* the memory state, in other words, the current number
+	of local registers that are being used at this point. */
+	llocalid xmemory;
 	/* index to first entity within entity list in file. */
 	int entities;
 	/* array of entities from enclosing function
@@ -58,11 +58,10 @@ typedef struct FileFunc {
 
 
 typedef struct FileState {
-	lModule *md;
-	/* this is so that we can allocate
-	objects during compilation time,
-	runtime is present everywhere anyways. */
-	lRuntime *rt;
+
+	union { lModule  *M,*md; };
+	union { lRuntime *R,*rt; };
+
 	char *filename;
 	char *linechar;
 	char *contents;

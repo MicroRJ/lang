@@ -114,7 +114,7 @@ lnodeid langY_numnodesinlev(FileState *fs) {
 void langY_leavelevel(FileState *fs, llineid line) {
 	fs->nentities -= langY_numentinlevl(fs); /* close scope */
 	fs->nnodes -= langY_numnodesinlev(fs);
-	fs->fn->xlocals -= 0; /* todo: deallocate leftover locals */
+	fs->fn->xmemory -= 0; /* todo: deallocate leftover locals */
 	/* ensure that we don't deallocate more than we can */
 	LASSERT(fs->nentities >= fs->fn->entities);
 	-- fs->level;
@@ -220,11 +220,15 @@ lnodeid langY_newlocalentity(FileState *fs, llineid line, char *name, lbool enm)
 }
 
 
-lnodeid langY_fndnodeentity(FileState *fs, llineid line, char *name) {
+lnodeid langY_fndentitynode(FileState *fs, llineid line, char *name) {
 	lentityid id = langY_fndentity(fs,line,name);
 	if (id.x == NO_ENTITY.x) return NO_NODE;
 	FileFunc *fn = fs->fn;
-	/* use the entity id to tell whether this is capture or not */
+	/* to figure out whether this is capture, simply
+	check whether the entity id is higher than that
+	of the first entity id within this function, in
+	other words, if this entity is outside of this
+	function's scope */
 	if (id.x < fn->entities) {
 		/* -- todo: implement multilayer caching */
 		if (id.x < fn->enclosing->entities) {
@@ -304,7 +308,7 @@ lnodeid langY_loadsubexpr(FileState *fs, int rank) {
 	if (x == NO_NODE) return x;
 	for (;;) {
 		int thisrank = langX_tokenintel[fs->tk.type].prec;
-		/* auto breaks when is not a binary operator */
+		/* auto breaks when not a binary operator */
 		if (thisrank <= rank) break;
 		ltoken tk = langX_yield(fs);
 		lnodeid y = langY_loadsubexpr(fs,thisrank);
@@ -321,7 +325,7 @@ lnodeid langY_loadfn(FileState *fs) {
 
 	/* All bytecode is outputted to the same
 	module, the way this language works is
-	that we just run the entire thing,
+	that we just run the entire module,
 	for that reason add a jump byte to
 	skip this function's code. */
 	int fj = langL_jump(fs,tk.line,-1);
@@ -351,8 +355,7 @@ lnodeid langY_loadfn(FileState *fs) {
 		}
 		langX_take(fs,TK_CURLY_RIGHT);
 	} else {
-		lnodeid x = langY_loadexpr(fs);
-		langL_yield(fs,tk.line,x);
+		langL_yield(fs,tk.line,langY_loadexpr(fs));
 	}
 
 	langY_closefn(fs);
@@ -383,7 +386,7 @@ lnodeid langY_loadfn(FileState *fs) {
 
 void langY_maybeassign(FileState *fs, lnodeid x) {
 	ltoken tk = fs->tk;
-	llocalid mem = fs->fn->xlocals;
+	llocalid mem = fs->fn->xmemory;
 	if (langX_pick(fs,TK_ASSIGN)) {
 		langY_checkassign(fs,tk.line,x);
 		lnodeid y = langY_loadexpr(fs);
@@ -412,9 +415,9 @@ void langY_maybeassign(FileState *fs, lnodeid x) {
 	} else {
 		llocalid r = langL_localalloc(fs,1);
 		langL_localload(fs,NO_LINE,lfalse,r,0,x);
-		fs->fn->xlocals = mem;
+		fs->fn->xmemory = mem;
 	}
-	LASSERT(fs->fn->xlocals == mem);
+	LASSERT(fs->fn->xmemory == mem);
 }
 
 
@@ -510,7 +513,7 @@ lnodeid langY_loadunary(FileState *fs) {
 			v = langN_loadfile(fs,tk.line,v);
 		} break;
 		case TK_WORD: { langX_yield(fs);
-			v = langY_fndnodeentity(fs,tk.line,tk.s);
+			v = langY_fndentitynode(fs,tk.line,tk.s);
 			if (v == NO_NODE) {
 				/* todo:! gc'd string */
 				lglobalid x = lang_addsymbol(fs->md,langS_new(fs->rt,tk.s));
@@ -602,11 +605,7 @@ void langY_loadenumlist(FileState *fs) {
 
 
 void langY_loadstat(FileState *fs) {
-	LDODEBUG(
-	if (fs->statbreak) __debugbreak();
-	fs->statbreak = lfalse;
-	);
-
+	llocalid mem = fs->fn->xmemory;
 	ltoken tk = fs->tk;
 	switch (tk.type) {
 		case TK_THEN: case TK_ELSE: case TK_ELIF: {
@@ -614,21 +613,14 @@ void langY_loadstat(FileState *fs) {
 		case TK_LEAVE: { langX_yield(fs);
 			lnodeid x = langY_loadexpr(fs);
 			langL_yield(fs,tk.line,x);
-		} break;
-		case TK_CURLY_LEFT: {
-			langX_take(fs,TK_CURLY_LEFT);
-			langY_enterlevel(fs);
-			while (!langX_term(fs,TK_CURLY_RIGHT)) {
-				langY_loadstat(fs);
-			}
-			langX_take(fs,TK_CURLY_RIGHT);
-			langY_leavelevel(fs,fs->lasttk.line);
+			LASSERT(fs->fn->xmemory == mem);
 		} break;
 		case TK_FINALLY: { langX_take(fs,TK_FINALLY);
-			CodeBlock bl = {0};
+			FileBlock bl = {0};
 			langL_begindelayedblock(fs,tk.line,&bl);
 			langY_loadstat(fs);
 			langL_closedelayedblock(fs,tk.line,&bl);
+			LASSERT(fs->fn->xmemory == mem);
 		} break;
 		case TK_WHILE: { langX_yield(fs);
 			lnodeid x = langY_loadexpr(fs);
@@ -637,6 +629,7 @@ void langY_loadstat(FileState *fs) {
 			langL_beginwhile(fs,tk.line,&loop,x);
 			langY_loadstat(fs);
 			langL_closewhile(fs,tk.line,&loop);
+			LASSERT(fs->fn->xmemory == mem);
 		} break;
 		case TK_DO: { langX_yield(fs);
 			Loop loop = {0};
@@ -645,22 +638,7 @@ void langY_loadstat(FileState *fs) {
 			langX_take(fs,TK_WHILE);
 			lnodeid x = langY_loadexpr(fs);
 			langL_closedowhile(fs,tk.line,&loop,x);
-		} break;
-		case TK_FOR: { langX_yield(fs);
-			langY_enterlevel(fs);
-			ltoken n = langX_take(fs,TK_WORD);
-			lnodeid x = langY_newlocalentity(fs,n.line,n.s,lfalse);
-			langX_take(fs,TK_IN);
-			lnodeid y = langY_loadexpr(fs);
-			langX_take(fs,TK_QMARK);
-
-			lnodeid lo = fs->nodes[y].x;
-			lnodeid hi = fs->nodes[y].y;
-			Loop loop = {0};
-			langL_beginrangedloop(fs,tk.line,&loop,x,lo,hi);
-			langY_loadstat(fs);
-			langL_closerangedloop(fs,tk.line,&loop);
-			langY_leavelevel(fs,tk.line);
+			LASSERT(fs->fn->xmemory == mem);
 		} break;
 		case TK_IF: case TK_IFF: { langX_yield(fs);
 			lnodeid x = langY_loadexpr(fs);
@@ -685,6 +663,7 @@ void langY_loadstat(FileState *fs) {
 				} else break;
 			}
 			langL_closeif(fs,fs->lasttk.line,&s);
+			LASSERT(fs->fn->xmemory == mem);
 		} break;
 		case TK_LET: case TK_LOCAL: { langX_yield(fs);
 			if (tk.type == TK_LOCAL) {
@@ -711,12 +690,58 @@ void langY_loadstat(FileState *fs) {
 				} while (langX_pick(fs,TK_COMMA));
 			}
 		} break;
+		case TK_FOREACH: case TK_FOR: { langX_yield(fs);
+			langY_enterlevel(fs);
+			ltoken n = langX_take(fs,TK_WORD);
+			lnodeid i, x, y;
+			lnodeid lo, hi;
+			x = langY_newlocalentity(fs,n.line,n.s,lfalse);
+			langX_take(fs,TK_IN);
+			y = langY_loadexpr(fs);
+			langX_take(fs,TK_QMARK);
+			i = x;
+			lo = NO_NODE;
+			hi = NO_NODE;
+			if (tk.type == TK_FOR) {
+				if (fs->nodes[y].k == NODE_RANGE) {
+					lo = fs->nodes[y].x;
+					hi = fs->nodes[y].y;
+				} else {
+					lo = langN_longint(fs,tk.line,0);
+					hi = y;
+				}
+			} else {
+				LNOBRANCH;/* todo: emit code to initialize x to i'th item of y */
+				if (fs->nodes[y].k == NODE_RANGE) {
+					lo = fs->nodes[y].x;
+					hi = fs->nodes[y].y;
+				} else {
+					lo = langN_longint(fs,tk.line,0);
+					/* todo: add typeguard */
+					hi = langN_metafield(fs,tk.line,y,langN_S(fs,tk.line,"length"));
+					i = langN_local(fs,tk.line,langL_localalloc(fs,1));
+				}
+			}
+			Loop loop = {0};
+			langL_beginrangedloop(fs,tk.line,&loop,i,lo,hi);
+			langY_loadstat(fs);
+			langL_closerangedloop(fs,tk.line,&loop);
+			langY_leavelevel(fs,tk.line);
+			fs->fn->xmemory = mem;
+		} break;
+		case TK_CURLY_LEFT: { langX_yield(fs);
+			langY_enterlevel(fs);
+			while (!langX_term(fs,TK_CURLY_RIGHT)) {
+				langY_loadstat(fs);
+			}
+			langX_take(fs,TK_CURLY_RIGHT);
+			langY_leavelevel(fs,fs->lasttk.line);
+			fs->fn->xmemory = mem;
+		} break;
 		default: {
-			llocalid mem = fs->fn->xlocals;
 			lnodeid x = langY_loadexpr(fs);
 			langY_maybeassign(fs,x);
-			LASSERT(fs->fn->xlocals == mem);
-			fs->fn->xlocals = mem;
+			LASSERT(fs->fn->xmemory == mem);
 		} break;
 	}
 }

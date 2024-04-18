@@ -22,7 +22,7 @@ typedef char *llineid;
 
 typedef char lchar;
 typedef void *Ptr;
-typedef void *Handle;
+typedef void *lsysobj;
 
 
 typedef int (* lBinding)(lRuntime *);
@@ -39,8 +39,8 @@ typedef struct lProto {
 	/* stack size required allocated by runtime
 	at call time. */
 	short nlocals;
-	short nbytes;
-	short bytes;
+	int nbytes;
+	int bytes;
 } lProto;
 
 

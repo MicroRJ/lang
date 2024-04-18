@@ -63,27 +63,6 @@ void langGC_remobj(lRuntime *fs, llongint i) {
 	((Array*)(gc))[-1].min --;
 }
 
-
-lbool ttisobj(lvaluetag tag) {
-	if (tag == TAG_STRING) return ltrue;
-	if (tag == TAG_TABLE) return ltrue;
-	if (tag == TAG_CLOSURE) return ltrue;
-	if (tag == TAG_OBJECT) return ltrue;
-	return lfalse;
-}
-
-
-lvaluetag ttobj2val(ObjectType type) {
-	switch(type) {
-		case OBJ_CLOSURE: return TAG_CLOSURE;
-		case OBJ_TABLE: return TAG_TABLE;
-		case OBJ_STRING: return TAG_STRING;
-	}
-	LNOBRANCH;
-	return -1;
-}
-
-
 void langGC_deallocobj(lObject *j) {
 	if (j->type == OBJ_TABLE) {
 		langH_free((lTable*)j);

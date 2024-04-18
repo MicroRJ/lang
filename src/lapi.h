@@ -5,10 +5,29 @@
 */
 
 
-lapi llongint lang_topop(lRuntime *c);
+/*
+** Ultimately, calls a function of any kind.
+** Takes an optional object for meta calls,
+** nx and ny are the number of in and out
+** values respectively.
+** nx does not include the function nor the
+** optional object.
+** rx is the frame register, the function
+** should reside in that register at call
+** time. arguments should come after that
+** register.
+** ry is the first yield register, where
+** the results are written to.
+** ry can be equal to rx.
+*/
+lapi int lang_call(lRuntime *, lObject *obj, llocalid rx, llocalid ry, int nx, int ny);
+lapi int lang_rootcall(lRuntime *, llocalid rx, int nx, int ny);
+
+lapi llongint lang_toplen(lRuntime *c);
 
 lapi int lang_resume(lRuntime *);
-lapi int lang_call(lRuntime *, lObject *obj, llocalid r, int x, int y);
+int lang_loadexpr(lRuntime *, lString *contents, llocalid x, llocalid y);
+int lang_loadfile(lRuntime *, FileState *fs, lString *filename, llocalid x, int y);
 
 lapi llongint lang_poplong(lRuntime *c);
 
@@ -16,7 +35,7 @@ lapi void lang_checkcl(lRuntime *c, llocalid x);
 lapi lString *lang_checkString(lRuntime *c, llocalid x);
 
 lapi lValue lang_load(lRuntime *c, llocalid x);
-lapi Handle lang_loadhandle(lRuntime *c, llocalid x);
+lapi lsysobj lang_getsysobj(lRuntime *c, llocalid x);
 lapi lClosure *lang_loadcl(lRuntime *c, llocalid x);
 lapi llongint lang_loadlong(lRuntime *c, llocalid x);
 lapi lnumber lang_loadnum(lRuntime *c, llocalid x);
@@ -28,7 +47,7 @@ lapi void lang_pushnil(lRuntime *);
 lapi void lang_pushlong(lRuntime *, llongint i);
 lapi void lang_pushnum(lRuntime *, lnumber n);
 lapi void lang_pushbinding(lRuntime *, lBinding c);
-lapi void lang_pushhandle(lRuntime *c, Handle h);
+lapi void lang_pushsysobj(lRuntime *c, lsysobj h);
 lapi void lang_pushtable(lRuntime *, lTable *t);
 lapi llocalid lang_pushclosure(lRuntime *, lClosure *f);
 lapi void lang_pushString(lRuntime *, lString *s);

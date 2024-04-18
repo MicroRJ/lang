@@ -13,18 +13,18 @@ typedef struct ldelaylist {
 
 
 /* -- pretty much a call frame */
-typedef struct lContext {
-	/* -- closure this call frame belongs to */
+typedef struct lCallFrame {
+	/* the closure this call frame belongs to */
 	lClosure *cl;
-	/* -- object for meta functions and table calls */
+	/* the object for meta fields, meta calls and the likes */
 	lObject *obj;
-	/* -- pointer to base stack address, 'rbp', yields
-	- to here at -1. should have base[-1..y) registers
-	- to write to. */
+	/* pointer to base stack address, the callee should
+	yield starting at base[-1], should have base[-1..y)
+	registers to write to. */
 	union {
-		lValue *base,*l;
+		lValue *base,*l,*locals;
 	};
-	/* -- regress address */
+	/* todo: rename top to regress */
 	lValue *top;
 	/* -- next instruction index, not really
 	- used now, but I guess for coroutines? */
@@ -44,25 +44,30 @@ typedef struct lContext {
 	- on return, 'finally' statements produce
 	- these. */
 	ldelaylist *dl;
-} lContext;
+} lCallFrame;
 
+
+typedef struct lThread {
+	union { lRuntime *R, *rt; };
+	union { lModule  *M, *md; };
+	union { lCallFrame *call; };
+	union { lValue *stk;      };
+	llocalid stklen;
+	llongint threadid;
+	lbyteid  curbyte;
+} lThread;
 
 typedef struct lRuntime {
-	lModule *md;
-	union {
-		lValue *stk,*s;
-	};
+	union { lModule *M, *md; };
+	union { lValue *stk,*s; };
 	llocalid stklen;
-	union {
-		lValue *top,*v;
-	};
-	union {
-		lContext *frame,*f;
-	};
+	union { lValue *top,*v; };
+	union { lCallFrame *call,*frame,*f; };
 
+	lTable *classofS;
+	lTable *classofH;
 	/* current byte */
 	llongint j;
-
 	lObject **gc;
 	llongint gcthreshold;
 	lbool isgcpaused;

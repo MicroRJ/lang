@@ -75,7 +75,45 @@ void langX_error2(char *filename, char *contents, char *loc, char const *fmt, ..
 
 
 void langX_error(FileState *fs, char *loc, char const *fmt, ...) {
-	langX_error2(fs->filename,fs->contents,loc,fmt);
+	int linenum;
+	char *lineloc;
+	langX_getlocinfo(fs->contents,loc,&linenum,&lineloc);
+
+	/* skip initial blank characters for optimal gimmicky */
+	while (*lineloc == '\t' || *lineloc == ' ') {
+		lineloc += 1;
+	}
+
+	char u[0x40];
+
+	int underline = loc - lineloc;
+	if (underline >= sizeof(u)) {
+		underline = sizeof(u)-1;
+		lineloc = loc - underline;
+	}
+
+	int linelen = 0;
+	for (;; ++ linelen) {
+		if (lineloc[linelen] == '\0') break;
+		if (lineloc[linelen] == '\r') break;
+		if (lineloc[linelen] == '\n') break;
+	}
+
+	for (int i = 0; i < underline; ++ i) {
+		u[i] = lineloc[i] == '\t' ? '\t' : '-';
+	}
+	u[underline]='^';
+
+	if (fmt !=  0) {
+		char b[0x1000];
+		va_list v;
+		va_start(v,fmt);
+		stbsp_vsnprintf(b,sizeof(b),fmt,v);
+		va_end(v);
+		printf("%s [%i:%lli]: %s\n",fs->filename,linenum,1+loc-lineloc,b);
+	}
+	printf("| %.*s\n",linelen,lineloc);
+	printf("| %.*s\n",underline+1,u);
 }
 
 
@@ -119,6 +157,7 @@ ltokentype wordorkeyword(char *name) {
 #define thischr() (file->thischar[0])
 #define thenchr() (file->thischar[1])
 #define movechr() (*(file->thischar++))
+#define movxchr(n) ((file->thischar += n))
 #define cmovchr(xx) ((thischr() == (xx)) ? movechr(), 1 : 0)
 
 
@@ -177,8 +216,7 @@ ltoken langX_yield(FileState *file) {
 			llongint base = 10;
 			if (thischr() == '0') {
 				if (thenchr() == 'x') {
-					movechr();
-					movechr();
+					movxchr(2);
 					base = 16;
 				}
 			}
@@ -411,16 +449,16 @@ ltoken langX_yield(FileState *file) {
 	if ( thischr() == '/'
 	&& ( thenchr() == '/' || thenchr() == '*') ) {
 		tk.eol = ltrue;
-	}
-	if ( thischr() == ';'
-	|| ( thischr() == '\n' || thischr() == '\r') ) {
-		tk.eol = ltrue;
-	}
+}
+if ( thischr() == ';'
+|| ( thischr() == '\n' || thischr() == '\r') ) {
+	tk.eol = ltrue;
+}
 
-	file->lasttk = file->tk;
-	file->tk = file->thentk;
-	file->thentk = tk;
+file->lasttk = file->tk;
+file->tk = file->thentk;
+file->thentk = tk;
 
 	// langX_error(files,tk.line,"token %s",langX_tokenintel[tk.type].name);
-	return file->lasttk;
+return file->lasttk;
 }

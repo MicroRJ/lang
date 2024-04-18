@@ -43,6 +43,9 @@
 #if !defined(MAX)
 	#define MAX(x,y) ((x) > (y) ? (x) : (y))
 #endif
+#if !defined(MIN)
+	#define MIN(x,y) ((x) < (y) ? (x) : (y))
+#endif
 
 
 #if !defined(lapi)
@@ -70,10 +73,10 @@ typedef struct lClosure lClosure;
 
 
 #include <src/ltype.h>
+#include <src/ldebug.h>
 #include <src/lobject.h>
 #include <src/lapi.h>
 #include <src/lerror.h>
-#include <src/ldebug.h>
 #include <src/llog.h>
 #include <src/lmem.h>
 #include <src/lsys.h>
@@ -81,6 +84,9 @@ typedef struct lClosure lClosure;
 #include <src/lbyte.h>
 #include <src/lmodule.h>
 #include <src/lruntime.h>
+
+void langH_mf(lRuntime *R, lTable *obj, char *name, lBinding b);
+
 #include <src/lstring.h>
 #include <src/larray.h>
 #include <src/ltable.h>
@@ -118,7 +124,14 @@ typedef struct lClosure lClosure;
 #include <src/ltest.c>
 #include <src/lsyslib.c>
 #include <src/lcrtlib.c>
+#include <src/lnetlib.c>
 #include <src/lruntime.c>
+
+
+void langH_mf(lRuntime *R, lTable *obj, char *name, lBinding b) {
+	langH_insert(obj,lang_S(langS_new(R,name)),lang_C(b));
+}
+
 
 llongint lang_clocktime() {
 	return sys_clocktime();

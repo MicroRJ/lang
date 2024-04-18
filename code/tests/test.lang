@@ -26,6 +26,7 @@ let list = listdir(".",fun(file,flags) ? {
 	beforehand, and then compare with after
 	loading the file */
 	load file.path
+	__logging(false)
 	numfails = numfails + 1
 	/* failed is a global */
 	if failed ? pf("[FAILED]")

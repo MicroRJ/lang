@@ -80,10 +80,10 @@ void jittestall() {
 
 #if 0
 void do_add(lValue *x, lValue *y) {
-	if (x->tag == TAG_NUMBER) {
+	if (x->tag == TAG_NUM) {
 		x->n = ltonumber(* x) + ltonumber(* y);
 	} else
-	if (x->tag == TAG_INTEGER) {
+	if (x->tag == TAG_INT) {
 		x->i = ltolong(* x) + ltolong(* y);
 	}
 }

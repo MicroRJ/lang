@@ -5,10 +5,9 @@
 */
 
 
-lbyteop treetobyte(lnodeop tt);
+lbyteop nodetobyte(lnodeop tt);
 
 
-/* todo: deprecated */
 lbyteid langL_getlabel(FileState *fs) {
 	return fs->md->nbytes;
 }
@@ -19,11 +18,11 @@ llocalid langL_localalloc(FileState *fs, llocalid n) {
 
 	FileFunc *fn = fs->fn;
 
-	llocalid id = fn->xlocals;
-	fn->xlocals += n;
+	llocalid id = fn->xmemory;
+	fn->xmemory += n;
 
-	if (fn->nlocals < fn->xlocals) {
-		fn->nlocals = fn->xlocals;
+	if (fn->nlocals < fn->xmemory) {
+		fn->nlocals = fn->xmemory;
 	}
 	return id;
 }
@@ -34,8 +33,8 @@ void langL_localdealloc(FileState *fs, llocalid x) {
 
 	FileFunc *fn = fs->fn;
 
-	LASSERT(x == fn->xlocals-1);
-	fn->xlocals = x;
+	LASSERT(x == fn->xmemory-1);
+	fn->xmemory = x;
 }
 
 
@@ -145,7 +144,7 @@ lbyteid langL_branchif(FileState *fs, ljlist *js, lbool z, llocalid x, lnodeid i
 	lNode v = fs->nodes[id];
 	lbyteid j = NO_BYTE;
 
-	llocalid mem = fs->fn->xlocals;
+	llocalid mem = fs->fn->xmemory;
 	/* -------------------------------
 	if not provided one, allocate temporary
 	register here, notice how this is done
@@ -187,7 +186,7 @@ lbyteid langL_branchif(FileState *fs, ljlist *js, lbool z, llocalid x, lnodeid i
 	}
 
 
-	fs->fn->xlocals = mem;
+	fs->fn->xmemory = mem;
 	return j;
 }
 
@@ -231,14 +230,14 @@ lbyteid *langL_jumpifnotnil(FileState *fs, llineid line, ljlist *js, lnodeid id)
 
 
 /* todo: add support for multiple results */
-void langL_yield(FileState *fs, llineid line, lnodeid t) {
+void langL_yield(FileState *fs, llineid line, lnodeid id) {
 	int n = 0;
 	llocalid x = 0;
-	if (t != NO_NODE) {
+	if (id != NO_NODE) {
 		/* todo: determine the number of values in
 		tree, and allocate that many registers? */
 		x = langL_localalloc(fs,n=1);
-		langL_localload(fs,line,ltrue,x,n,t);
+		langL_localload(fs,line,ltrue,x,n,id);
 		langL_localdealloc(fs,x);
 
 		if (fs->fn->nyield < n) fs->fn->nyield = n;
@@ -262,10 +261,10 @@ void langL_localloadin(FileState *fs, llineid line, llocalid r, lnodeid id) {
 	so we do it here, additionally, we double to check to
 	ensure that is the case, unnecessarily so, if this
 	function fails, is an internal error, or bug. */
-	if ((fs->fn->xlocals - r) == 0) {
+	if ((fs->fn->xmemory - r) == 0) {
 		langL_localalloc(fs,1);
 	}
-	if ((fs->fn->xlocals - r) != 1) {
+	if ((fs->fn->xmemory - r) != 1) {
 		langX_error(fs,line,"invalid memory state");
 	}
 	langL_localload(fs,line,ltrue,r,1,id);
@@ -276,15 +275,16 @@ llocalid langL_localize(FileState *fs, llineid line, lnodeid id) {
 	lNode v = fs->nodes[id];
 	llocalid r = v.r;
 	/* the node is currently allocated */
-	if ((r != NO_SLOT) && (r < fs->fn->xlocals)) {
-		goto then;
+	if ((r != NO_SLOT) && (r < fs->fn->xmemory)) {
+		goto leave;
 	} else r = langL_localalloc(fs,1);
 	langL_localload(fs,line,lfalse,r,1,id);
-	then: return r;
+	leave: return r;
 }
 
 
 void langL_emit(FileState *fs, llineid line, lnodeid id) {
+	llocalid mem = fs->fn->xmemory;
 	lNode v = fs->nodes[id];
 	switch (v.k) {
 		case NODE_LOAD: {
@@ -303,6 +303,7 @@ void langL_emit(FileState *fs, llineid line, lnodeid id) {
 		} break;
 		default: LNOBRANCH;
 	}
+	fs->fn->xmemory = mem;
 }
 
 
@@ -313,7 +314,7 @@ void langL_emit(FileState *fs, llineid line, lnodeid id) {
 */
 void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, lnodeid id) {
 	LASSERT(x > NO_SLOT);
-	LASSERT(x < fs->fn->xlocals);
+	LASSERT(x < fs->fn->xmemory);
 
 	lNode v = fs->nodes[id];
 	LASSERT(v.level <= fs->level);
@@ -324,7 +325,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 	FileFunc *fn = fs->fn;
 
 	/* finally restore memory state */
-	llocalid mem = fs->fn->xlocals;
+	llocalid mem = fs->fn->xmemory;
 
 	if ((v.r != NO_SLOT) && (reload != ltrue)) {
 		/* node is already allocated, and we're
@@ -384,23 +385,13 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			if (y == 0) goto leave;
 			LASSERT(v.line != 0);
 			langL_bytexy(fs,line,BC_TABLE,x,0);
-
-			/* -- todo: this is temporary work around,
-			otherwise any other instruction that circularly
-			references this one will continue allocating
-			a register for this instruction, this will
-			be replaced with a more robust system in
-			the near future */
-			fs->nodes[id].k = NODE_LOCAL;
-			fs->nodes[id].x = x;
-
 			langA_varifor(v.z) langL_emit(fs,line,v.z[i]);
 		} break;
 		case NODE_FIELD: case NODE_INDEX: {
 			if (y == 0) goto leave;
 			llocalid xx = langL_localize(fs,line,v.x);
 			llocalid yy = langL_localize(fs,line,v.y);
-			langL_bytexyz(fs,line,treetobyte(v.k),x,xx,yy);
+			langL_bytexyz(fs,line,nodetobyte(v.k),x,xx,yy);
 		} break;
 		case NODE_CLOSURE: {
 			if (y == 0) goto leave;
@@ -411,6 +402,12 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 				langL_localload(fs,line,ltrue,xx++,1,v.z[i]);
 			}
 			langL_bytexy(fs,line,BC_CLOSURE,x,v.x);
+		} break;
+		case NODE_TYPEGUARD: {
+			if (y == 0) goto leave;
+			langL_localload(fs,line,reload,x,y,v.x);
+			fs->nodes[id].r = x = fs->nodes[v.x].r;
+			langL_bytexy(fs,v.line,BC_TYPEGUARD,x,langN_ttotag(v.y));
 		} break;
 		case NODE_GROUP: {
 			if (y == 0) goto leave;
@@ -434,14 +431,11 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 				langL_bytexy(fs,v.line,BC_STKGET,x,x);
 			} else LNOBRANCH;
 		} break;
-		/* a meta field is of the form {x}:{x}, this gets
-		translated into a meta call, but since it is in
-		field form it has no side-effects */
 		case NODE_METAFIELD: {
 			if (y == 0) goto leave;
 			llocalid rx = langL_localize(fs,line,v.x);
 			llocalid ry = langL_localize(fs,line,v.y);
-			langL_bytexyz(fs,line,treetobyte(v.k),x,rx,ry);
+			langL_bytexyz(fs,line,nodetobyte(v.k),x,rx,ry);
 		} break;
 		case NODE_CALL: {
 			llocalid hh = x;
@@ -488,8 +482,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			if ((v.k == NODE_GT) || (v.k == NODE_GTEQ)) {
 				llocalid xx = langL_localize(fs,line,v.y);
 				llocalid yy = langL_localize(fs,line,v.x);
-				/* -- see lbyte.h for (v.k^1) */
-				langL_bytexyz(fs,line,treetobyte(v.k^1),x,xx,yy);
+				langL_bytexyz(fs,line,nodetobyte(v.k^1),x,xx,yy);
 			} else
 			if (v.k == NODE_EQ) {
 				/* todo: enable this */
@@ -501,14 +494,14 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			} else { _else:
 				llocalid xx = langL_localize(fs,line,v.x);
 				llocalid yy = langL_localize(fs,line,v.y);
-				langL_bytexyz(fs,line,treetobyte(v.k),x,xx,yy);
+				langL_bytexyz(fs,line,nodetobyte(v.k),x,xx,yy);
 			}
 		} break;
 		default: LNOBRANCH;
 	}
 
 	leave:
-	fs->fn->xlocals = mem;
+	fs->fn->xmemory = mem;
 }
 
 
@@ -520,7 +513,7 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 	if (line == 0) line = v.line;
 
 	/* keep local state, finally free any temporary locals */
-	llocalid mem = fs->fn->xlocals;
+	llocalid mem = fs->fn->xmemory;
 	switch (v.k) {
 		case NODE_GLOBAL: {
 			llocalid yy = langL_localize(fs,line,y);
@@ -544,10 +537,11 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 		case NODE_RANGE_INDEX: {
 			lnodeid lo = fs->nodes[v.y].x;
 			lnodeid hi = fs->nodes[v.y].y;
+			lnodeid ii = langN_local(fs,line,langL_localalloc(fs,1));
 			llocalid xx = langL_localize(fs,line,v.x);
 			llocalid yy = langL_localize(fs,line,y);
 			Loop loop = {0};
-			langL_beginrangedloop(fs,line,&loop,NO_NODE,lo,hi);
+			langL_beginrangedloop(fs,line,&loop,ii,lo,hi);
 			langL_bytexyz(fs,line,BC_SETINDEX,xx,loop.r,yy);
 			langL_closerangedloop(fs,line,&loop);
 		} break;
@@ -557,7 +551,7 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 	}
 
 
-	fs->fn->xlocals = mem;
+	fs->fn->xmemory = mem;
 }
 
 
@@ -666,15 +660,21 @@ void langL_closewhile(FileState *fs, llineid line, Loop *loop) {
 }
 
 
+lnodeid langN_ilessthan(FileState *fs, llineid line, lnodeid x, lnodeid y) {
+	x = langN_typeguard(fs,fs->nodes[x].line,x,NT_INT);
+	y = langN_typeguard(fs,fs->nodes[y].line,y,NT_INT);
+	return langN_xy(fs,line,NODE_LT,NT_BOL,x,y);
+}
+
+
 void langL_beginrangedloop(FileState *fs, llineid line, Loop *loop, lnodeid x, lnodeid lo, lnodeid hi) {
-	/*  todo: this is temporary */
-	if (x == NO_NODE) loop->r = langL_localalloc(fs,1);
-	else loop->r = langL_localize(fs,line,x);
-	loop->x = langN_local(fs,line,loop->r);
+	LASSERT(x != NO_NODE);
+	loop->x = x;
+	loop->r = langL_localize(fs,line,x);
 
 	langL_localload(fs,line,ltrue,loop->r,1,lo);
 
-	int c = langN_xy(fs,line,NODE_LT,NT_BOL,loop->x,hi);
+	lnodeid c = langN_ilessthan(fs,line,loop->x,hi);
 	loop->e = langL_getlabel(fs);
 
 	ljlist js = {lnil};
@@ -683,6 +683,7 @@ void langL_beginrangedloop(FileState *fs, llineid line, Loop *loop, lnodeid x, l
 
 
 void langL_closerangedloop(FileState *fs, llineid line, Loop *loop) {
+	LASSERT(loop->r == fs->nodes[loop->x].r);
 	int x = loop->x;
 	int k = langN_xy(fs,NO_LINE,NODE_ADD,NT_INT,x,langN_longint(fs,NO_LINE,1));
 	langL_moveto(fs,line,x,k);
@@ -690,18 +691,17 @@ void langL_closerangedloop(FileState *fs, llineid line, Loop *loop) {
 	langL_tieloosejs(fs,loop->f);
 	langA_vardel(loop->f);
 	loop->f = 0;
-	if (loop->y) langL_localdealloc(fs,loop->r);
 }
 
 
 /* -- todo? we could merge with adjacent blocks, but this
 would change the order of execution, should leave as is? */
-void langL_begindelayedblock(FileState *fs, llineid line, CodeBlock *d) {
+void langL_begindelayedblock(FileState *fs, llineid line, FileBlock *d) {
 	d->j = langL_byte(fs,line,BC_DELAY,NO_JUMP);
 }
 
 
-void langL_closedelayedblock(FileState *fs, llineid line, CodeBlock *bl) {
+void langL_closedelayedblock(FileState *fs, llineid line, FileBlock *bl) {
 	// langX_error(fs,line,"closed block, %i",langL_getlocallabel(fs));
 
 	FileFunc *fn = fs->fn;
@@ -711,7 +711,7 @@ void langL_closedelayedblock(FileState *fs, llineid line, CodeBlock *bl) {
 }
 
 
-lbyteop treetobyte(lnodeop tt) {
+lbyteop nodetobyte(lnodeop tt) {
 	switch (tt) {
 		case NODE_FIELD: 	  	return BC_FIELD;
 		case NODE_INDEX: 	  	return BC_INDEX;

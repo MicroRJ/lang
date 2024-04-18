@@ -4,7 +4,7 @@
 // todo: projections
 // todo: reflections
 // todo: wall kicks
-// todo: put shapes in a subgrid for proper rotations
+// todo: at least put shapes in a subgrid for proper rotations
 
 __logging(false)
 load "code/games/lgi.lang"
@@ -56,6 +56,7 @@ let enum BAG = {
 	S = {id="S",p={vec2(0,0),vec2(0,-1),vec2(1,0),vec2(-1,-1)}},
 }
 
+
 let enum MAP = {
 	0 = "I",
 	1 = "L",
@@ -68,19 +69,7 @@ let enum makecell = fun(colorid,stateid) ? ({"colorid"=colorid,"stateid"=stateid
 
 let grid = {}
 
-/* -- todo: we haven't standardized what this means, will
-makecell evaluate once or per each item? can we support both
-behaviors? can we extend this language feature to name the index
-variable? */
-// grid[0..512] = makecell(FLOOR,0)
-
-for i in 0..512 ? grid[i] = makecell("F",FLOOR)
-
-
-__logging(true)
-let len = grid:length
-pf(len)
-__logging(false)
+for i in 0..512 ? grid[i] = makecell("F",ID_FLOOR)
 
 
 let enum {
@@ -97,10 +86,6 @@ rotation = {}
 
 let enum get = fun (x,y) ? (grid[12 * y + x])
 
-// get :: (game: Game *, xy: vec2 *) -> Cell * {
-// 	ret game.grid[12 * xy.y + xy.x]
-// }
-
 let enum plot = fun (x,y,s,c) ? {
 	let cell = get(x,y)
 	cell.stateid = s
@@ -108,17 +93,13 @@ let enum plot = fun (x,y,s,c) ? {
 }
 
 
-let enum hscan = fun (y) ? {
-	for x in 1..11 ? {
-		if get(x,y).stateid != FLOOR ? {
-			leave true
-		}
-	}
+let enum htest = fun (y) ? {
+	for x in 1..11 ? if get(x,y).stateid != ID_FLOOR ? leave true
 	leave false
 }
 
 let enum hline = fun (y) ? {
-	for x in 1..11 ? if get(x,y).stateid == 0 ? leave false
+	for x in 1..11 ? if get(x,y).stateid == ID_FLOOR ? leave false
 	leave true
 }
 
@@ -143,8 +124,7 @@ let enum next = fun() ? {
 	position.x = 5
 	position.y = 21
 	ID_NEXT = ID_NEXT + 1
-	length = 5 /* todo: BAG:length */
-	index = rnd(0,length - 1)
+	let index = rnd(0,BAG:length() - 1)
 	this_shape = BAG[MAP[index]]
 	leave 1
 }
@@ -154,7 +134,7 @@ let enum prp = fun (v,clockwise) ? (vec2(v.y-(1-clockwise),(1-clockwise)-v.x))
 
 
 let enum can = fun (x,y) ? {
-	if x >= 11 ? leave 0
+	if   x >= 11 ? leave 0
 	elif x <=  0 ? leave 0
 	elif y <=  0 ? leave 0
 	else {
@@ -178,9 +158,9 @@ let enum move = fun (dx,dy) ? {
 	position.x = px
 	position.y = py
 	let c = this_shape.id
-			/* clear previous shape */
+				/* clear previous shape */
 	for i in 0..4 ? plot(x+p[i].x,y+p[i].y,ID_FLOOR,"F")
-			/* draw new one */
+				/* draw new one */
 	for i in 0..4 ? plot(px+p[i].x,py+p[i].y,ID_NEXT,c)
 
 	leave(true)
@@ -236,11 +216,11 @@ let enum rotate = fun(clockwise) ? {
 		iff can(x,y) ? leave false
 	}
 	let c = this_shape.id
-		/* clear previous shape */
+	/* clear previous shape */
 	for i in 0..4 ? plot(q.x+p[i].x,q.y+p[i].y,ID_FLOOR,"F")
-		/* store rotated points */
+	/* store rotated points */
 	for i in 0..4 ? p[i] = prp(p[i],clockwise)
-		/* draw new points */
+	/* draw new points */
 	for i in 0..4 ? plot(q.x+p[i].x,q.y+p[i].y,ID_NEXT,c)
 	leave true
 }
@@ -288,7 +268,7 @@ do {
 		iff move(0,-1) ? {
 		 	// do this before the next shape is
 		 	// generated and plotted
-			if hscan(20) ? clear()
+			if htest(20) ? clear()
 			/* then */
 			line()
 			next()

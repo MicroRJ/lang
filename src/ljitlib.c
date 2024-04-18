@@ -16,7 +16,7 @@
 - around */
 lBinding jit(lModule *md, lProto fn);
 int jitlib_jit(lRuntime *rt) {
-	lValue v = lang_load(rt,0);
+	lValue v = lang_loadfile(rt,0);
 	lBinding b = jit(rt->md,v.f->fn);
 	lang_pushbinding(rt,b);
 	// __debugbreak();

@@ -1,0 +1,4 @@
+__logging(false)
+let j
+for i in (((0)))..(((10))) ? j = i
+failed = j != 9

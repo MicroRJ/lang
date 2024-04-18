@@ -5,24 +5,24 @@
 */
 
 
+lTable *langH_newclass(lRuntime *R) {
+	lTable *tab = lang_pushnewtable(R);
+	langH_mf(R,tab,"length",langH_length_);
+	langH_mf(R,tab,"haskey",langH_haskey_);
+	langH_mf(R,tab,"hashin",langH_insert_);
+	langH_mf(R,tab,"lookup",langH_lookup_);
+	langH_mf(R,tab,"iter",langH_foreach_);
+	langH_mf(R,tab,"collisions",langH_collisions_);
+	langH_mf(R,tab,"unload",langH_unload_);
+	langH_mf(R,tab,"add",langH_add_);
+	langH_mf(R,tab,"idx",langH_idx_);
+	return tab;
+}
+
+
 lTable *langH_new2(lRuntime *fs, llongint ntotal) {
-	/* todo: we could make this system a a bit more
-	efficient by storing all methods in a single
-	hash table, then we would have to assign each
-	class a unique name id, which we would use to hash
-	into the method table... */
-	static MetaFunc _m[] = {
-		{"length",langH_length_},
-		{"haskey",langH_haskey_},
-		{"hashin",langH_insert_},
-		{"lookup",langH_lookup_},
-		{"foreach",langH_foreach_},
-		{"collisions",langH_collisions_},
-	};
 	lTable *table = langGC_allocobj(fs,OBJ_TABLE,sizeof(lTable));
-	table->obj._m = _m;
-	table->obj._n = _countof(_m);
-	// lang_loginfo("'%llx': created new table",(llongint)table);
+	table->obj.metaclass = fs->classofH;
 
 	table->ntotal = ntotal;
 	table->nslots = 0;
@@ -57,7 +57,7 @@ void langH_free(lTable *t) {
 **
 */
 llongint langH_hashin(lTable *table, lValue k) {
-	/* This particular function uses double hashing,
+	/* this particular function uses double hashing,
 	which should allow us to get more resolution out
 	of the hash value, the first hash computes the
 	starting index, and the secondary hash computes
@@ -65,8 +65,8 @@ llongint langH_hashin(lTable *table, lValue k) {
 	Since the increment depends on the data, it
 	should reduce clustering, and in practice it
 	has proven to be drastically more efficient
-	than linear probing. Of course, this is already
-	well known... */
+	than linear probing.
+	Of course, this is already well known... */
 	HashSlot *slots = table->slots;
 	llongint ntotal = table->ntotal;
 	llongint hash = langH_hashvalue(k);
@@ -139,6 +139,7 @@ void langH_checkthreshold(lTable *table) {
 void langH_insert(lTable *table, lValue k, lValue v) {
 	langH_checkthreshold(table);
 	llongint slot = langH_hashin(table,k);
+	/* todo: instead return an error here */
 	if (slot == -1) LNOBRANCH;
 	HashSlot *entry = table->slots + slot;
 	if (!langH_slotiskey(table,slot)) {
@@ -165,7 +166,7 @@ lValue langH_lookup(lTable *table, lValue k) {
 
 
 llongint langH_take(lTable *table, lValue k) {
-	LASSERT((k.tag == TAG_INTEGER || k.tag == TAG_NUMBER) || k.s != 0);
+	LASSERT((k.tag == TAG_INT || k.tag == TAG_NUM) || k.s != 0);
 
 	langH_checkthreshold(table);
 	llongint slot = langH_hashin(table,k);
@@ -226,6 +227,23 @@ int langH_collisions_(lRuntime *c) {
 }
 
 
+int langH_add_(lRuntime *R) {
+	LASSERT(R->call->x >= 1);
+	lTable *tab = (lTable *) R->call->obj;
+	langH_add(tab,lang_load(R,0));
+	return 0;
+}
+
+
+int langH_idx_(lRuntime *R) {
+	LASSERT(R->call->x >= 1);
+	lTable *tab = (lTable *) R->call->obj;
+	llongint idx = lang_loadlong(R,0);
+	lang_pushvalue(R,tab->v[idx]);
+	return 1;
+}
+
+
 int langH_insert_(lRuntime *c) {
 	int n = c->f->x;
 
@@ -256,9 +274,40 @@ int langH_foreach_(lRuntime *R) {
 			/* call the iterator function with two arguments */
 			/* todo: should yield boolean to signal whether to
 			stop or not */
-			lang_call(R,R->frame->obj,0,2,0);
+			lang_call(R,R->frame->obj,0,0,2,0);
 		}
 	}
+	return 0;
+}
+
+
+void ftabs(FILE *io, int level) {
+	while (level --) fprintf(io,"\t");
+}
+void langH_unload(FILE *io, lTable *tab, int level) {
+	fprintf(io,"{");
+	int nitems = 0;
+	for (int i = 0; i < tab->ntotal; ++ i) {
+		HashSlot slot = tab->slots[i];
+		if (slot.k.tag != TAG_NIL) {
+			if (nitems ++ != 0) fprintf(io,",");
+			syslib_fpfv_(io,slot.k,ltrue);
+			fprintf(io," = ");
+			lValue v = tab->v[slot.i];
+			if (v.tag == TAG_TAB) {
+				langH_unload(io,v.t,level+1);
+			} else {
+				syslib_fpfv_(io,v,ltrue);
+			}
+		}
+	}
+	fprintf(io,"}");
+}
+
+
+int langH_unload_(lRuntime *R) {
+	lsysobj io = lang_getsysobj(R,0);
+	langH_unload(io,(lTable*)(R->frame->obj),0);
 	return 0;
 }
 
@@ -312,14 +361,11 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 	}
 
 	switch (x->tag) {
-		case TAG_STRING: {
+		case TAG_STR: {
 			return langS_eq(x->s,y->s);
 		}
-		case TAG_INTEGER:
-		case TAG_NUMBER:
-		case TAG_TABLE:
-		case TAG_CLOSURE:
-		case TAG_BINDING: {
+		case TAG_SYS: case TAG_INT: case TAG_NUM:
+		case TAG_TAB: case TAG_CLS: case TAG_BID: {
 			return x->i == y->i;
 		}
 	}
@@ -331,14 +377,11 @@ lbool langH_valueeq(lValue *x, lValue *y) {
 
 llongint langH_hashvalue(lValue v) {
 	switch (v.tag) {
-		case TAG_STRING: {
+		case TAG_STR: {
 			return v.s->hash;
 		}
-		case TAG_NUMBER:
-		case TAG_TABLE:
-		case TAG_CLOSURE:
-		case TAG_BINDING:
-		case TAG_INTEGER: {
+		case TAG_TAB: case TAG_CLS: case TAG_SYS:
+		case TAG_INT: case TAG_NUM: case TAG_BID: {
 			return langH_hashPtr(v.p);
 		}
 	}
@@ -377,7 +420,7 @@ void langH_mergesort_(lTable *h, int level, llongint x, llongint z, lProto *fn) 
 
 		int r = lang_callargs(c,fn,2,a,b);
 		lValue vr = pop();
-		LASSERT(vr.tag == TAG_INTEGER);
+		LASSERT(vr.tag == TAG_INT);
 
 		if (vr.i) {
 			lValue t = h[x+i];

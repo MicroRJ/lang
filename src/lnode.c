@@ -42,6 +42,16 @@ lnodeid langN_load(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 }
 
 
+lnodeid langN_typeguard(FileState *fs, llineid line, lnodeid x, lnodety y) {
+	lnodeid id = langN_xy(fs,line,NODE_TYPEGUARD,y,x,y);
+	/* todo: please, figure out how to solve this */
+	if (fs->nodes[x].k == NODE_LOCAL) {
+		fs->nodes[id].r = fs->nodes[x].r;
+	}
+	return id;
+}
+
+
 lnodeid langN_group(FileState *fs, llineid line, lnodeid x) {
 	return langN_x(fs,line,NODE_GROUP,fs->nodes[x].t,x);
 }
@@ -130,4 +140,48 @@ lnodeid langN_loadfile(FileState *fs, llineid line, lnodeid x) {
 
 lnodeid langN_builtincall(FileState *fs, llineid line, ltokentype k, lnodeid *z) {
 	return langN_xyz(fs,line,NODE_BUILTIN,NT_ANY,k,NO_NODE,z);
+}
+
+
+lValue langN_tolitval(FileState *fs, lnodeid id);
+
+
+void langN_litapply(FileState *fs, lTable *tab, lnodeid id) {
+	lNode v = fs->nodes[id];
+	switch (v.k) {
+		case NODE_LOAD: {
+			lNode x = fs->nodes[v.x];
+			if ((x.k == NODE_LOCAL)) {
+				LNOBRANCH;
+			} else
+			if ((x.k == NODE_FIELD) || (x.k == NODE_INDEX)) {
+				lValue key = langN_tolitval(fs,x.x);
+				lValue val = langN_tolitval(fs,v.y);
+				langH_insert(tab,key,val);
+			} else LNOBRANCH;
+		} break;
+		default: LNOBRANCH;
+	}
+}
+
+
+lValue langN_tolitval(FileState *fs, lnodeid id) {
+	lNode nd = fs->nodes[id];
+	switch (nd.k) {
+		case NODE_INTEGER: {
+			return lang_I(nd.lit.i);
+		}
+		case NODE_NUMBER: {
+			return lang_N(nd.lit.n);
+		}
+		case NODE_TABLE: {
+			lTable *tab = langH_new(fs->R);
+			langA_varifor(nd.z) {
+				langN_litapply(fs,tab,nd.z[i]);
+			}
+			return lang_H(tab);
+		}
+		default: LNOBRANCH;
+	}
+	return (lValue){TAG_NIL};
 }

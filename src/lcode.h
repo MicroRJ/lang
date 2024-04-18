@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In lang.h
 ** (L) lcode.h
-** (L)ang Code Generation
+** Bytecode Generator (node -> bytecode)
 */
 
 
@@ -11,9 +11,9 @@
 #define NO_LINE (-0)
 
 
-typedef struct CodeBlock {
+typedef struct FileBlock {
 	lbyteid j,e;
-} CodeBlock;
+} FileBlock;
 
 
 /* Contains list of false and true jumps
@@ -37,11 +37,18 @@ typedef struct Select {
 } Select;
 
 
+/* memory state should be handled by the user, the loop
+can allocate a register if none given, so always save
+and restore the memory state. */
 typedef struct Loop {
-	/* local register for this loop */
-	llocalid r,y;
-	/* associated loop expression */
+	/* the expression to increment, should be a local */
 	lnodeid  x;
+	/* the register to increment, should be same as x.r,
+	this is kept here to ensure x wasn't deallocated or
+	modified. */
+	llocalid r;
+
+	/* the entry byte */
 	lbyteid  e;
 	/* list of false jumps to patch */
 	lbyteid *f;
@@ -53,8 +60,8 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 llocalid langL_localize(FileState *fs, llineid line, lnodeid id);
 
 
-void langL_begindelayedblock(FileState *fs, char *line, CodeBlock *bl);
-void langL_closedelayedblock(FileState *fs, char *line, CodeBlock *bl);
+void langL_begindelayedblock(FileState *fs, llineid line, FileBlock *bl);
+void langL_closedelayedblock(FileState *fs, llineid line, FileBlock *bl);
 
 
 lbyteid langL_branchiffalse(FileState *fs, ljlist *js, llocalid x, lnodeid id);

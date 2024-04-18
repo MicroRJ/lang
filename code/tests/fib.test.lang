@@ -41,7 +41,7 @@ if fib == fibmem ? {
 }
 
 if failed ? {
-	fibtab:foreach(fun(x,y) ? {
+	fibtab:iter(fun(x,y) ? {
 		pf(x, " = ", y)
 	})
 }

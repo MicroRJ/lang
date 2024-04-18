@@ -11,16 +11,13 @@ lapi llongint sys_clockhz();
 lapi llongint sys_clocktime();
 
 lapi int sys_getmyname(int length, char *buffer);
+lapi int sys_getmypid();
 
 lapi int sys_workdir(int length, char *buffer);
 lapi int sys_setworkdir(char *buffer);
 
-lapi void sys_fclose(Handle file);
-lapi Handle sys_fopen(char *name, char *flags);
-
-
-lapi Handle sys_loadlib(char const *name);
-lapi void *sys_libfn(Handle lib, char const *name);
+lapi lsysobj sys_loadlib(char const *name);
+lapi void *sys_libfn(lsysobj lib, char const *name);
 
 lapi Error sys_loadfilebytes(Alloc *allocator, void **lppOut, char const *fileName);
 lapi Error sys_savefilebytes(char const *buffer, llongint length, char const *fileName);

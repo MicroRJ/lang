@@ -5,21 +5,29 @@
 */
 
 
-lString *langS_new(lRuntime *fs, char const *junk) {
-	static MetaFunc _m[] = {
-		{"length",langS_length_},
-		{"match",langS_match_},
-		{"hash",langS_hash_},
-	};
+lTable *langS_newclass(lRuntime *R) {
+	lTable *tab = lang_pushnewtable(R);
+	langH_mf(R,tab,"length",langS_length_);
+	langH_mf(R,tab,"match",langS_match_);
+	langH_mf(R,tab,"hash",langS_hash_);
+	return tab;
+}
 
+
+lString *langS_new2(lRuntime *R, llongint length) {
+	lString *obj = langGC_allocobj(R,OBJ_STRING,sizeof(lString)+length+1);
+	obj->obj.metaclass = R->classofS;
+	obj->length = length;
+	obj->hash = -1;
+	obj->c[length] = 0;
+	return obj;
+}
+
+
+lString *langS_new(lRuntime *R, char const *junk) {
 	int length = S_length(junk);
-
-	lString *obj = langGC_allocobj(fs,OBJ_STRING,sizeof(lString)+length);
-	obj->obj._m = _m;
-	obj->obj._n = _countof(_m);
-
-	/* todo: allocate this along with the header */
-	langM_copy(obj->string,junk,length);
+	lString *obj = langS_new2(R,length);
+	langM_copy(obj->c,junk,length);
 	obj->hash = langH_hashS((char*)junk);
 	return obj;
 }

@@ -38,7 +38,7 @@ let enum rnd = fun(x,y) ? {
 
 
 let enum {
-	SIDELEN = 16,
+	SIDELEN = 32,
 	CELLPX  = 32,
 }
 

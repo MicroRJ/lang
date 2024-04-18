@@ -1,0 +1,15 @@
+pf("client - creating remote server...")
+exec("build\\lg.exe code\\examples\\sockets.lang")
+pf("client - launching...")
+netlib_init() finally netlib_close()
+let client = tcpclient("192.168.254.133","4001")
+pf("client - connection established")
+send(client,"Hello, World! - client")
+ioctl(client)
+for i in 0..1000 ? {
+	let got = recv(client)
+	if got != nil ? {
+		pf("client - received: ", got:length(), " byte(s), ", got)
+	}
+	sleep(250)
+}

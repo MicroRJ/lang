@@ -1,0 +1,11 @@
+let file = ftemp() finally fclose(file)
+let test = {"x"=1,"y"={
+	"x"=1,
+	"y"=2,
+}}
+test:unload(file)
+pf("size: ",fsize(file));
+let data = freadall(file)
+pf("data: ",data);
+let x = loadexpr(data)
+pf(x)

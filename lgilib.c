@@ -44,7 +44,7 @@ llibfn int lgilib_tick(lRuntime *rt) {
 
 
 llibfn int lgilib_drawQuad(lRuntime *rt) {
-	LASSERT(lang_topop(rt) == 8);
+	LASSERT(lang_toplen(rt) == 8);
 	float r = (float) lang_loadnum(rt,0);
 	float g = (float) lang_loadnum(rt,1);
 	float b = (float) lang_loadnum(rt,2);

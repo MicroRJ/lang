@@ -59,6 +59,13 @@ lapi int sys_getmyname(int length, char *buffer) {
 }
 
 
+lapi int sys_getmypid() {
+#if defined(_WIN32)
+	return GetCurrentProcessId();
+#endif
+}
+
+
 lapi int sys_workdir(int length, char *buffer) {
 #if defined(_WIN32)
 	return GetCurrentDirectory(length,buffer);
@@ -73,30 +80,17 @@ lapi int sys_setworkdir(char *buffer) {
 }
 
 
-lapi Handle sys_loadlib(char const *name) {
+lapi lsysobj sys_loadlib(char const *name) {
 #if defined(_WIN32)
-	return (Handle) LoadLibraryA(name);
+	return (lsysobj) LoadLibraryA(name);
 #endif
 }
 
 
-lapi void *sys_libfn(Handle dll, char const *name) {
+lapi void *sys_libfn(lsysobj dll, char const *name) {
 #if defined(_WIN32)
 	return (void *) GetProcAddress(dll,name);
 #endif
-}
-
-
-/* todo: convert this to windows version */
-lapi Handle sys_fopen(char *name, char *flags) {
-	FILE *file = lnil;
-	fopen_s(&file,name,flags);
-	return (Handle) file;
-}
-
-
-lapi void sys_fclose(Handle file) {
-	fclose(file);
 }
 
 
