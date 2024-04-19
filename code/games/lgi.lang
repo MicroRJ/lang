@@ -1,5 +1,14 @@
+
+// Example:
+// lgi_initWindowed(720,720,"test")
+// do { lgi_clearBackground();
+// } while lgi_tick()
+
+
+log ?= pf
+
 let enum _time = clocktime()
-finally pf(" loaded lgi, took: ",timediffs(_time))
+finally log(" loaded lgi, took: ",timediffs(_time))
 
 lgi ?= {}
 lgi.lib ?= loadlib("build/lgilib.exe")
@@ -12,14 +21,26 @@ lgi_tick = lgifn("lgilib_tick")
 lgi_clearBackground = lgifn("lgilib_clearBackground")
 lgi_testKey = lgifn("lgilib_testKey")
 lgi_drawQuad_ = lgifn("lgilib_drawQuad")
+lgi_drawQuadUV_ = lgifn("lgilib_drawQuadUV")
 lgi_time = lgifn("lgilib_time")
 lgi_deltatime = lgifn("lgilib_deltatime")
 lgi_getSizeX = lgifn("lgilib_getSizeX")
 lgi_getSizeY = lgifn("lgilib_getSizeY")
 
-// lgi_initWindowed(720,720,"test")
-// do { lgi_clearBackground();
-// } while lgi_tick()
+lgi_loadtexture = lgifn("lgilib_loadtexture")
+lgi_gettexturewidth = lgifn("lgilib_gettexturewidth")
+lgi_gettextureheight = lgifn("lgilib_gettextureheight")
+
+lgi_setsampler = lgifn("lgilib_setsampler")
+lgi_bindtexture = lgifn("lgilib_bindtexture")
+lgi_beginvertices = lgifn("lgilib_beginvertices")
+lgi_closevertices = lgifn("lgilib_closevertices")
+lgi_addnidx = lgifn("lgilib_addnidx")
+lgi_attrrgba = lgifn("lgilib_attrrgba")
+lgi_attrxyzw = lgifn("lgilib_attrxyzw")
+lgi_attrxyuv = lgifn("lgilib_attrxyuv")
+lgi_attruv = lgifn("lgilib_attruv")
+lgi_pushvertex = lgifn("lgilib_pushvertex")
 
 
 lgi_drawQuad = fun (color,x,y,w,h) ? {
@@ -31,6 +52,35 @@ lgi_drawQuad = fun (color,x,y,w,h) ? {
 	lgi_drawQuad_(r,g,b,a,x,y,w,h)
 }
 
+
+lgi_drawQuadUV = fun (color,tex,x,y,w,h) ? {
+	color ?= lgi_WHITE
+	let r = color.r
+	let g = color.g
+	let b = color.b
+	let a = color.a
+	lgi_drawQuadUV_(r,g,b,a,x,y,w,h,tex)
+}
+
+
+lgi_drawtexture = fun(tex,x,y,xx,yy,u,v,uu,vv) ? {
+	let w = lgi_gettexturewidth(tex)
+	let h = lgi_gettextureheight(tex)
+	/* todo: do this better */
+	u = u / 1. / w
+	v = v / 1. / w
+	uu = uu / 1. / w
+	vv = vv / 1. / h
+	lgi_bindtexture(tex)
+	lgi_beginvertices(6,4)
+	lgi_attrrgba(1,1,1,1)
+	lgi_addnidx(0,1,2, 0,2,3)
+	lgi_attrxyuv(x   ,y   ,u   ,v+vv) lgi_pushvertex()
+	lgi_attrxyuv(x   ,y+yy,u   ,v   ) lgi_pushvertex()
+	lgi_attrxyuv(x+xx,y+yy,u+uu,v   ) lgi_pushvertex()
+	lgi_attrxyuv(x+xx,y   ,u+uu,v+vv) lgi_pushvertex()
+	lgi_closevertices()
+}
 
 
 let enum RGB = fun(r,g,b) ? {
@@ -74,6 +124,11 @@ lgi_NAVY = RGBU(0x00, 0x00, 0x80, 0xFF)
 lgi_OLIVE = RGBU(0x80, 0x80, 0x00, 0xFF)
 lgi_SALMON = RGBU(0xFA, 0x80, 0x72, 0xFF)
 lgi_AQUAMARINE = RGBU(0x7F, 0xFF, 0xD4, 0xFF)
+
+
+
+
+
 
 
 leave true

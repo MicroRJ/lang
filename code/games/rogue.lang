@@ -1,0 +1,105 @@
+__logging(false)
+load "code/games/lgi.lang"
+
+
+let Feet = {}
+let World = {}
+let WorldSide = 16
+let WorldSize = WorldSide*WorldSide
+let enum {
+	FLOOR  = 0,
+	GRASS  = 1,
+	CELLPX = 32,
+}
+World[0..WorldSize] = GRASS
+
+let enum vec2 = fun(x,y) ? ({"x"=x,"y"=y})
+let enum vec2_add = fun(x,y) ? vec2(x.x+y.x,x.y+y.y)
+
+let enum {
+	LEFT  = vec2(-1, 0),
+	RIGHT = vec2( 1, 0),
+	UP    = vec2( 0, 1),
+	DOWN  = vec2( 0,-1),
+}
+
+let enum xorshift = fun(x) ? {
+	x = x ^ x << 13
+	x = x ^ x >> 7
+	x = x ^ x << 17
+	leave x
+}
+
+rndstate = 5282
+let enum rnd = fun(x,y) ? {
+	rndstate = xorshift(rndstate)
+	if rndstate < 0 ? rndstate = -rndstate
+	leave x + rndstate % (y - x)
+}
+
+
+/* todo: lang feature, when we do x = y within
+a table, x should evaluate to the key itself,
+we should not interpret x as the name literal */
+let tileidtocolor = fun(tileid) ? {
+	let color = lgi_BLACK
+	if tileid == WATER ? {
+		color = lgi_BLUE
+	} elif tileid == GRASS ? {
+		color = lgi_GREEN
+	} elif tileid == LAVA ? {
+		color = lgi_RED
+	}
+	leave color
+}
+
+
+let gettileid = fun(x,y) ? {
+	leave World[WorldSide * y + x]
+}
+
+
+let draw = fun () ? {
+	for y in 0..WorldSide  ? {
+		for x in 0..WorldSide ? {
+			let box_x = x * CELLPX + x * 2
+			let box_y = y * CELLPX + y * 2
+			lgi_drawQuad(tileidtocolor(gettileid(x,y)),box_x,box_y,CELLPX,CELLPX)
+		}
+	}
+}
+
+lgi_initWindowed(720,720, "rogue")
+
+let tilestex = lgi_loadtexture("code/games/tiles.png")
+lgi_setsampler(tilestex,"point")
+
+do {
+	lgi_clearBackground();
+	if lgi_testKey('W') ? {
+		move(UP)
+	} elif lgi_testKey('D') ? {
+		move(RIGHT)
+	} elif lgi_testKey('A') ? {
+		move(LEFT)
+	} elif lgi_testKey('S') ? {
+		move(DOWN)
+	}
+	// draw()
+
+	let u = 17.
+	let v = 18.
+	let a = v / u
+	let s = 128.
+	let w = s * a
+	let h = s
+	for i in 0..8 ? {
+		lgi_drawtexture(tilestex,i*w,i,w,h,1,0,u,v)
+	}
+	// lgi_drawQuadUV(lgi_WHITE,tilestex,0,0,512,512)
+} while lgi_tick()
+
+
+
+
+

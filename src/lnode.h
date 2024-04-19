@@ -139,13 +139,12 @@ lvaluetag langN_ttotag(lnodety ty) {
 
 
 
-/*
-
+/* 4.2.26
+-- DEAR DIARY,  ------------------------------------------
+----------------------------------------------------------
+Please don't read this...
 
 IR System (Nodes):
-
-
-Notes for the learner:
 
 -- What is an IR?
 By definition IR stands for intermediate representation,

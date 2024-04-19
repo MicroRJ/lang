@@ -12,6 +12,25 @@
 #include <direct.h>
 
 
+
+int crtlib_sin(lRuntime *R) {
+	lang_pushnum(R,sin(lang_getnum(R,0)));
+	return 1;
+}
+
+
+int crtlib_cos(lRuntime *R) {
+	lang_pushnum(R,cos(lang_getnum(R,0)));
+	return 1;
+}
+
+
+int crtlib_tan(lRuntime *R) {
+	lang_pushnum(R,tan(lang_getnum(R,0)));
+	return 1;
+}
+
+
 int crtlib_abort(lRuntime *rt) {
 	if(1) abort();
 	return 0;
@@ -65,8 +84,8 @@ int crtlib__strtime(lRuntime *rt) {
 
 
 int crtlib_fopen(lRuntime *c) {
-	lString *name = lang_loadS(c,0);
-	lString *flags = lang_loadS(c,1);
+	lString *name = lang_getstr(c,0);
+	lString *flags = lang_getstr(c,1);
 	FILE *file = lnil;
 	fopen_s(&file,name->c,flags->c);
 	lang_pushsysobj(c,(lsysobj) file);
@@ -90,7 +109,7 @@ int crtlib_fsize(lRuntime *c) {
 
 
 int crtlib__unlink(lRuntime *rt) {
-	lString *name = lang_loadS(rt,0);
+	lString *name = lang_getstr(rt,0);
 	lang_pushlong(rt,_unlink(name->c));
 	return 1;
 }
@@ -105,7 +124,7 @@ int crtlib__unlock_file(lRuntime *rt) {
 
 int crtlib__write(lRuntime *rt) {
 	lsysobj file = lang_getsysobj(rt,0);
-	lString *buf = lang_loadS(rt,1);
+	lString *buf = lang_getstr(rt,1);
 	lang_pushlong(rt,_write((llongint)file,buf->c,buf->length));
 	return 1;
 }
@@ -126,7 +145,7 @@ int crtlib__commit(lRuntime *rt) {
 
 
 int crtlib__chdir(lRuntime *rt) {
-	lString *name = lang_loadS(rt,0);
+	lString *name = lang_getstr(rt,0);
 	lang_pushlong(rt,_chdir(name->c));
 	return 1;
 }
@@ -140,7 +159,7 @@ int crtlib__chdrive(lRuntime *rt) {
 
 
 int crtlib__chmode(lRuntime *rt) {
-	lString *name = lang_loadS(rt,0);
+	lString *name = lang_getstr(rt,0);
 	llongint mode = lang_loadlong(rt,1);
 	lang_pushlong(rt,_chmod(name->c,mode));
 	return 1;
@@ -148,14 +167,14 @@ int crtlib__chmode(lRuntime *rt) {
 
 
 int crtlib__execl(lRuntime *rt) {
-	lString *cl = lang_loadS(rt,0);
+	lString *cl = lang_getstr(rt,0);
 	lang_pushlong(rt,_execl(cl->c,0,0));
 	return 1;
 }
 
 
 int crtlib_system(lRuntime *rt) {
-	lString *cl = lang_loadS(rt,0);
+	lString *cl = lang_getstr(rt,0);
 	lang_pushlong(rt,system(cl->c));
 	return 1;
 }
@@ -163,6 +182,10 @@ int crtlib_system(lRuntime *rt) {
 
 lapi void crtlib_load(lRuntime *rt) {
 	lModule *md = rt->md;
+
+	lang_addglobal(md,lang_pushnewS(rt,"sin"),lang_C(crtlib_sin));
+	lang_addglobal(md,lang_pushnewS(rt,"cos"),lang_C(crtlib_cos));
+	lang_addglobal(md,lang_pushnewS(rt,"tan"),lang_C(crtlib_tan));
 
 	lang_addglobal(md,lang_pushnewS(rt,"stderr"),lang_H(stderr));
 	lang_addglobal(md,lang_pushnewS(rt,"stdout"),lang_H(stdout));

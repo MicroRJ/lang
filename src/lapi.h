@@ -21,6 +21,12 @@
 ** ry can be equal to rx.
 */
 lapi int lang_call(lRuntime *, lObject *obj, llocalid rx, llocalid ry, int nx, int ny);
+
+
+/*
+** Performs a root call, where rx and ry are the same
+** and obj is nil.
+*/
 lapi int lang_rootcall(lRuntime *, llocalid rx, int nx, int ny);
 
 lapi llongint lang_toplen(lRuntime *c);
@@ -38,8 +44,8 @@ lapi lValue lang_load(lRuntime *c, llocalid x);
 lapi lsysobj lang_getsysobj(lRuntime *c, llocalid x);
 lapi lClosure *lang_loadcl(lRuntime *c, llocalid x);
 lapi llongint lang_loadlong(lRuntime *c, llocalid x);
-lapi lnumber lang_loadnum(lRuntime *c, llocalid x);
-lapi lString *lang_loadS(lRuntime *c, llocalid x);
+lapi lnumber lang_getnum(lRuntime *c, llocalid x);
+lapi lString *lang_getstr(lRuntime *c, llocalid x);
 llocalid lang_stkalloc(lRuntime *R, int n);
 
 lapi llocalid lang_pushvalue(lRuntime *, lValue v);

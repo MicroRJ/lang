@@ -47,7 +47,7 @@ int main(int n, char **c) {
 	lang_loadfile(&rt,&fs,filename,0,0);
 
 	FILE *file;
- 	fopen_s(&file,S_tpf("%s.module.ignore",filename->c),"wb");
+	fopen_s(&file,S_tpf("%s.module.ignore",filename->c),"wb");
 	if (file != lnil) lang_dumpmodule(&md,file);
 	fclose(file);
 

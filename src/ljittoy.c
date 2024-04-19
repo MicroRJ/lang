@@ -12,7 +12,7 @@ unsigned char *jit_mem;
 int jit_cur;
 
 
-/* -- todo: this is a security risk, instead allocated
+/* -- todo: this is a security risk, instead allocate
 regular memory, then after all code has been generated,
 make readonly and executable */
 char *jit_alloc(int length) {

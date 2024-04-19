@@ -466,7 +466,7 @@ lapi llongint lang_poplong(lRuntime *R) {
 }
 
 
-lapi lString *lang_loadS(lRuntime *R, llocalid x) {
+lapi lString *lang_getstr(lRuntime *R, llocalid x) {
 	lValue v = R->call->locals[x];
 	if (v.tag != TAG_NIL && v.tag != TAG_STR) {
 		langR_error(R,NO_BYTE,S_tpf("expected string at local %i",x));
@@ -517,7 +517,7 @@ lapi llongint lang_loadlong(lRuntime *R, int x) {
 }
 
 
-lapi lnumber lang_loadnum(lRuntime *R, llocalid x) {
+lapi lnumber lang_getnum(lRuntime *R, llocalid x) {
 	lValue v = R->call->locals[x];
 	if (v.tag == TAG_INT) return (lnumber) v.i;
 	LASSERT(v.tag == TAG_NUM);

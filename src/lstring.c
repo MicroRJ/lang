@@ -97,7 +97,7 @@ int langS_length_(lRuntime *c) {
 
 int langS_match_(lRuntime *c) {
 	lString *s = (lString*) c->f->obj;
-	lString *p = lang_loadS(c,0);
+	lString *p = lang_getstr(c,0);
 	lang_pushlong(c,S_match(p->string,s->string));
 	return 1;
 }

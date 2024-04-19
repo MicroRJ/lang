@@ -19,7 +19,7 @@ int syslib_thread(lRuntime *R) {
 #endif
 
 int syslib_loadexpr(lRuntime *R) {
-	lString *contents = lang_loadS(R,0);
+	lString *contents = lang_getstr(R,0);
 	lang_loadexpr(R,contents,-1,R->call->y);
 	/* no need to do hoisting */
 	return 0;
@@ -28,7 +28,7 @@ int syslib_loadexpr(lRuntime *R) {
 
 int syslib_libfn(lRuntime *rt) {
 	lsysobj lib = lang_getsysobj(rt,0);
-	lString *name = lang_loadS(rt,1);
+	lString *name = lang_getstr(rt,1);
 	lBinding fn = (lBinding) sys_libfn(lib,name->c);
 	if (fn != lnil) {
 		lang_pushbinding(rt,fn);
@@ -40,7 +40,7 @@ int syslib_libfn(lRuntime *rt) {
 
 
 int syslib_loadlib(lRuntime *rt) {
-	lString *name = lang_loadS(rt,0);
+	lString *name = lang_getstr(rt,0);
 	lsysobj lib = sys_loadlib(name->c);
 	if (lib != INVALID_HANDLE_VALUE) {
 		lang_pushsysobj(rt,lib);
@@ -52,7 +52,7 @@ int syslib_loadlib(lRuntime *rt) {
 
 
 int syslib_exec(lRuntime *R) {
-	lString *cmd = lang_loadS(R,0);
+	lString *cmd = lang_getstr(R,0);
 	STARTUPINFO si = {sizeof(si)};
 	PROCESS_INFORMATION pi = {0};
 	int result = CreateProcess(NULL,cmd->c,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi);
@@ -90,7 +90,7 @@ int syslib_workdir(lRuntime *rt) {
 	sys_workdir(sizeof(buf),buf);
 	lang_pushnewS(rt,buf);
 	if (rt->f->x == 1) {
-		lString *s = lang_loadS(rt,0);
+		lString *s = lang_getstr(rt,0);
 		sys_setworkdir(s->c);
 	}
 	return 1;
@@ -106,7 +106,7 @@ int syslib_pwd(lRuntime *rt) {
 
 
 int syslib_setpwd(lRuntime *rt) {
-	lString *s = lang_loadS(rt,0);
+	lString *s = lang_getstr(rt,0);
 	sys_setworkdir(s->c);
 	return 0;
 }
@@ -244,7 +244,7 @@ lapi int syslib_listdir(lRuntime *R) {
 	keypath = lang_pushnewS(R,"path");
 	keyisdir = lang_pushnewS(R,"isdir");
 	lClosure *cl = lang_loadcl(R,1);
-	lString *dir = lang_loadS(R,0);
+	lString *dir = lang_getstr(R,0);
 	lTable *flags = lang_pushnewtable(R);
 	/* push list last to serve as return value */
 	lTable *list = lang_pushnewtable(R);

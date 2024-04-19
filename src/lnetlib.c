@@ -66,8 +66,8 @@ lapi int netlib_pollclient(lRuntime *R) {
 
 
 lapi int netlib_tcpserver(lRuntime *R) {
-	lString *addrnameS = lang_loadS(R,0);
-	lString *addrportS = lang_loadS(R,1);
+	lString *addrnameS = lang_getstr(R,0);
+	lString *addrportS = lang_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
 	char *addrport = addrportS ? addrportS->c : 0;
 	ADDRINFOA idealaddr = {0};
@@ -89,8 +89,8 @@ lapi int netlib_tcpserver(lRuntime *R) {
 
 
 lapi int netlib_tcpclient(lRuntime *R) {
-	lString *addrnameS = lang_loadS(R,0);
-	lString *addrportS = lang_loadS(R,1);
+	lString *addrnameS = lang_getstr(R,0);
+	lString *addrportS = lang_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
 	char *addrport = addrportS ? addrportS->c : 0;
 	ADDRINFOA idealaddr = {0};
@@ -114,7 +114,7 @@ lapi int netlib_tcpclient(lRuntime *R) {
 lapi int netlib_send(lRuntime *R) {
 	/* todo: make this a class? */
 	SOCKET socket = (SOCKET) lang_getsysobj(R,0);
-	lString *payload = lang_loadS(R,1);
+	lString *payload = lang_getstr(R,1);
 	LMSG message = { payload->length };
 	llongint sent = 0;
 	sent += send(socket,(char*)&message,sizeof(message),0);
