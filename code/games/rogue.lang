@@ -1,27 +1,48 @@
 __logging(false)
 load "code/games/lgi.lang"
 
+// let enum {
+// 	TILESET_ROWLEN =  10,
+// 	TILE_SLOTDIMEN =  18,
+// 	TILE_DRAWDIMEN = 128,
+// }
+
+let enum {
+	TILESET_ROWLEN =  11,
+	TILE_SLOTDIMEN =  32,
+	TILE_DRAWDIMEN = 128,
+}
 
 let Feet = {}
 let World = {}
 let WorldSide = 16
-let WorldSize = WorldSide*WorldSide
-let enum {
-	FLOOR  = 0,
-	GRASS  = 1,
-	CELLPX = 32,
-}
-World[0..WorldSize] = GRASS
+let WorldSize = WorldSide*WorldSide*WorldSide
 
-let enum vec2 = fun(x,y) ? ({"x"=x,"y"=y})
-let enum vec2_add = fun(x,y) ? vec2(x.x+y.x,x.y+y.y)
+
+// let enum {
+// 	GRASS  = 0,
+// 	DIRT   = 6,
+// 	AIR    = 9,
+// 	WATER  = 23,
+// 	OAK    = 30,
+// 	LEAF   = 40,
+// }
 
 let enum {
-	LEFT  = vec2(-1, 0),
-	RIGHT = vec2( 1, 0),
-	UP    = vec2( 0, 1),
-	DOWN  = vec2( 0,-1),
+	GRASS  = 24,
+	DIRT   = 0,
+	AIR    = 9,
+	WATER  = 23,
+	OAK    = 30,
+	LEAF   = 40,
 }
+
+
+
+World[0..WorldSize] = AIR
+World[0..WorldSide*WorldSide] = DIRT
+
+
 
 let enum xorshift = fun(x) ? {
 	x = x ^ x << 13
@@ -37,66 +58,99 @@ let enum rnd = fun(x,y) ? {
 	leave x + rndstate % (y - x)
 }
 
-
-/* todo: lang feature, when we do x = y within
-a table, x should evaluate to the key itself,
-we should not interpret x as the name literal */
-let tileidtocolor = fun(tileid) ? {
-	let color = lgi_BLACK
-	if tileid == WATER ? {
-		color = lgi_BLUE
-	} elif tileid == GRASS ? {
-		color = lgi_GREEN
-	} elif tileid == LAVA ? {
-		color = lgi_RED
-	}
-	leave color
+for i in 0..WorldSide*WorldSide ? {
+	World[rnd(0,WorldSide*WorldSide)] = GRASS
 }
 
 
-let gettileid = fun(x,y) ? {
-	leave World[WorldSide * y + x]
+let gettileid = fun(x,y,z) ? {
+	leave World[WorldSide*WorldSide*z + WorldSide * y + x]
 }
 
 
-let draw = fun () ? {
-	for y in 0..WorldSide  ? {
-		for x in 0..WorldSide ? {
-			let box_x = x * CELLPX + x * 2
-			let box_y = y * CELLPX + y * 2
-			lgi_drawQuad(tileidtocolor(gettileid(x,y)),box_x,box_y,CELLPX,CELLPX)
-		}
-	}
+let settileid = fun(tileid,x,y,z) ? {
+	World[WorldSide*WorldSide*z + WorldSide * y + x] = tileid
 }
+
+
+let addtree = fun(x,y) ? {
+	settileid(OAK,x,y,1)
+	settileid(OAK,x,y,2)
+	settileid(LEAF,x,y,3)
+	settileid(LEAF,x,y,4)
+	settileid(LEAF,x+1,y,3)
+	settileid(LEAF,x-1,y,3)
+	settileid(LEAF,x,y+1,3)
+	settileid(LEAF,x,y-1,3)
+}
+// addtree(1,1)
+
+
+
+camerax = 256
+cameray = 0
+
+
+
+let enum vec2 = fun(x,y) ? ({"x"=x,"y"=y})
+let enum vec2_add = fun(x,y) ? vec2(x.x+y.x,x.y+y.y)
+
+let enum {
+	LEFT  = vec2(-1, 0),
+	RIGHT = vec2( 1, 0),
+	UP    = vec2( 0, 1),
+	DOWN  = vec2( 0,-1),
+}
+
+
+
 
 lgi_initWindowed(720,720, "rogue")
 
-let tilestex = lgi_loadtexture("code/games/tiles.png")
+let tilestex = lgi_loadtexture("code/games/tiles2.png")
 lgi_setsampler(tilestex,"point")
+
+
+let drawtile = fun(tileid,x,y,z) ? {
+	let h = TILE_DRAWDIMEN*.5
+	let q = TILE_DRAWDIMEN*.25
+	lgi_drawtexture(tilestex
+	,x*h - y*h + camerax
+	,x*q + y*q + z*h + cameray
+	,TILE_DRAWDIMEN,TILE_DRAWDIMEN
+	,TILE_SLOTDIMEN*(tileid%TILESET_ROWLEN)
+	,TILE_SLOTDIMEN*(tileid/TILESET_ROWLEN)
+	,TILE_SLOTDIMEN,TILE_SLOTDIMEN)
+}
+
+
+
+let move = fun(x) ? {
+	camerax = camerax + -x.x * 10
+	cameray = cameray + -x.y * 10
+}
+
 
 do {
 	lgi_clearBackground();
-	if lgi_testKey('W') ? {
-		move(UP)
-	} elif lgi_testKey('D') ? {
-		move(RIGHT)
-	} elif lgi_testKey('A') ? {
-		move(LEFT)
-	} elif lgi_testKey('S') ? {
-		move(DOWN)
-	}
-	// draw()
+	if lgi_testKey('W') ? move(UP)
+	if lgi_testKey('D') ? move(RIGHT)
+	if lgi_testKey('A') ? move(LEFT)
+	if lgi_testKey('S') ? move(DOWN)
 
-	let u = 17.
-	let v = 18.
-	let a = v / u
-	let s = 128.
-	let w = s * a
-	let h = s
-	for i in 0..8 ? {
-		lgi_drawtexture(tilestex,i*w,i,w,h,1,0,u,v)
+
+	for z in 0..8 ? {
+		for y in 0..8 ? {
+			let iy = 8-1-y
+			for x in 0..8 ? {
+				let ix = 8-1-x
+				let tileid = gettileid(ix,iy,z)
+				if tileid != AIR ? {
+					drawtile(tileid,ix,iy,z)
+				}
+			}
+		}
 	}
-	// lgi_drawQuadUV(lgi_WHITE,tilestex,0,0,512,512)
 } while lgi_tick()
 
 

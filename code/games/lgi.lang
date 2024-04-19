@@ -24,6 +24,9 @@ lgi_drawQuad_ = lgifn("lgilib_drawQuad")
 lgi_drawQuadUV_ = lgifn("lgilib_drawQuadUV")
 lgi_time = lgifn("lgilib_time")
 lgi_deltatime = lgifn("lgilib_deltatime")
+lgi_getcursorx = lgifn("lgilib_getcursorx")
+lgi_getcursory = lgifn("lgilib_getcursory")
+
 lgi_getSizeX = lgifn("lgilib_getSizeX")
 lgi_getSizeY = lgifn("lgilib_getSizeY")
 

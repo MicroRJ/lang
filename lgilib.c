@@ -205,6 +205,18 @@ llibfn int lgilib_testKey(lRuntime *rt) {
 }
 
 
+llibfn int lgilib_getcursorx(lRuntime *rt) {
+	lang_pushlong(rt,lgi.Input.Mice.xcursor);
+	return 1;
+}
+
+
+llibfn int lgilib_getcursorx(lRuntime *rt) {
+	lang_pushlong(rt,lgi.Input.Mice.ycursor);
+	return 1;
+}
+
+
 llibfn int lgilib_getSizeX(lRuntime *rt) {
 	lang_pushlong(rt,lgi.Window.size_x);
 	return 1;
