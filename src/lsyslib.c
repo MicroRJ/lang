@@ -18,6 +18,25 @@ int syslib_thread(lRuntime *R) {
 }
 #endif
 
+
+int syslib_iton(lRuntime *R) {
+	lValue v = lang_load(R,0);
+	if (v.tag == TAG_INT) {
+		lang_pushnum(R,(lnumber)v.i);
+	} else lang_pushnum(R,v.n);
+	return 1;
+}
+
+
+int syslib_ntoi(lRuntime *R) {
+	lValue v = lang_load(R,0);
+	if (v.tag == TAG_NUM) {
+		lang_pushlong(R,(llongint)v.n);
+	} else lang_pushlong(R,v.i);
+	return 1;
+}
+
+
 int syslib_loadexpr(lRuntime *R) {
 	lString *contents = lang_getstr(R,0);
 	lang_loadexpr(R,contents,-1,R->call->y);
@@ -256,6 +275,9 @@ lapi int syslib_listdir(lRuntime *R) {
 /* todo: can we do this from code */
 lapi void syslib_load(lRuntime *rt) {
 	lModule *md = rt->md;
+
+	lang_addglobal(md,lang_pushnewS(rt,"ntoi"),lang_C(syslib_ntoi));
+	lang_addglobal(md,lang_pushnewS(rt,"iton"),lang_C(syslib_iton));
 
 	lang_addglobal(md,lang_pushnewS(rt,"loadlib"),lang_C(syslib_loadlib));
 	lang_addglobal(md,lang_pushnewS(rt,"libfn"),lang_C(syslib_libfn));

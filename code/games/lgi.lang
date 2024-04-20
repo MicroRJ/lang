@@ -20,6 +20,7 @@ lgi_initWindowed = lgifn("lgilib_initWindowed")
 lgi_tick = lgifn("lgilib_tick")
 lgi_clearBackground = lgifn("lgilib_clearBackground")
 lgi_testKey = lgifn("lgilib_testKey")
+lgi_drawline_ = lgifn("lgilib_drawline")
 lgi_drawQuad_ = lgifn("lgilib_drawQuad")
 lgi_drawQuadUV_ = lgifn("lgilib_drawQuadUV")
 lgi_time = lgifn("lgilib_time")
@@ -30,10 +31,13 @@ lgi_getcursory = lgifn("lgilib_getcursory")
 lgi_getSizeX = lgifn("lgilib_getSizeX")
 lgi_getSizeY = lgifn("lgilib_getSizeY")
 
+lgi_getwindowwidth = lgi_getSizeX
+lgi_getwindowheight = lgi_getSizeY
+
+
 lgi_loadtexture = lgifn("lgilib_loadtexture")
 lgi_gettexturewidth = lgifn("lgilib_gettexturewidth")
 lgi_gettextureheight = lgifn("lgilib_gettextureheight")
-
 lgi_setsampler = lgifn("lgilib_setsampler")
 lgi_bindtexture = lgifn("lgilib_bindtexture")
 lgi_beginvertices = lgifn("lgilib_beginvertices")
@@ -44,6 +48,16 @@ lgi_attrxyzw = lgifn("lgilib_attrxyzw")
 lgi_attrxyuv = lgifn("lgilib_attrxyuv")
 lgi_attruv = lgifn("lgilib_attruv")
 lgi_pushvertex = lgifn("lgilib_pushvertex")
+
+
+lgi_drawline = fun (color,thickness,x0,y0,x1,y1) ? {
+	color ?= lgi_WHITE
+	let r = color.r
+	let g = color.g
+	let b = color.b
+	let a = color.a
+	lgi_drawline_(r,g,b,a,thickness,x0,y0,x1,y1)
+}
 
 
 lgi_drawQuad = fun (color,x,y,w,h) ? {

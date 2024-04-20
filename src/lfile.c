@@ -480,12 +480,12 @@ lnodeid langY_loadunary(FileState *fs) {
 	switch (tk.type) {
 		case TK_SUB: {
 			langX_yield(fs);
-			v = langY_loadexpr(fs);
+			v = langY_loadsubexpr(fs,10000);
 			v = langN_xy(fs,tk.line,NODE_SUB,NT_INT,langN_longint(fs,tk.line,0),v);
 		} break;
 		case TK_ADD: {
 			langX_yield(fs);
-			v = langY_loadexpr(fs);
+			v = langY_loadsubexpr(fs,10000);
 		} break;
 		case TK_CURLY_LEFT: {
 			v = langY_loadtable(fs);

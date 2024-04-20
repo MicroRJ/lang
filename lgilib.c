@@ -158,6 +158,22 @@ llibfn int lgilib_tick(lRuntime *rt) {
 }
 
 
+llibfn int lgilib_drawline(lRuntime *R) {
+	float r = (float) lang_getnum(R,0);
+	float g = (float) lang_getnum(R,1);
+	float b = (float) lang_getnum(R,2);
+	float a = (float) lang_getnum(R,3);
+	float thickness = (float) lang_getnum(R,4);
+	float x0 = (float) lang_getnum(R,5);
+	float y0 = (float) lang_getnum(R,6);
+	float x1 = (float) lang_getnum(R,7);
+	float y1 = (float) lang_getnum(R,8);
+
+	lgi_drawLine((lgi_Color){r,g,b,a},thickness,x0,y0,x1,y1);
+	return 0;
+}
+
+
 llibfn int lgilib_drawQuad(lRuntime *rt) {
 	LASSERT(lang_toplen(rt) == 8);
 	float r = (float) lang_getnum(rt,0);
@@ -211,7 +227,7 @@ llibfn int lgilib_getcursorx(lRuntime *rt) {
 }
 
 
-llibfn int lgilib_getcursorx(lRuntime *rt) {
+llibfn int lgilib_getcursory(lRuntime *rt) {
 	lang_pushlong(rt,lgi.Input.Mice.ycursor);
 	return 1;
 }

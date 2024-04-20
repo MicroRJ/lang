@@ -11,6 +11,8 @@ let enum {
 	TILESET_ROWLEN =  11,
 	TILE_SLOTDIMEN =  32,
 	TILE_DRAWDIMEN = 128,
+	ISO_YTILT = TILE_DRAWDIMEN * .50,
+	ISO_XTILT = TILE_DRAWDIMEN * .25,
 }
 
 let Feet = {}
@@ -29,19 +31,13 @@ let WorldSize = WorldSide*WorldSide*WorldSide
 // }
 
 let enum {
-	GRASS  = 24,
 	DIRT   = 0,
+	GRASS  = 23,
 	AIR    = 9,
 	WATER  = 23,
 	OAK    = 30,
 	LEAF   = 40,
 }
-
-
-
-World[0..WorldSize] = AIR
-World[0..WorldSide*WorldSide] = DIRT
-
 
 
 let enum xorshift = fun(x) ? {
@@ -58,8 +54,13 @@ let enum rnd = fun(x,y) ? {
 	leave x + rndstate % (y - x)
 }
 
+
+World[0..WorldSize] = AIR
 for i in 0..WorldSide*WorldSide ? {
-	World[rnd(0,WorldSide*WorldSide)] = GRASS
+	World[i] = rnd(DIRT,9)
+}
+for i in 0..WorldSide*WorldSide ? {
+	World[rnd(0,WorldSide*WorldSide)] = rnd(GRASS,GRASS+2)
 }
 
 
@@ -87,9 +88,10 @@ let addtree = fun(x,y) ? {
 
 
 
-camerax = 256
+camerax = -256
 cameray = 0
-
+critterx = 0
+crittery = 0
 
 
 let enum vec2 = fun(x,y) ? ({"x"=x,"y"=y})
@@ -109,14 +111,55 @@ lgi_initWindowed(720,720, "rogue")
 
 let tilestex = lgi_loadtexture("code/games/tiles2.png")
 lgi_setsampler(tilestex,"point")
+let crittertex = lgi_loadtexture("code/games/critter_stag_NE_idle.png")
+lgi_setsampler(crittertex,"point")
+let wolftex = lgi_loadtexture("code/games/wolf-idle.png")
+lgi_setsampler(wolftex,"point")
+
+let enum toscreenx = fun(x,y,z) ? {
+	leave (x - y) * ISO_YTILT - camerax
+}
+let enum toscreeny = fun(x,y,z) ? {
+	leave (x + y) * ISO_XTILT + z*ISO_YTILT - cameray
+}
+
+let enum isotoworld = fun(x,y) ? {
+	let xworld = (x + y + camerax) / (ISO_YTILT)
+	let yworld = (y - x + cameray) / (ISO_XTILT)
+	// pf("(", x, ", ", y, ") = ", "(", xworld, ", ", yworld, ")")
+	leave vec2(xworld,yworld)
+}
+
+
+let drawcritter = fun(x,y) ? {
+	let z = 0
+	let isox = toscreenx(x,y,0)
+	let isoy = toscreeny(x,y,0)
+	let xanim = (lgi_time() / .256) % 26
+	let w = 32 / 1.
+	let h = 41 / 1.
+	let a = h / w
+	let s = 128
+	lgi_drawtexture(crittertex,isox,isoy,s,s*a,32*xanim,0,32,41)
+}
+
+
+let drawwolf = fun(x,y) ? {
+	let z = 0
+	let isox = toscreenx(x,y,0)
+	let isoy = toscreeny(x,y,0)
+	let xanim = (lgi_time() / .256) % 26
+	let w = 64.
+	let h = 64.
+	let a = h / w
+	let s = 256
+	lgi_drawtexture(wolftex,isox,isoy,s,s*a,64*xanim,64*3,64,64)
+}
 
 
 let drawtile = fun(tileid,x,y,z) ? {
-	let h = TILE_DRAWDIMEN*.5
-	let q = TILE_DRAWDIMEN*.25
-	lgi_drawtexture(tilestex
-	,x*h - y*h + camerax
-	,x*q + y*q + z*h + cameray
+	lgi_drawtexture(tilestex,
+	toscreenx(x,y,z), toscreeny(x,y,z)
 	,TILE_DRAWDIMEN,TILE_DRAWDIMEN
 	,TILE_SLOTDIMEN*(tileid%TILESET_ROWLEN)
 	,TILE_SLOTDIMEN*(tileid/TILESET_ROWLEN)
@@ -124,33 +167,121 @@ let drawtile = fun(tileid,x,y,z) ? {
 }
 
 
-
 let move = fun(x) ? {
-	camerax = camerax + -x.x * 10
-	cameray = cameray + -x.y * 10
+	// camerax = camerax + -x.x * 10
+	// cameray = cameray + -x.y * 10
+	critterx = critterx + x.x
+	crittery = crittery + x.y
+}
+
+
+let enum plotray = fun(x,y,len) ? {
+	let xo = x * (-.50 * TILE_DRAWDIMEN) - camerax
+	let yo = y * (+.25 * TILE_DRAWDIMEN) - cameray
+	lgi_drawline(lgi_GREEN,1,xo,yo,xo+len,yo+len*.50)
+}
+
+
+//
+let enum plotgrid = fun() ? {
+	let width = lgi_getwindowwidth()
+	let height = lgi_getwindowheight()
+	let cell = 64
+	for i in 0..8 ? {
+		let ii = i * cell
+		lgi_drawline(lgi_GRAY,1,-camerax,ii-cameray,cell*8-camerax,ii-cameray)
+		lgi_drawline(lgi_GRAY,1,ii-camerax,-cameray,ii-camerax,cell*8-cameray)
+	}
+
+	for i in 0..8 ? {
+		plotray(i,i,1024)
+	}
+
+	// lgi_drawline(lgi_GREEN,1,
+	// -camerax - 0 * (.50 * TILE_DRAWDIMEN),
+	// -cameray + 0 * (.25 * TILE_DRAWDIMEN),
+	// -camerax + 8 * (.50 * TILE_DRAWDIMEN),
+	// -cameray + 8 * (.25 * TILE_DRAWDIMEN)  )
+	// lgi_drawline(lgi_GREEN,1,
+	// -camerax - 2 * (.50 * TILE_DRAWDIMEN),
+	// -cameray + 2 * (.25 * TILE_DRAWDIMEN),
+	// -camerax + 8 * (.50 * TILE_DRAWDIMEN),
+	// -cameray + 8 * (.25 * TILE_DRAWDIMEN)  )
+
+	// lgi_drawline(lgi_GRAY,1,
+	// -camerax,
+	// -cameray + ISO_YTILT,
+	// -camerax + 8*ISO_YTILT  ,
+	// -cameray + 8*ISO_XTILT  )
+	// for i in 0..8 ? {
+	// 	let x = - i * cell - camerax
+	// 	let y = i * cell - cameray
+	// 	lgi_drawline(lgi_RED,1,x,y,x+1000*.50,y+1000*.25)
+	// }
+
+	// for y in (-4)..8 ? {
+	// 	for x in (-4)..8 ? {
+	// 		let isox = (x + y) * cell
+	// 		let isoy = (y - x) * cell
+	// 		let v = i*cell
+	// 		lgi_drawline(lgi_PINK,1,isox,isoy,isox+8,isoy+8)
+	// 	}
+	// }
 }
 
 
 do {
+	let xcursor = lgi_getcursorx()
+	let ycursor = lgi_getcursory()
+	let wcursor = isotoworld(xcursor,ycursor)
+
 	lgi_clearBackground();
-	if lgi_testKey('W') ? move(UP)
-	if lgi_testKey('D') ? move(RIGHT)
-	if lgi_testKey('A') ? move(LEFT)
-	if lgi_testKey('S') ? move(DOWN)
 
+	if 0 ? {
+		if lgi_testKey('W') ? move(UP)
+		if lgi_testKey('D') ? move(RIGHT)
+		if lgi_testKey('A') ? move(LEFT)
+		if lgi_testKey('S') ? move(DOWN)
+	} else {
+		if lgi_testKey('W') ? move(RIGHT)
+		if lgi_testKey('D') ? move(DOWN)
+		if lgi_testKey('A') ? move(UP)
+		if lgi_testKey('S') ? move(LEFT)
+	}
 
-	for z in 0..8 ? {
-		for y in 0..8 ? {
-			let iy = 8-1-y
-			for x in 0..8 ? {
-				let ix = 8-1-x
-				let tileid = gettileid(ix,iy,z)
-				if tileid != AIR ? {
-					drawtile(tileid,ix,iy,z)
-				}
+for z in 0..8 ? {
+	for y in 0..8 ? {
+		let iy = 8-1-y
+		for x in 0..8 ? {
+			let ix = 8-1-x
+			let tileid = gettileid(ix,iy,z)
+			if tileid != AIR ? {
+				drawtile(tileid,ix,iy,z)
 			}
 		}
 	}
+}
+stagx ?= rnd(0,8)
+stagy ?= rnd(0,8)
+drawcritter(stagx,stagy)
+drawwolf(critterx,crittery)
+
+
+plotgrid()
+
+	// let inworld = isotoworld(xcursor,ycursor)
+	// lgi_drawline(lgi_GREEN,1,0,0,
+	// toscreenx(inworld.x),toscreeny(inworld.y))
+	// let xworld = (iton(xcursor + ycursor) / TILE_DRAWDIMEN) / .50
+	// let yworld = (iton(ycursor - xcursor) / TILE_DRAWDIMEN) / .25
+	// pf(xcursor, ", ", ycursor, " = ", xworld,", ",yworld)
+	// lgi_drawline(lgi_GREEN,1,0,0,xworld,yworld)
+	// lgi_drawline(lgi_BLUE,1,
+	// toscreenx(0,0,0), toscreeny(0,0,0),
+	// toscreenx(0,8,0), toscreeny(0,8,0))
+	// lgi_drawline(lgi_RED,1,
+	// toscreenx(0,0,0), toscreeny(0,0,0),
+	// toscreenx(8,0,0), toscreeny(8,0,0))
 } while lgi_tick()
 
 
