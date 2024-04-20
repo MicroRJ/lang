@@ -11,6 +11,7 @@ let enum {
 	TILESET_ROWLEN =  11,
 	TILE_SLOTDIMEN =  32,
 	TILE_DRAWDIMEN = 128,
+	/* todo: rename these */
 	ISO_YTILT = TILE_DRAWDIMEN * .50,
 	ISO_XTILT = TILE_DRAWDIMEN * .25,
 }
@@ -19,6 +20,11 @@ let Feet = {}
 let World = {}
 let WorldSide = 16
 let WorldSize = WorldSide*WorldSide*WorldSide
+camerax = 0
+cameray = 0
+critterx = 0
+crittery = 0
+
 
 
 // let enum {
@@ -87,13 +93,6 @@ let addtree = fun(x,y) ? {
 // addtree(1,1)
 
 
-
-camerax = -256
-cameray = 0
-critterx = 0
-crittery = 0
-
-
 let enum vec2 = fun(x,y) ? ({"x"=x,"y"=y})
 let enum vec2_add = fun(x,y) ? vec2(x.x+y.x,x.y+y.y)
 
@@ -105,10 +104,10 @@ let enum {
 }
 
 
-
-
 lgi_initWindowed(720,720, "rogue")
 
+/* make it so that we change the default
+sampler */
 let tilestex = lgi_loadtexture("code/games/tiles2.png")
 lgi_setsampler(tilestex,"point")
 let crittertex = lgi_loadtexture("code/games/critter_stag_NE_idle.png")
@@ -128,6 +127,48 @@ let enum isotoworld = fun(x,y) ? {
 	let yworld = (y - x + cameray) / (ISO_XTILT)
 	// pf("(", x, ", ", y, ") = ", "(", xworld, ", ", yworld, ")")
 	leave vec2(xworld,yworld)
+}
+
+
+let lerp = fun(x,y,z) ? (y + x * (z - y))
+let unlerp = fun(x,y,z) ? ((x - y) / (z - y))
+let map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
+
+
+let enum plotline = fun(x0,y0,x1,y1) ? {
+	// x0 = iton(x0)
+	// y0 = iton(y0)
+	// x1 = iton(x1)
+	// y1 = iton(y1)
+	// let d = unlerp(sin(lgi_time()*.1*3.14),-1,1)
+	let xskew = .50 // lerp(d,.25,.50)
+	let yskew = .25 // lerp(d,.50,.25)
+	let o = 1. // lerp(d,0.,1.)
+	let i = 1. // - o
+	let ix0 = (x0*i - y0*o) * TILE_DRAWDIMEN * xskew - camerax
+	let iy0 = (x0*o + y0*i) * TILE_DRAWDIMEN * yskew - cameray
+	let ix1 = (x1*i - y1*o) * TILE_DRAWDIMEN * xskew - camerax
+	let iy1 = (x1*o + y1*i) * TILE_DRAWDIMEN * yskew - cameray
+	lgi_drawline(lgi_BLUE,1,ix0,iy0,ix1,iy1)
+}
+
+
+let enum plotgrid = fun() ? {
+	for i in 0..16 ? {
+		plotline(0,i,16,i)
+		plotline(i,0,i,16)
+	}
+}
+
+
+let plottile = fun(tileid,x,y,z) ? {
+	let screenx = (x - y) * ISO_YTILT - camerax
+	let screeny = (x + y) * ISO_XTILT + z*ISO_YTILT - cameray
+	lgi_drawtexture(tilestex,screenx,screeny
+	,TILE_DRAWDIMEN,TILE_DRAWDIMEN
+	,TILE_SLOTDIMEN*(tileid%TILESET_ROWLEN)
+	,TILE_SLOTDIMEN*(tileid/TILESET_ROWLEN)
+	,TILE_SLOTDIMEN,TILE_SLOTDIMEN)
 }
 
 
@@ -157,16 +198,6 @@ let drawwolf = fun(x,y) ? {
 }
 
 
-let drawtile = fun(tileid,x,y,z) ? {
-	lgi_drawtexture(tilestex,
-	toscreenx(x,y,z), toscreeny(x,y,z)
-	,TILE_DRAWDIMEN,TILE_DRAWDIMEN
-	,TILE_SLOTDIMEN*(tileid%TILESET_ROWLEN)
-	,TILE_SLOTDIMEN*(tileid/TILESET_ROWLEN)
-	,TILE_SLOTDIMEN,TILE_SLOTDIMEN)
-}
-
-
 let move = fun(x) ? {
 	// camerax = camerax + -x.x * 10
 	// cameray = cameray + -x.y * 10
@@ -175,59 +206,6 @@ let move = fun(x) ? {
 }
 
 
-let enum plotray = fun(x,y,len) ? {
-	let xo = x * (-.50 * TILE_DRAWDIMEN) - camerax
-	let yo = y * (+.25 * TILE_DRAWDIMEN) - cameray
-	lgi_drawline(lgi_GREEN,1,xo,yo,xo+len,yo+len*.50)
-}
-
-
-//
-let enum plotgrid = fun() ? {
-	let width = lgi_getwindowwidth()
-	let height = lgi_getwindowheight()
-	let cell = 64
-	for i in 0..8 ? {
-		let ii = i * cell
-		lgi_drawline(lgi_GRAY,1,-camerax,ii-cameray,cell*8-camerax,ii-cameray)
-		lgi_drawline(lgi_GRAY,1,ii-camerax,-cameray,ii-camerax,cell*8-cameray)
-	}
-
-	for i in 0..8 ? {
-		plotray(i,i,1024)
-	}
-
-	// lgi_drawline(lgi_GREEN,1,
-	// -camerax - 0 * (.50 * TILE_DRAWDIMEN),
-	// -cameray + 0 * (.25 * TILE_DRAWDIMEN),
-	// -camerax + 8 * (.50 * TILE_DRAWDIMEN),
-	// -cameray + 8 * (.25 * TILE_DRAWDIMEN)  )
-	// lgi_drawline(lgi_GREEN,1,
-	// -camerax - 2 * (.50 * TILE_DRAWDIMEN),
-	// -cameray + 2 * (.25 * TILE_DRAWDIMEN),
-	// -camerax + 8 * (.50 * TILE_DRAWDIMEN),
-	// -cameray + 8 * (.25 * TILE_DRAWDIMEN)  )
-
-	// lgi_drawline(lgi_GRAY,1,
-	// -camerax,
-	// -cameray + ISO_YTILT,
-	// -camerax + 8*ISO_YTILT  ,
-	// -cameray + 8*ISO_XTILT  )
-	// for i in 0..8 ? {
-	// 	let x = - i * cell - camerax
-	// 	let y = i * cell - cameray
-	// 	lgi_drawline(lgi_RED,1,x,y,x+1000*.50,y+1000*.25)
-	// }
-
-	// for y in (-4)..8 ? {
-	// 	for x in (-4)..8 ? {
-	// 		let isox = (x + y) * cell
-	// 		let isoy = (y - x) * cell
-	// 		let v = i*cell
-	// 		lgi_drawline(lgi_PINK,1,isox,isoy,isox+8,isoy+8)
-	// 	}
-	// }
-}
 
 
 do {
@@ -249,39 +227,30 @@ do {
 		if lgi_testKey('S') ? move(LEFT)
 	}
 
-for z in 0..8 ? {
-	for y in 0..8 ? {
-		let iy = 8-1-y
-		for x in 0..8 ? {
-			let ix = 8-1-x
-			let tileid = gettileid(ix,iy,z)
-			if tileid != AIR ? {
-				drawtile(tileid,ix,iy,z)
+	for z in 0..8 ? {
+		for y in 0..8 ? {
+			let iy = 8-1-y
+			for x in 0..8 ? {
+				let ix = 8-1-x
+				let tileid = gettileid(ix,iy,z)
+				if tileid != AIR ? {
+					plottile(tileid,ix,iy,z)
+				}
 			}
 		}
 	}
-}
-stagx ?= rnd(0,8)
-stagy ?= rnd(0,8)
-drawcritter(stagx,stagy)
-drawwolf(critterx,crittery)
+
+	plotgrid()
+
+	stagx ?= rnd(0,8)
+	stagy ?= rnd(0,8)
+	drawcritter(stagx,stagy)
+	drawwolf(critterx,crittery)
 
 
-plotgrid()
-
-	// let inworld = isotoworld(xcursor,ycursor)
-	// lgi_drawline(lgi_GREEN,1,0,0,
-	// toscreenx(inworld.x),toscreeny(inworld.y))
-	// let xworld = (iton(xcursor + ycursor) / TILE_DRAWDIMEN) / .50
-	// let yworld = (iton(ycursor - xcursor) / TILE_DRAWDIMEN) / .25
-	// pf(xcursor, ", ", ycursor, " = ", xworld,", ",yworld)
-	// lgi_drawline(lgi_GREEN,1,0,0,xworld,yworld)
-	// lgi_drawline(lgi_BLUE,1,
-	// toscreenx(0,0,0), toscreeny(0,0,0),
-	// toscreenx(0,8,0), toscreeny(0,8,0))
-	// lgi_drawline(lgi_RED,1,
-	// toscreenx(0,0,0), toscreeny(0,0,0),
-	// toscreenx(8,0,0), toscreeny(8,0,0))
+	let wcursorx = ((ycursor/.25) + (xcursor/.50)) / (TILE_DRAWDIMEN*2)
+	let wcursory = ((ycursor/.25) - (xcursor/.50)) / (TILE_DRAWDIMEN*2)
+	pf(wcursorx, ", ", wcursory)
 } while lgi_tick()
 
 
