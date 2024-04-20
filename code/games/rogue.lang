@@ -248,8 +248,8 @@ do {
 	drawwolf(critterx,crittery)
 
 
-	let wcursorx = ((ycursor/.25) + (xcursor/.50)) / (TILE_DRAWDIMEN*2)
-	let wcursory = ((ycursor/.25) - (xcursor/.50)) / (TILE_DRAWDIMEN*2)
+	let wcursorx = ((ycursor/.25) + (xcursor/.50)) / (TILE_DRAWDIMEN*(.50/.25))
+	let wcursory = ((ycursor/.25) - (xcursor/.50)) / (TILE_DRAWDIMEN*(.50/.25))
 	pf(wcursorx, ", ", wcursory)
 } while lgi_tick()
 
