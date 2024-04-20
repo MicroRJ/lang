@@ -43,7 +43,7 @@ lapi lString *lang_checkString(lRuntime *c, llocalid x);
 lapi lValue lang_load(lRuntime *c, llocalid x);
 lapi lsysobj lang_getsysobj(lRuntime *c, llocalid x);
 lapi lClosure *lang_loadcl(lRuntime *c, llocalid x);
-lapi llongint lang_loadlong(lRuntime *c, llocalid x);
+lapi llongint lang_getlong(lRuntime *c, llocalid x);
 lapi lnumber lang_getnum(lRuntime *c, llocalid x);
 lapi lString *lang_getstr(lRuntime *c, llocalid x);
 llocalid lang_stkalloc(lRuntime *R, int n);

@@ -8,9 +8,29 @@
 #include <lgi/lgi.h>
 
 
-lgi_API void lgi_initWindowed(int windowWidth, int windowHeight, char const *windowTitle);
-lgi_API int lgi_tick();
-lgi_API void lgi_drawQuad(lgi_Color color, float x, float y, float w, float h);
+
+llibfn int lgilib_wasButtonDown(lRuntime *R) {
+	lang_pushlong(R,lgi_wasButtonDown((int) lang_getlong(R,0)));
+	return 1;
+}
+
+
+llibfn int lgilib_isButtonDown(lRuntime *R) {
+	lang_pushlong(R,lgi_isButtonDown((int) lang_getlong(R,0)));
+	return 1;
+}
+
+
+llibfn int lgilib_isButtonReleased(lRuntime *R) {
+	lang_pushlong(R,lgi_isButtonReleased((int) lang_getlong(R,0)));
+	return 1;
+}
+
+
+llibfn int lgilib_isButtonPressed(lRuntime *R) {
+	lang_pushlong(R,lgi_isButtonPressed((int) lang_getlong(R,0)));
+	return 1;
+}
 
 
 llibfn int lgilib_time(lRuntime *rt) {
@@ -28,8 +48,8 @@ llibfn int lgilib_deltatime(lRuntime *rt) {
 
 
 llibfn int lgilib_initWindowed(lRuntime *rt) {
-	int windowWidth = (int) lang_loadlong(rt,0);
-	int windowHeight = (int) lang_loadlong(rt,1);
+	int windowWidth = (int) lang_getlong(rt,0);
+	int windowHeight = (int) lang_getlong(rt,1);
 	lString *name = lang_getstr(rt,2);
 	lgi_initWindowed(windowWidth,windowHeight,name->c);
 	return 0;
@@ -67,8 +87,8 @@ llibfn int lgilib_bindtexture(lRuntime *R) {
 
 
 llibfn int lgilib_beginvertices(lRuntime *R) {
-	int ni = (int) lang_loadlong(R,0);
-	int nv = (int) lang_loadlong(R,1);
+	int ni = (int) lang_getlong(R,0);
+	int nv = (int) lang_getlong(R,1);
 	lgi_beginVertexArray(ni,nv);
 	return 0;
 }
@@ -215,7 +235,7 @@ llibfn int lgilib_clearBackground(lRuntime *rt) {
 
 llibfn int lgilib_testKey(lRuntime *rt) {
 	(void) rt;
-	int key = (int) lang_loadlong(rt,0);
+	int key = (int) lang_getlong(rt,0);
 	lang_pushlong(rt,lgi_testKey(key));
 	return 1;
 }

@@ -43,7 +43,7 @@ int crtlib_abort(lRuntime *rt) {
 
 
 int crtlib_exit(lRuntime *rt) {
-	if(1) exit(lang_loadlong(rt,0));
+	if(1) exit(lang_getlong(rt,0));
 	return 0;
 }
 
@@ -157,7 +157,7 @@ int crtlib__chdir(lRuntime *rt) {
 
 
 int crtlib__chdrive(lRuntime *rt) {
-	llongint letter = lang_loadlong(rt,0);
+	llongint letter = lang_getlong(rt,0);
 	lang_pushlong(rt,_chdrive(letter));
 	return 1;
 }
@@ -165,7 +165,7 @@ int crtlib__chdrive(lRuntime *rt) {
 
 int crtlib__chmode(lRuntime *rt) {
 	lString *name = lang_getstr(rt,0);
-	llongint mode = lang_loadlong(rt,1);
+	llongint mode = lang_getlong(rt,1);
 	lang_pushlong(rt,_chmod(name->c,mode));
 	return 1;
 }

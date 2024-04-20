@@ -507,7 +507,7 @@ lapi lString *lang_checkString(lRuntime *R, llocalid x) {
 }
 
 
-lapi llongint lang_loadlong(lRuntime *R, int x) {
+lapi llongint lang_getlong(lRuntime *R, int x) {
 	lValue v = R->call->locals[x];
 	if (v.tag == TAG_NUM) {
 		return (llongint) v.n;

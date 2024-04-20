@@ -194,7 +194,7 @@ int syslib_pf(lRuntime *rt) {
 
 lapi int syslib_sleep(lRuntime *rt) {
 	LASSERT(rt->f->x == 1);
-	sys_sleep(lang_loadlong(rt,0));
+	sys_sleep(lang_getlong(rt,0));
 	return 0;
 }
 
@@ -207,7 +207,7 @@ lapi int syslib_clocktime(lRuntime *rt) {
 
 lapi int syslib_timediffs(lRuntime *rt) {
 	LASSERT(rt->f->x == 1);
-	llongint i = lang_loadlong(rt,0);
+	llongint i = lang_getlong(rt,0);
 	lang_pushnum(rt,(sys_clocktime() - i) / (lnumber) sys_clockhz());
 	return 1;
 }
@@ -245,7 +245,7 @@ void syslib_listdir_(lRuntime *R, lString *d, lTable *list, lTable *flags, lClos
 		langH_insert(file,lang_S(keyisdir),lang_I(isdir));
 
 		int r = lang_rootcall(R,base,2,1);
-		if ((r > 0) && lang_loadlong(R,base)) {
+		if ((r > 0) && lang_getlong(R,base)) {
 			langH_insert(list,lang_S(path),lang_T(file));
 			if (isdir) {
 				syslib_listdir_(R,path,list,flags,cl);

@@ -237,7 +237,7 @@ int langH_add_(lRuntime *R) {
 int langH_idx_(lRuntime *R) {
 	LASSERT(R->call->x >= 1);
 	lTable *tab = (lTable *) R->call->obj;
-	llongint idx = lang_loadlong(R,0);
+	llongint idx = lang_getlong(R,0);
 	lang_pushvalue(R,tab->v[idx]);
 	return 1;
 }

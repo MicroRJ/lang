@@ -11,7 +11,7 @@ void sets(lRuntime *c, lTable *table, char const *k) {
 
 
 int testlib_logging(lRuntime *c) {
-	llongint logging = lang_loadlong(c,0);
+	llongint logging = lang_getlong(c,0);
 	c->logging = logging;
 	return 0;
 }
@@ -65,7 +65,7 @@ int testlib_disasm(lRuntime *c) {
 
 
 int testlib_absslot(lRuntime *c) {
-	llocalid slot = lang_loadlong(c,0);
+	llocalid slot = lang_getlong(c,0);
 	lang_pushvalue(c,c->s[slot]);
 	return 1;
 }
