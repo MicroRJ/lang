@@ -449,11 +449,11 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			we're still within the subexpression, it'll
 			reuse that register. */
 			if (xx.k == NODE_METAFIELD) {
-				langL_localloadin(fs,NO_LINE,hh ++,xx.x);
+				langL_localloadin(fs,line,hh ++,xx.x);
 			}
-			langL_localloadin(fs,NO_LINE,hh ++,v.x);
+			langL_localloadin(fs,line,hh ++,v.x);
 			langA_varifor(v.z) {
-				langL_localloadin(fs,NO_LINE,hh ++,v.z[i]);
+				langL_localloadin(fs,line,hh ++,v.z[i]);
 			}
 			int n = langA_varlen(v.z);
 			langL_bytexyz(fs,line,xx.k == NODE_METAFIELD ? BC_METACALL : BC_CALL,x,n,y);

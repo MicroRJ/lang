@@ -520,7 +520,10 @@ lapi llongint lang_loadlong(lRuntime *R, int x) {
 lapi lnumber lang_getnum(lRuntime *R, llocalid x) {
 	lValue v = R->call->locals[x];
 	if (v.tag == TAG_INT) return (lnumber) v.i;
-	LASSERT(v.tag == TAG_NUM);
+	if (v.tag != TAG_NUM) {
+		langR_error(R,NO_BYTE,S_tpf("expected number at local %i",x));
+		LNOBRANCH;
+	}
 	return v.n;
 }
 

@@ -157,7 +157,6 @@ void langH_insert(lTable *table, lValue k, lValue v) {
 
 lValue langH_lookup(lTable *table, lValue k) {
 	llongint slot = langH_hashin(table,k);
-	if (slot == -1) LNOBRANCH;
 	if (langH_slotiskey(table,slot)) {
 		return langH_slot2value(table,slot);
 	}

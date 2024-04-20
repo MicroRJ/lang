@@ -85,6 +85,8 @@ void lang_dumpmodule(lModule *md, lsysobj file) {
 	}
 #endif
 	fprintf(file,"-- BYTECODE --\n");
+	fprintf(file,"- INSTR: %i\n",md->nbytes);
+	fprintf(file,"- PID: %i\n",sys_getmypid());
 	langA_varifor(md->files) {
 		lFile ff = md->files[i];
 		fprintf(file,"- FILE (%s):\n",ff.name);
