@@ -233,10 +233,9 @@ llibfn int lgilib_clearBackground(lRuntime *rt) {
 }
 
 
-llibfn int lgilib_testKey(lRuntime *rt) {
-	(void) rt;
-	int key = (int) lang_getlong(rt,0);
-	lang_pushlong(rt,lgi_testKey(key));
+llibfn int lgilib_testKey(lRuntime *R) {
+	int key = (int) lang_getlong(R,0);
+	lang_pushlong(R,lgi_testKey(key));
 	return 1;
 }
 

@@ -12,6 +12,13 @@
 #include <direct.h>
 
 
+
+int crtlib_floor(lRuntime *R) {
+	lang_pushnum(R,floor(lang_getnum(R,0)));
+	return 1;
+}
+
+
 int crtlib_sqrt(lRuntime *R) {
 	lang_pushnum(R,sqrt(lang_getnum(R,0)));
 	return 1;
@@ -188,6 +195,7 @@ int crtlib_system(lRuntime *rt) {
 lapi void crtlib_load(lRuntime *rt) {
 	lModule *md = rt->md;
 
+	lang_addglobal(md,lang_pushnewS(rt,"floor"),lang_C(crtlib_floor));
 	lang_addglobal(md,lang_pushnewS(rt,"sqrt"),lang_C(crtlib_sqrt));
 	lang_addglobal(md,lang_pushnewS(rt,"sin"),lang_C(crtlib_sin));
 	lang_addglobal(md,lang_pushnewS(rt,"cos"),lang_C(crtlib_cos));

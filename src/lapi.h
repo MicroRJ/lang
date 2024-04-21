@@ -40,12 +40,14 @@ lapi llongint lang_poplong(lRuntime *c);
 lapi void lang_checkcl(lRuntime *c, llocalid x);
 lapi lString *lang_checkString(lRuntime *c, llocalid x);
 
-lapi lValue lang_load(lRuntime *c, llocalid x);
-lapi lsysobj lang_getsysobj(lRuntime *c, llocalid x);
-lapi lClosure *lang_loadcl(lRuntime *c, llocalid x);
-lapi llongint lang_getlong(lRuntime *c, llocalid x);
-lapi lnumber lang_getnum(lRuntime *c, llocalid x);
-lapi lString *lang_getstr(lRuntime *c, llocalid x);
+lapi lValue lang_load(lRuntime *R, llocalid x);
+lapi lsysobj lang_getsysobj(lRuntime *R, llocalid x);
+lapi lClosure *lang_loadcl(lRuntime *R, llocalid x);
+lapi llongint lang_getlong(lRuntime *R, llocalid x);
+lapi lnumber lang_getnum(lRuntime *R, llocalid x);
+lapi lString *lang_getstr(lRuntime *R, llocalid x);
+lapi lObject *lang_getobj(lRuntime *R, llocalid x);
+lapi lTable *lang_gettab(lRuntime *R, llocalid x);
 llocalid lang_stkalloc(lRuntime *R, int n);
 
 lapi llocalid lang_pushvalue(lRuntime *, lValue v);

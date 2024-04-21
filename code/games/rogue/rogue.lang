@@ -11,34 +11,18 @@ lerp = fun(x,y,z) ? (y + x * (z - y))
 unlerp = fun(x,y,z) ? ((x - y) / (z - y))
 map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
 
-__vec2_add = fun(c) ? vec2(this.x+c.x,this.y+c.y)
-__vec2_sub = fun(c) ? vec2(this.x-c.x,this.y-c.y)
-__vec2_mul = fun(c) ? vec2(this.x*c.x,this.y*c.y)
-__vec2_div = fun(c) ? vec2(this.x/c.x,this.y/c.y)
-
-vec2 = fun(x,y) ? {
-	let v = {"x"=x,"y"=y}
-	v:add = __vec2_add
-	v:sub = __vec2_sub
-	v:mul = __vec2_mul
-	v:div = __vec2_div
-	leave v
+vec3__ = {
+	add = fun(c) ? vec3(this.x+c.x,this.y+c.y,this.z+c.z),
+	sub = fun(c) ? vec3(this.x-c.x,this.y-c.y,this.z-c.z),
+	mul = fun(c) ? vec3(this.x*c.x,this.y*c.y,this.z*c.z),
+	div = fun(c) ? vec3(this.x/c.x,this.y/c.y,this.z/c.z),
+	lerp = fun(c,t) ? vec3(lerp(t,this.x,c.x),lerp(t,this.y,c.y),lerp(t,this.z,c.z)),
+	floor = fun() ? vec3(floor(this.x),floor(this.y),floor(this.z))
 }
 
-__vec3_add = fun(c) ? vec3(this.x+c.x,this.y+c.y,this.z+c.z)
-__vec3_sub = fun(c) ? vec3(this.x-c.x,this.y-c.y,this.z-c.z)
-__vec3_mul = fun(c) ? vec3(this.x*c.x,this.y*c.y,this.z*c.z)
-__vec3_div = fun(c) ? vec3(this.x/c.x,this.y/c.y,this.z/c.z)
-__vec3_lerp = fun(c,t) ? vec3(lerp(t,this.x,c.x),lerp(t,this.y,c.y),lerp(t,this.z,c.z))
-
-vec3 = fun(x,y,z) ? {
-	let v = ({"x"=x,"y"=y,"z"=z})
-	v:add = __vec3_add
-	v:sub = __vec3_sub
-	v:mul = __vec3_mul
-	v:div = __vec3_div
-	leave v
-}
+/* todo: instead use new keyword,
+new vec3__ {} */
+vec3 = fun(x,y,z) ? __of(vec3__,{"x"=x,"y"=y,"z"=z})
 
 
 let enum {
@@ -48,13 +32,6 @@ let enum {
 	DOWN  = vec3( 0,-1, 0),
 }
 
-
-// vec2_add = fun(a,b) ? vec2(a.x+b.x,a.y+b.y)
-vec3_add = fun(a,b) ? vec3(a.x+b.x,a.y+b.y,a.z+b.z)
-vec3_sub = fun(a,b) ? vec3(a.x-b.x,a.y-b.y,a.z-b.z)
-vec3_lerp = fun(t,a,b) ? vec3(lerp(t,a.x,b.x),lerp(t,a.y,b.y),lerp(t,a.z,b.z))
-/* todo: */
-vec3_floor = fun(a,b) ? vec3(ntoi(a.x),ntoi(a.y),ntoi(a.z))
 
 // let enum {
 // 	TILESET_ROWLEN =  10,
@@ -68,9 +45,10 @@ let enum {
 	TILE_DRAWDIMEN = 128,
 	ISO_TILE_XSKEW = .50,
 	ISO_TILE_YSKEW = .25,
+	ISO_TILE_ZSKEW = .25,
 	ISO_TILE_XSCALE = TILE_DRAWDIMEN * ISO_TILE_XSKEW,
 	ISO_TILE_YSCALE = TILE_DRAWDIMEN * ISO_TILE_YSKEW,
-	ISO_TILE_ZSCALE = TILE_DRAWDIMEN * ISO_TILE_YSKEW,
+	ISO_TILE_ZSCALE = TILE_DRAWDIMEN * ISO_TILE_ZSKEW,
 }
 
 /* all critters are on a singular table,
@@ -81,7 +59,7 @@ World = {}
 
 WorldSide = 16
 WorldSize = WorldSide*WorldSide*WorldSide
-camerax = -256
+camerax = 0
 cameray = 0
 
 
@@ -147,10 +125,16 @@ for y in 0..WorldSide ? {
 		settileid(rnd(DIRT,DIRT+10),x,y,0)
 	}
 }
-for i in 0..16 ? {
-	settileid(GRASS,rnd(0,8),rnd(0,8),0)
-	settileid(FLOWER,rnd(0,8),rnd(0,8),1)
+for i in 0..WorldSide*WorldSide/2 ? {
+	settileid(GRASS,rnd(0,16),rnd(0,16),0)
+	settileid(FLOWER,rnd(0,16),rnd(0,16),1)
 }
+
+settileid(GRASS,0,0,1)
+settileid(GRASS,0,0,2)
+settileid(GRASS,0,0,3)
+settileid(GRASS,0,0,4)
+
 
 
 
@@ -184,10 +168,13 @@ for i in 0..textures:length() ? {
 
 
 unplot = fun (x,y,z) ? {
-	let xx = (x + camerax) / ISO_TILE_XSKEW
-	let yy = (y + cameray) / ISO_TILE_YSKEW
+	let xx = (x - lgi_getSizeX() * .5) / ISO_TILE_XSKEW
+	let yy = (y - lgi_getSizeY() * .5) / ISO_TILE_YSKEW
 	let ss = TILE_DRAWDIMEN * 2.
-	leave vec3_floor(vec3( (yy + xx) / ss, (yy - xx) / ss, z))
+	let wx = (yy + xx) / ss + camerax
+	let wy = (yy - xx) / ss + cameray
+	let wz = z // ((y - (wx + wy) * ISO_TILE_YSKEW) / ISO_TILE_ZSKEW) / ss
+	leave vec3(wx,wy,wz):floor()
 }
 
 
@@ -201,12 +188,29 @@ raycast = fun (x,y) ? {
 }
 
 
+plot = fun(x,y,z) ? {
+	let xx = x - camerax
+	let yy = y - cameray
+	let xxx = (xx - yy) * ISO_TILE_XSCALE
+	let yyy = (xx + yy) * ISO_TILE_YSCALE + z*ISO_TILE_ZSCALE
+
+	let wx = lgi_getSizeX()*.5
+	let wy = lgi_getSizeY()*.5
+	leave vec3(xxx+wx,yyy+wy, 0)
+}
+
+
+plot3 = fun(xyz) ? plot(xyz.x,xyz.y,xyz.z)
+
 plotline = fun(x0,y0,x1,y1) ? {
-	let ix0 = (x0 - y0) * ISO_TILE_XSCALE - camerax
-	let iy0 = (x0 + y0) * ISO_TILE_YSCALE - cameray
-	let ix1 = (x1 - y1) * ISO_TILE_XSCALE - camerax
-	let iy1 = (x1 + y1) * ISO_TILE_YSCALE - cameray
-	lgi_drawline(lgi_BLUE,1,ix0,iy0,ix1,iy1)
+	let xy0 = plot(x0,y0,0)
+	let xy1 = plot(x1,y1,0)
+	// let ix0 = (x0 - y0 - camerax) * ISO_TILE_XSCALE
+	// let iy0 = (x0 + y0 - cameray) * ISO_TILE_YSCALE
+	// let ix1 = (x1 - y1 - camerax) * ISO_TILE_XSCALE
+	// let iy1 = (x1 + y1 - cameray) * ISO_TILE_YSCALE
+	// lgi_drawline(lgi_BLUE,1,ix0,iy0,ix1,iy1)
+	lgi_drawline(lgi_BLUE,1,xy0.x,xy0.y,xy1.x,xy1.y)
 }
 
 
@@ -228,18 +232,12 @@ plottileoutline = fun(xyz) ? {
 }
 
 
-plot = fun(x,y,z) ? {
-	leave vec2(
-	(x - y) * ISO_TILE_XSCALE - camerax,
-	(x + y) * ISO_TILE_YSCALE + z*ISO_TILE_ZSCALE - cameray)
-}
-
-
 plottile = fun(tileid,x,y,z) ? {
 	if tileid == AIR ? leave ()
 	/* offset the tiles cuz of the sprite */
-	let px = (x - y - 1) * ISO_TILE_XSCALE - camerax
-	let py = (x + y - 1) * ISO_TILE_YSCALE + z*ISO_TILE_ZSCALE - cameray
+	let p = plot(x-1,y,z)
+	let px = p.x
+	let py = p.y
 	lgi_drawtexture(textures.tiles,px,py
 	,TILE_DRAWDIMEN,TILE_DRAWDIMEN
 	,TILE_SLOTDIMEN*(tileid%TILESET_ROWLEN)
@@ -269,22 +267,15 @@ getcritter = fun(xyz) ? {
 
 
 movecritter = fun(xthis,offset) ? {
-	// if xthis.ismoving ? leave ()
 	let origin = xthis.xyzmov
-	__logging(true)
 	let target = origin:add(offset)
-	__logging(false)
-	pf("offset: (",offset,")")
-	pf("origin: (",origin,")")
-	pf("target: (",target,")")
 	if target.x < 0 ? leave false
 	if target.y < 0 ? leave false
 	if target.z < 0 ? leave false
-	let upper =  target:add(vec3(0,0,1))
-	pf("above: (",upper,") = ", gettileid3(upper))
-	// pf("above 1: ", gettileid3(vec3_add(target,vec3(0,0,1))))
-	if gettileid3(target:add(vec3(0,0,1))) != AIR ? leave false
-	// if gettileid3(vec3_add(target,vec3(0,0,1))) != AIR ? leave false
+	let id = gettileid3(target:add(vec3(0,0,1)))
+	if id != AIR && id != FLOWER ? {
+		leave false
+	}
 	let critter = getcritter(target)
 	if critter != nil ? leave false
 	critters[toworldid3(origin)] = nil
@@ -385,18 +376,17 @@ newcritter = fun(xyz) ? {
 	xthis.xyz = xyz
 	xthis.xyzmov = xyz
 	xthis.controller = crittercontroller_dummy
-	xthis.plotter = critterplotter_stag
+	xthis.plotter = critterplotter_wolf
 
 	critters[toworldid3(xyz)] = xthis
 	leave xthis
 }
 
 
-newwolf = fun(xyz) ? {
+newstag = fun(xyz) ? {
 	let xthis = newcritter(xyz)
 	xthis.controller = crittercontroller_player
-	xthis.plotter = critterplotter_wolf
-	critters[toworldid3(xthis.xyz)] = xthis
+	xthis.plotter = critterplotter_stag
 	leave xthis
 }
 
@@ -411,7 +401,7 @@ tickcritter = fun(xthis) ? {
 	}
 	if xthis.ismoving ? {
 		let movedelta = xthis.movetimer / xthis.moveclock
-		xthis.xyz = vec3_lerp(movedelta,xthis.xyz,xthis.xyzmov)
+		xthis.xyz = xthis.xyz:lerp(xthis.xyzmov,movedelta)
 		xthis.movetimer = xthis.movetimer + lgi_deltatime()
 	}
 }
@@ -424,20 +414,20 @@ plotcritter = fun(xthis) ? {
 }
 
 
-for i in 0..4 ? {
+for i in 0..8 ? {
 	/* todo: #langfeature introduce new key word,
 	which calls a function in object mode */
-	// newcritter(vec3(rnd(1,4),rnd(1,4),0))
+	newcritter(vec3(rnd(1,12),rnd(1,12),0))
 }
 
-let wolf = newwolf(vec3(0,0,0))
+wolf = newstag(vec3(0,2,0))
 
 forvisibletiles = fun(per) ? {
-	for z in 0..12 ? {
-		for y in 0..12 ? {
-			let iy = 12-1-y
-			for x in 0..12 ? {
-				let ix = 12-1-x
+	for y in 0..12 ? {
+		let iy = 12-1-y
+		for x in 0..12 ? {
+			let ix = 12-1-x
+			for z in 0..12 ? {
 				per(ix,iy,z)
 			}
 		}
@@ -445,13 +435,23 @@ forvisibletiles = fun(per) ? {
 }
 
 
+/* todo: we can do lighting trick by
+rendering tiles less times */
 do {
 	let xcursor = lgi_getcursorx()
 	let ycursor = lgi_getcursory()
+
+	// pf(plot3(wolf.xyz))
+	// let wolfonscreen = plot3(wolf.xyz)
+	// pf(wolfonscreen)
+	camerax = wolf.xyz.x
+	cameray = wolf.xyz.y
+	// pf(camerax, ", ", cameray)
 	// if lgi_testKey('W') ? move(UP)
 	// if lgi_testKey('D') ? move(RIGHT)
 	// if lgi_testKey('A') ? move(LEFT)
 	// if lgi_testKey('S') ? move(DOWN)
+
 	lgi_clearBackground();
 
 	forvisibletiles(fun(x,y,z) ? {
@@ -471,18 +471,20 @@ do {
 			}
 		}
 	})
-	if lgi_isclick(0) ? {
-		let hit = raycast(xcursor,ycursor)
-		if hit != nil ? {
-			plottileoutline(hit)
-			settileid3(TRUNK,vec3_add(hit,vec3(0,0,1)))
-		}
-		// let world = unplot(xcursor,ycursor,1)
-		// plottileoutline(world)
-		// settileid3(TRUNK,world)
-		// plotgrid()
-	}
 
+	let world = unplot(xcursor,ycursor,0)
+	plottileoutline(world)
+
+	if lgi_isbuttondown(0) ? {
+		// let hit = raycast(xcursor,ycursor)
+		// if hit != nil ? {
+		// 	plottileoutline(hit)
+		// 	settileid3(TRUNK,hit:add(vec3(0,0,1)))
+		// }
+		// settileid3(TRUNK,world)
+	} elif lgi_isbuttondown(1) ? {
+		plotgrid()
+	}
 } while lgi_tick()
 
 

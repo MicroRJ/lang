@@ -495,6 +495,26 @@ lapi lString *lang_getstr(lRuntime *R, llocalid x) {
 }
 
 
+lapi lObject *lang_getobj(lRuntime *R, llocalid x) {
+	lValue v = R->call->locals[x];
+	if (v.tag != TAG_NIL && !ttisobj(v.tag)) {
+		langR_error(R,NO_BYTE,S_tpf("expected object at local %i",x));
+		LNOBRANCH;
+	}
+	return v.x_obj;
+}
+
+
+lapi lTable *lang_gettab(lRuntime *R, llocalid x) {
+	lValue v = R->call->locals[x];
+	if (v.tag != TAG_NIL && v.tag != TAG_TAB) {
+		langR_error(R,NO_BYTE,S_tpf("expected table at local %i",x));
+		LNOBRANCH;
+	}
+	return v.x_tab;
+}
+
+
 lapi lClosure *lang_loadcl(lRuntime *R, llocalid x) {
 	lValue v = R->call->locals[x];
 	if (v.tag != TAG_NIL && v.tag != TAG_CLS) {

@@ -5,6 +5,18 @@
 */
 
 
+
+
+int testlib___of(lRuntime *R) {
+	lang_getobj(R,1)->metaclass = lang_gettab(R,0);
+	lang_pushvalue(R,lang_load(R,1));
+	return 1;
+}
+
+
+
+
+
 void sets(lRuntime *c, lTable *table, char const *k) {
 	langH_insert(table,lang_S(langS_new(c,k)),* -- c->v);
 }
@@ -129,6 +141,8 @@ char *gccolor2s(GCColor c) {
 void tstlib_load(lRuntime *rt) {
 	lModule *md = rt->md;
 	/* todo: ugly */
+	lang_addglobal(md,lang_pushnewS(rt,"__of"),lang_C(testlib___of));
+
 	lang_addglobal(md,lang_pushnewS(rt,"gc"),lang_C(testlib_gc));
 	lang_addglobal(md,lang_pushnewS(rt,"gcpause"),lang_C(testlib_gcpause));
 	lang_addglobal(md,lang_pushnewS(rt,"gcunpause"),lang_C(testlib_gcunpause));
