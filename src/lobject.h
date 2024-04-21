@@ -73,7 +73,7 @@ typedef struct lValue {
 		llongint     i;
 		lnumber   n;
 		lBinding   c;
-		lObject   *j;
+		lObject   *j,*x_obj;
 		lTable     *t;
 		lString   *s;
 		lClosure  *f;

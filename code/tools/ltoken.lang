@@ -76,9 +76,9 @@ newtk = fun(x,r,s) ? {
 
 
 tklist = {
-	/* todo: maybe something like this? */
-	// [["k","v","n"]]:
 	newtk("NONE", N, "none"),
+	newtk("NEW", K, "new"),
+	newtk("THIS", K, "this"),
 	newtk("ENUM", K, "enum"),
 	newtk("FUN", K, "fun"),
 	newtk("NIL", K, "nil"),

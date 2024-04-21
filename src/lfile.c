@@ -512,6 +512,9 @@ lnodeid langY_loadunary(FileState *fs) {
 			v = langY_loadexpr(fs);
 			v = langN_loadfile(fs,tk.line,v);
 		} break;
+		case TK_THIS: { langX_yield(fs);
+			v = langN_nullary(fs,tk.line,NODE_THIS,NT_ANY);
+		} break;
 		case TK_WORD: { langX_yield(fs);
 			v = langY_fndentitynode(fs,tk.line,tk.s);
 			if (v == NO_NODE) {

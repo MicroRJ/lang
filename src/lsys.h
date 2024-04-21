@@ -13,8 +13,8 @@ lapi llongint sys_clocktime();
 lapi int sys_getmyname(int length, char *buffer);
 lapi int sys_getmypid();
 
-lapi int sys_workdir(int length, char *buffer);
-lapi int sys_setworkdir(char *buffer);
+lapi int sys_pwd(int length, char *buffer);
+lapi int sys_setpwd(char *buffer);
 
 lapi lsysobj sys_loadlib(char const *name);
 lapi void *sys_libfn(lsysobj lib, char const *name);

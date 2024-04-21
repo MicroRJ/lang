@@ -2,23 +2,59 @@ __logging(false)
 
 load "code/games/lgi.lang"
 
+if _chdir("code/games/rogue") ? {
+	pf("invalid pwd: ", pwd())
+	leave false
+}
+
 lerp = fun(x,y,z) ? (y + x * (z - y))
 unlerp = fun(x,y,z) ? ((x - y) / (z - y))
 map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
 
-vec2 = fun(x,y) ? ({"x"=x,"y"=y})
-vec3 = fun(x,y,z) ? ({"x"=x,"y"=y,"z"=z})
+__vec2_add = fun(c) ? vec2(this.x+c.x,this.y+c.y)
+__vec2_sub = fun(c) ? vec2(this.x-c.x,this.y-c.y)
+__vec2_mul = fun(c) ? vec2(this.x*c.x,this.y*c.y)
+__vec2_div = fun(c) ? vec2(this.x/c.x,this.y/c.y)
 
-/* todo: methods or methods overload */
-vec2_add = fun(a,b) ? vec2(a.x+b.x,a.y+b.y)
+vec2 = fun(x,y) ? {
+	let v = {"x"=x,"y"=y}
+	v:add = __vec2_add
+	v:sub = __vec2_sub
+	v:mul = __vec2_mul
+	v:div = __vec2_div
+	leave v
+}
+
+__vec3_add = fun(c) ? vec3(this.x+c.x,this.y+c.y,this.z+c.z)
+__vec3_sub = fun(c) ? vec3(this.x-c.x,this.y-c.y,this.z-c.z)
+__vec3_mul = fun(c) ? vec3(this.x*c.x,this.y*c.y,this.z*c.z)
+__vec3_div = fun(c) ? vec3(this.x/c.x,this.y/c.y,this.z/c.z)
+__vec3_lerp = fun(c,t) ? vec3(lerp(t,this.x,c.x),lerp(t,this.y,c.y),lerp(t,this.z,c.z))
+
+vec3 = fun(x,y,z) ? {
+	let v = ({"x"=x,"y"=y,"z"=z})
+	v:add = __vec3_add
+	v:sub = __vec3_sub
+	v:mul = __vec3_mul
+	v:div = __vec3_div
+	leave v
+}
+
+
+let enum {
+	LEFT  = vec3(-1, 0, 0),
+	RIGHT = vec3( 1, 0, 0),
+	UP    = vec3( 0, 1, 0),
+	DOWN  = vec3( 0,-1, 0),
+}
+
+
+// vec2_add = fun(a,b) ? vec2(a.x+b.x,a.y+b.y)
 vec3_add = fun(a,b) ? vec3(a.x+b.x,a.y+b.y,a.z+b.z)
 vec3_sub = fun(a,b) ? vec3(a.x-b.x,a.y-b.y,a.z-b.z)
 vec3_lerp = fun(t,a,b) ? vec3(lerp(t,a.x,b.x),lerp(t,a.y,b.y),lerp(t,a.z,b.z))
 /* todo: */
 vec3_floor = fun(a,b) ? vec3(ntoi(a.x),ntoi(a.y),ntoi(a.z))
-
-
-
 
 // let enum {
 // 	TILESET_ROWLEN =  10,
@@ -35,19 +71,18 @@ let enum {
 	ISO_TILE_XSCALE = TILE_DRAWDIMEN * ISO_TILE_XSKEW,
 	ISO_TILE_YSCALE = TILE_DRAWDIMEN * ISO_TILE_YSKEW,
 	ISO_TILE_ZSCALE = TILE_DRAWDIMEN * ISO_TILE_YSKEW,
-	/* todo: rename these */
-	ISO_YTILT = TILE_DRAWDIMEN * .50,
-	ISO_XTILT = TILE_DRAWDIMEN * .25,
 }
 
-Feet = {}
+/* all critters are on a singular table,
+indexed by position in world */
+critters = {}
 World = {}
+
+
 WorldSide = 16
 WorldSize = WorldSide*WorldSide*WorldSide
 camerax = -256
 cameray = 0
-critterx = 0
-crittery = 0
 
 
 
@@ -65,9 +100,10 @@ let enum {
 	DIRT   = 0,
 	GRASS  = 23,
 	FLOWER = 42,
-	WATER  = 23,
 	OAK    = 30,
 	LEAF   = 40,
+	TRUNK  = 48,
+	WATER  = 110,
 }
 
 
@@ -78,12 +114,14 @@ let enum xorshift = fun(x) ? {
 	leave x
 }
 
+
 rndstate = 5282
 let enum rnd = fun(x,y) ? {
 	rndstate = xorshift(rndstate)
 	if rndstate < 0 ? rndstate = -rndstate
 	leave x + rndstate % (y - x)
 }
+
 
 let toworldid = fun(x,y,z) ? {
 	leave WorldSide*WorldSide*z + WorldSide * y + x
@@ -95,12 +133,13 @@ let gettileid = fun(x,y,z) ? {
 	leave World[toworldid(x,y,z)]
 }
 
-let gettileid3 = fun(xyz) ? gettileid(xyz.x,xyz.y,xyz.z)
 
 let settileid = fun(tileid,x,y,z) ? {
 	World[toworldid(x,y,z)] = tileid
 }
 
+let gettileid3 = fun(xyz) ? gettileid(xyz.x,xyz.y,xyz.z)
+let settileid3 = fun(id,xyz) ? settileid(id,xyz.x,xyz.y,xyz.z)
 
 World[0..WorldSize] = AIR
 for y in 0..WorldSide ? {
@@ -112,6 +151,8 @@ for i in 0..16 ? {
 	settileid(GRASS,rnd(0,8),rnd(0,8),0)
 	settileid(FLOWER,rnd(0,8),rnd(0,8),1)
 }
+
+
 
 
 // let addtree = fun(x,y) ? {
@@ -126,33 +167,37 @@ for i in 0..16 ? {
 // }
 // addtree(1,1)
 
-let enum {
-	LEFT  = vec2(-1, 0),
-	RIGHT = vec2( 1, 0),
-	UP    = vec2( 0, 1),
-	DOWN  = vec2( 0,-1),
-}
-
 
 lgi_initWindowed(720,512, "rogue")
 
-/* make it so that we change the default sampler */
 textures = {
-	"tiles" = lgi_loadtexture("code/games/tiles2.png"),
-	"stag" = lgi_loadtexture("code/games/critter_stag_NE_idle.png"),
-	"wolf" = lgi_loadtexture("code/games/wolf-idle.png"),
+	"tiles" = lgi_loadtexture("tiles2.png"),
+	"stag" = lgi_loadtexture("critter_stag.png"),
+	"wolf" = lgi_loadtexture("critter_wolf.png"),
 }
 
+
+/* make it so that we change the default sampler */
 for i in 0..textures:length() ? {
 	lgi_setsampler(textures:idx(i),"point")
 }
 
 
-unplot = fun (x,y) ? {
+unplot = fun (x,y,z) ? {
 	let xx = (x + camerax) / ISO_TILE_XSKEW
 	let yy = (y + cameray) / ISO_TILE_YSKEW
-	let zz = TILE_DRAWDIMEN * 2.
-	leave vec3_floor(vec3( (yy + xx) / zz, (yy - xx) / zz, 0))
+	let ss = TILE_DRAWDIMEN * 2.
+	leave vec3_floor(vec3( (yy + xx) / ss, (yy - xx) / ss, z))
+}
+
+
+raycast = fun (x,y) ? {
+	/* todo: figure out the starting tile */
+	for z in 0..8 ? {
+		let p = unplot(x,y,8-1-z)
+		if gettileid3(p) != AIR ? leave p
+	}
+	leave nil
 }
 
 
@@ -211,35 +256,41 @@ plottile = fun(tileid,x,y,z) ? {
 // }
 
 
-updatecritterstate = fun(this,state) ? {
-	if state != this.state ? {
-		this.prevstate = this.state
-		this.state = state
+updatecritterstate = fun(xthis,state) ? {
+	if state != xthis.state ? {
+		xthis.prevstate = xthis.state
+		xthis.state = state
 	}
 }
-
-/* all critters are on a singular table,
-indexed by position in world */
-critters = {}
 
 getcritter = fun(xyz) ? {
 	leave critters[toworldid3(xyz)]
 }
 
 
-movecritter = fun(this,offset) ? {
-	// if this.ismoving ? leave ()
-	let origin = this.xyzmov
-	let target = vec3_add(origin,offset)
+movecritter = fun(xthis,offset) ? {
+	// if xthis.ismoving ? leave ()
+	let origin = xthis.xyzmov
+	__logging(true)
+	let target = origin:add(offset)
+	__logging(false)
+	pf("offset: (",offset,")")
+	pf("origin: (",origin,")")
+	pf("target: (",target,")")
 	if target.x < 0 ? leave false
 	if target.y < 0 ? leave false
 	if target.z < 0 ? leave false
+	let upper =  target:add(vec3(0,0,1))
+	pf("above: (",upper,") = ", gettileid3(upper))
+	// pf("above 1: ", gettileid3(vec3_add(target,vec3(0,0,1))))
+	if gettileid3(target:add(vec3(0,0,1))) != AIR ? leave false
+	// if gettileid3(vec3_add(target,vec3(0,0,1))) != AIR ? leave false
 	let critter = getcritter(target)
 	if critter != nil ? leave false
 	critters[toworldid3(origin)] = nil
-	critters[toworldid3(target)] = this
-	this.xyzmov = target
-	this.ismoving = true
+	critters[toworldid3(target)] = xthis
+	xthis.xyzmov = target
+	xthis.ismoving = true
 	leave true
 }
 
@@ -266,20 +317,20 @@ crittercontroller_dummy = fun(critter) ? {
 }
 
 
-critterplotter_stag = fun(this) ? {
-	let xyz = this.xyz
+critterplotter_stag = fun(xthis) ? {
+	let xyz = xthis.xyz
 	let x = xyz.x
 	let y = xyz.y
 	let z = xyz.z
-	/* todo: #langfeature something like this */
-	// let px,py = plot(this.xyz){"x","y"}
+	/* todo: #langfeature something like xthis */
+	// let px,py = plot(xthis.xyz){"x","y"}
 	let pxy = plot(x,y)
 	let px = pxy.x
 	let py = pxy.y
-	let xanim = 32 * ((lgi_time() / .128) % 21)
-	if this.state == "grazing" ? {
-		xanim = 32 * (21 + (lgi_time() / .512) % 4)
-	}
+	let xanim = 32 * ((lgi_time() / .128) % 23)
+	// if xthis.state == "grazing" ? {
+	// 	xanim = 32 * (21 + (lgi_time() / .512) % 4)
+	// }
 	let w = 32.
 	let h = 41.
 	let a = h / w
@@ -288,22 +339,23 @@ critterplotter_stag = fun(this) ? {
 	px = px - s*.35
 	py = py + s*.05
 	// lgi_drawQuad(lgi_WHITE,px,py,s,s*a)
-	lgi_drawtexture(textures.stag,px,py,s,s*a,xanim,0,32,41)
+	// xanim,8*41
+	lgi_drawtexture(textures.stag,px,py,s,s*a,xanim,41*11,32,41)
 }
 
 
-critterplotter_wolf = fun(this) ? {
-	let xyz = this.xyz
+critterplotter_wolf = fun(xthis) ? {
+	let xyz = xthis.xyz
 	let x = xyz.x
 	let y = xyz.y
 	let z = xyz.z
-	/* todo: #langfeature something like this */
+	/* todo: #langfeature something like xthis */
 	// let px,py = plot(critter.xyz){"x","y"}
 	let pxy = plot(x,y)
 	let px = pxy.x
 	let py = pxy.y
 
-	let xanim = 64 * ((lgi_time() / .128) % 26)
+	let xanim = 64 * ((lgi_time() / .128) % 4)
 	let w = 64.
 	let h = 64.
 	let a = h / w
@@ -312,74 +364,73 @@ critterplotter_wolf = fun(this) ? {
 	px = px - s*.5
 	py = py - v*.2
 	// lgi_drawQuad(lgi_WHITE,px,py,256,v)
-	lgi_drawtexture(textures.wolf,px,py,s,v,xanim,64*3,64,64)
+	lgi_drawtexture(textures.wolf,px,py,s,v,xanim,64*12,64,64)
 }
 
 
 newcritter = fun(xyz) ? {
-	let this = {}
-	updatecritterstate(this,"idle")
+	let xthis = {}
+	updatecritterstate(xthis,"idle")
 	/* we iterate over the visible
 	tiles to find entities to tick
 	and draw, entities move and we
 	may encounter them again within
 	the same tick loop */
-	this.ticked = false
-	this.turnclock = 2.
-	this.turntimer = 2.
-	this.moveclock = .256
-	this.movetimer = .0
-	this.ismoving = false
-	this.xyz = xyz
-	this.xyzmov = xyz
-	this.controller = crittercontroller_dummy
-	this.plotter = critterplotter_stag
+	xthis.ticked = false
+	xthis.turnclock = 2.
+	xthis.turntimer = 2.
+	xthis.moveclock = .256
+	xthis.movetimer = .0
+	xthis.ismoving = false
+	xthis.xyz = xyz
+	xthis.xyzmov = xyz
+	xthis.controller = crittercontroller_dummy
+	xthis.plotter = critterplotter_stag
 
-	critters[toworldid3(xyz)] = this
-	leave this
+	critters[toworldid3(xyz)] = xthis
+	leave xthis
 }
 
 
 newwolf = fun(xyz) ? {
-	let this = newcritter(xyz)
-	this.controller = crittercontroller_player
-	this.plotter = critterplotter_wolf
-	critters[toworldid3(this.xyz)] = this
-	leave this
+	let xthis = newcritter(xyz)
+	xthis.controller = crittercontroller_player
+	xthis.plotter = critterplotter_wolf
+	critters[toworldid3(xthis.xyz)] = xthis
+	leave xthis
 }
 
 
-tickcritter = fun(this) ? {
-	if this.ticked ? leave ()
-	this.ticked = true
-	this.controller(this)
-	if this.movetimer >= this.moveclock ? {
-		this.ismoving = false
-		this.movetimer = 0
+tickcritter = fun(xthis) ? {
+	if xthis.ticked ? leave ()
+	xthis.ticked = true
+	xthis.controller(xthis)
+	if xthis.movetimer >= xthis.moveclock ? {
+		xthis.ismoving = false
+		xthis.movetimer = 0
 	}
-	if this.ismoving ? {
-		let movedelta = this.movetimer / this.moveclock
-		this.xyz = vec3_lerp(movedelta,this.xyz,this.xyzmov)
-		this.movetimer = this.movetimer + lgi_deltatime()
+	if xthis.ismoving ? {
+		let movedelta = xthis.movetimer / xthis.moveclock
+		xthis.xyz = vec3_lerp(movedelta,xthis.xyz,xthis.xyzmov)
+		xthis.movetimer = xthis.movetimer + lgi_deltatime()
 	}
 }
 
 
-plotcritter = fun(this) ? {
-	this.ticked = false
-	this.plotter(this)
-	// plottileoutline(this.xyz)
+plotcritter = fun(xthis) ? {
+	xthis.ticked = false
+	xthis.plotter(xthis)
+	// plottileoutline(xthis.xyz)
 }
 
 
 for i in 0..4 ? {
 	/* todo: #langfeature introduce new key word,
 	which calls a function in object mode */
-	newcritter(vec3(rnd(1,4),rnd(1,4),0))
+	// newcritter(vec3(rnd(1,4),rnd(1,4),0))
 }
 
-newwolf(vec3(0,0,0))
-
+let wolf = newwolf(vec3(0,0,0))
 
 forvisibletiles = fun(per) ? {
 	for z in 0..12 ? {
@@ -397,19 +448,10 @@ forvisibletiles = fun(per) ? {
 do {
 	let xcursor = lgi_getcursorx()
 	let ycursor = lgi_getcursory()
-
-	// if 0 ? {
-	// 	if lgi_testKey('W') ? move(UP)
-	// 	if lgi_testKey('D') ? move(RIGHT)
-	// 	if lgi_testKey('A') ? move(LEFT)
-	// 	if lgi_testKey('S') ? move(DOWN)
-	// } else {
-	// 	if lgi_testKey('W') ? move(RIGHT)
-	// 	if lgi_testKey('D') ? move(DOWN)
-	// 	if lgi_testKey('A') ? move(UP)
-	// 	if lgi_testKey('S') ? move(LEFT)
-	// }
-
+	// if lgi_testKey('W') ? move(UP)
+	// if lgi_testKey('D') ? move(RIGHT)
+	// if lgi_testKey('A') ? move(LEFT)
+	// if lgi_testKey('S') ? move(DOWN)
 	lgi_clearBackground();
 
 	forvisibletiles(fun(x,y,z) ? {
@@ -418,22 +460,26 @@ do {
 			tickcritter(critter)
 		}
 	})
+
 	forvisibletiles(fun(x,y,z) ? {
 		let tileid = gettileid(x,y,z)
 		plottile(tileid,x,y,z)
-	})
-	forvisibletiles(fun(x,y,z) ? {
-		let critter = critters[toworldid(x,y,z)]
-		if critter != nil ? {
-			plotcritter(critter)
+		if z > 0 ? {
+			let critter = critters[toworldid(x,y,z-1)]
+			if critter != nil ? {
+				plotcritter(critter)
+			}
 		}
 	})
-
-
-	if lgi_isbuttondown(0) ? {
-		let world = unplot(xcursor,ycursor)
-		plottileoutline(vec3(world.x,world.y,0))
-		settileid(GRASS,world.x,world.y,0)
+	if lgi_isclick(0) ? {
+		let hit = raycast(xcursor,ycursor)
+		if hit != nil ? {
+			plottileoutline(hit)
+			settileid3(TRUNK,vec3_add(hit,vec3(0,0,1)))
+		}
+		// let world = unplot(xcursor,ycursor,1)
+		// plottileoutline(world)
+		// settileid3(TRUNK,world)
 		// plotgrid()
 	}
 

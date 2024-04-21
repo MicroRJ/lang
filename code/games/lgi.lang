@@ -92,7 +92,7 @@ lgi_drawtexture = fun(tex,x,y,xx,yy,u,v,uu,vv) ? {
 	let h = lgi_gettextureheight(tex)
 	/* todo: do this better */
 	u = u / 1. / w
-	v = v / 1. / w
+	v = v / 1. / h
 	uu = uu / 1. / w
 	vv = vv / 1. / h
 	lgi_bindtexture(tex)

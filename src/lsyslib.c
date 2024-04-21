@@ -105,12 +105,14 @@ int syslib_ftemp(lRuntime *R) {
 
 
 int syslib_workdir(lRuntime *rt) {
+	lang_logerror("this function is deprecated");
+
 	char buf[MAX_PATH];
-	sys_workdir(sizeof(buf),buf);
+	sys_pwd(sizeof(buf),buf);
 	lang_pushnewS(rt,buf);
 	if (rt->f->x == 1) {
 		lString *s = lang_getstr(rt,0);
-		sys_setworkdir(s->c);
+		sys_setpwd(s->c);
 	}
 	return 1;
 }
@@ -118,7 +120,7 @@ int syslib_workdir(lRuntime *rt) {
 
 int syslib_pwd(lRuntime *rt) {
 	char buf[MAX_PATH];
-	sys_workdir(sizeof(buf),buf);
+	sys_pwd(sizeof(buf),buf);
 	lang_pushnewS(rt,buf);
 	return 1;
 }
@@ -126,7 +128,7 @@ int syslib_pwd(lRuntime *rt) {
 
 int syslib_setpwd(lRuntime *rt) {
 	lString *s = lang_getstr(rt,0);
-	sys_setworkdir(s->c);
+	sys_setpwd(s->c);
 	return 0;
 }
 

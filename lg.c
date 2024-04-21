@@ -14,7 +14,7 @@ int main(int n, char **c) {
 	langM_initmemory();
 
 	// char pwd[0x100];
-	// sys_workdir(sizeof(pwd),pwd);
+	// sys_pwd(sizeof(pwd),pwd);
 	// printf("working in: %s\n",pwd);
 
 	lModule md = {0};

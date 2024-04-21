@@ -63,11 +63,12 @@ int lang_call(lRuntime *R, lObject *obj, llocalid rx, llocalid ry, int nx, int n
 	top is later incremented to match nlocals */
 	lValue *top  = locals + nx;
 	lCallFrame call = {0};
+	call.caller = caller;
 	call.top = R->top;
 	call.obj = obj;
 	call.locals = locals;
-	call.x = nx;
-	call.y = ny;
+	call.rx = rx; call.ry = ry;
+	call.nx = nx; call.ny = ny;
 	if (fn.tag == TAG_CLS) {
 		call.cl = fn.f;
 		/* increment top to fill the function's locals */
@@ -89,6 +90,8 @@ int lang_call(lRuntime *R, lObject *obj, llocalid rx, llocalid ry, int nx, int n
 			nyield = fn.c(R);
 			/* ensure that the results were pushed to the stack */
 			LASSERT(nyield <= (R->top - call.locals));
+			/* todo: we only do this to not have to make
+			the user write to rx directly? */
 			/* hoist results */
 			for (int p = 0; p < MIN(nyield,ny); ++ p) {
 				caller->locals[ry] = R->top[p-nyield];
@@ -220,20 +223,25 @@ int lang_loadfile(lRuntime *R, FileState *fs, lString *filename, llocalid x, int
 
 
 int lang_resume(lRuntime *R) {
+	/* todo: these names are deprecated */
 	lCallFrame *c = R->f;
 	lCallFrame *frame = R->frame;
 	lModule *md = R->md;
+	//
+	lCallFrame *call = R->call;
 	lClosure *cl = c->cl;
 	lProto fn = cl->fn;
+	lCallFrame *caller = call->caller;
 
 	while (c->j < fn.nbytes) {
 		llongint jp = c->j ++;
 		llongint bc = fn.bytes + jp;
 		lBytecode b = md->bytes[bc];
 
-		#if 1
+#ifdef _DEBUG
 		if (R->logging) bytefpf(md,stdout,jp,b);
-		#endif
+		if (R->debugbreak) __debugbreak();
+#endif
 
 		switch (b.k) {
 			case BC_LEAVE: {
@@ -254,17 +262,14 @@ int lang_resume(lRuntime *R) {
 			} break;
 			case BC_YIELD: {
 				LASSERT(b.x >= 0);
-				/* -- check that we don't exceed number of
+				/* check that we don't exceed number of
 				expected outputs */
-				int z = b.z < frame->y ? b.z : frame->y;
-				/* -- base points to the first local, -1 is where
-				the function value is at and the first yield
-				register */
-				for (int p = 0; p < z; ++p) {
-					frame->base[p-1] = frame->base[b.y+p];
+				int ny = MIN(b.z,call->ny);
+				for (llocalid y = 0; y < ny; ++y) {
+					caller->locals[call->ry+y] = call->locals[b.y+y];
 				}
-				frame->y = z;
-				frame->j = jp + b.x;
+				call->ny = ny;
+				call->j = jp + b.x;
 			} break;
 			case BC_STKGET: {
 				langR_typecheck(R,bc,0,TAG_INT,frame->base[b.y].tag);
@@ -286,6 +291,10 @@ int lang_resume(lRuntime *R) {
 			} break;
 			case BC_JNZ: {
 				if (c->base[b.y].i != 0) c->j = jp + b.x;
+			} break;
+			case BC_LOADTHIS: {
+				frame->base[b.x].tag = ttobj2val(frame->obj->type);
+				frame->base[b.x].x_obj = frame->obj;
 			} break;
 			case BC_RELOAD: {
 				frame->base[b.x] = frame->base[b.y];
@@ -340,7 +349,17 @@ int lang_resume(lRuntime *R) {
 					langH_insert(frame->base[b.x].t,frame->base[b.y],frame->base[b.z]);
 				} else LNOBRANCH;
 			} break;
-			case BC_METANAME: {
+			case BC_SETMETACLASS: {
+				if (ttisobj(frame->base[b.x].tag) && ttisobj(frame->base[b.y].tag)) {
+					frame->base[b.x].x_obj->metaclass = frame->base[b.y].x_obj->metaclass;
+				} else LNOBRANCH;
+			} break;
+			case BC_SETMETAFIELD: {
+				if (ttisobj(frame->base[b.x].tag)) {
+					langH_insert(frame->base[b.x].x_obj->metaclass,frame->base[b.y],frame->base[b.z]);
+				} else LNOBRANCH;
+			} break;
+			case BC_METAFIELD: {
 				lValue *yy = &frame->base[b.y];
 				if (ttisobj(yy->tag)) {
 					frame->base[b.x] = langH_lookup(yy->j->metaclass,frame->base[b.z]);

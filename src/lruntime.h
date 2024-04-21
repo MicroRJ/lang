@@ -12,8 +12,14 @@ typedef struct ldelaylist {
 } ldelaylist;
 
 
-/* -- pretty much a call frame */
+typedef struct lCallFrame lCallFrame;
+
+
 typedef struct lCallFrame {
+	/* todo: this is only here so that we can write
+	to caller->locals[rx/ry] directly, rx and ry
+	could be relative to this.locals */
+	lCallFrame *caller;
 	/* the closure this call frame belongs to */
 	lClosure *cl;
 	/* the object for meta fields, meta calls and the likes */
@@ -29,8 +35,10 @@ typedef struct lCallFrame {
 	/* -- next instruction index, not really
 	- used now, but I guess for coroutines? */
 	llongint j;
-	/* -- The number of inputs (x) and
-	- the number of expected outputs (y).
+	llocalid rx,ry;
+	/* x and y names are deprecated */
+	/* -- The number of inputs (nx) and
+	- the number of expected outputs (ny).
 	- Output registers are allocated by the
 	- caller and runtime writes to them when
 	- the callee \yields.
@@ -39,7 +47,8 @@ typedef struct lCallFrame {
 	- For bindings you must return the number
 	- of actual values yielded so that runtime
 	- can hoist the return values. */
-	int x,y;
+	union { int nx,x; };
+	union { int ny,y; };
 	/* -- list of delayed jumps to be executed
 	- on return, 'finally' statements produce
 	- these. */
@@ -63,7 +72,7 @@ typedef struct lRuntime {
 	llocalid stklen;
 	union { lValue *top,*v; };
 	union { lCallFrame *call,*frame,*f; };
-
+	lbool debugbreak;
 	lTable *classofS;
 	lTable *classofH;
 	/* current byte */

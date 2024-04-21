@@ -17,8 +17,8 @@ int testlib_logging(lRuntime *c) {
 }
 
 
-int testlib_debugbreak(lRuntime *c) {
-	__debugbreak();
+int testlib_debugbreak(lRuntime *R) {
+	R->debugbreak = ltrue;
 	return 0;
 }
 

@@ -344,9 +344,14 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 	switch (v.k) {
 		/* todo: remove this? */
 		case NODE_LOCAL: {
+			if (y == 0) goto leave;
 			if (reload) {
 				langL_bytexy(fs,line,BC_RELOAD,x,v.x);
 			} else goto leave;
+		} break;
+		case NODE_THIS: {
+			if (y == 0) goto leave;
+			langL_byte(fs,line,BC_LOADTHIS,x);
 		} break;
 		case NODE_CACHE: {
 			if (y == 0) goto leave;
@@ -533,6 +538,12 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 			lnodeop op = v.k == NODE_INDEX ? BC_SETINDEX : BC_SETFIELD;
 			langL_bytexyz(fs,line,op,xx,ii,yy);
 		} break;
+		case NODE_METAFIELD: {
+			llocalid xx = langL_localize(fs,line,v.x);
+			llocalid ii = langL_localize(fs,line,v.y);
+			llocalid yy = langL_localize(fs,line,y);
+			langL_bytexyz(fs,line,BC_SETMETAFIELD,xx,ii,yy);
+		} break;
 		// {x}[{x}..{x}] = {y}
 		case NODE_RANGE_INDEX: {
 			lnodeid lo = fs->nodes[v.y].x;
@@ -716,7 +727,7 @@ lbyteop nodetobyte(lnodeop tt) {
 		case NODE_FIELD: 	  	return BC_FIELD;
 		case NODE_INDEX: 	  	return BC_INDEX;
 		case NODE_CALL:     	return BC_CALL;
-		case NODE_METAFIELD:	return BC_METANAME;
+		case NODE_METAFIELD:	return BC_METAFIELD;
 		case NODE_ADD:     	return BC_ADD;
 		case NODE_SUB:     	return BC_SUB;
 		case NODE_DIV:     	return BC_DIV;

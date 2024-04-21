@@ -32,7 +32,7 @@ lnodeid langN_x(FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x) {
 }
 
 
-lnodeid lanN_node(FileState *fs, llineid line, lnodeop k, lnodety t) {
+lnodeid langN_nullary(FileState *fs, llineid line, lnodeop k, lnodety t) {
 	return langN_x(fs,line,k,t,NO_NODE);
 }
 
@@ -58,21 +58,21 @@ lnodeid langN_group(FileState *fs, llineid line, lnodeid x) {
 
 
 lnodeid langN_longint(FileState *fs, llineid line, llongint i) {
-	int v = lanN_node(fs,line,NODE_INTEGER,NT_INT);
+	int v = langN_nullary(fs,line,NODE_INTEGER,NT_INT);
 	fs->nodes[v].lit.i = i;
 	return v;
 }
 
 
 lnodeid langN_number(FileState *fs, llineid line, lnumber n) {
-	int v = lanN_node(fs,line,NODE_NUMBER,NT_NUM);
+	int v = langN_nullary(fs,line,NODE_NUMBER,NT_NUM);
 	fs->nodes[v].lit.n = n;
 	return v;
 }
 
 
 lnodeid langN_S(FileState *fs, llineid line, char *s) {
-	int v = lanN_node(fs,line,NODE_STRING,NT_STR);
+	int v = langN_nullary(fs,line,NODE_STRING,NT_STR);
 	fs->nodes[v].lit.s = s;
 	return v;
 }
@@ -89,7 +89,7 @@ lnodeid langN_closure(FileState *fs, llineid line, lnodeid x, lnodeid *z) {
 
 
 lnodeid langN_nil(FileState *fs, llineid line) {
-	return lanN_node(fs,line,NODE_NIL,NT_NIL);
+	return langN_nullary(fs,line,NODE_NIL,NT_NIL);
 }
 
 

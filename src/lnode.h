@@ -50,7 +50,7 @@ typedef enum lnodeop {
 	/* l-values, represent some address,
 	source is x */
 	NODE_GLOBAL, NODE_LOCAL, NODE_CACHE,
-
+	NODE_THIS,// this
 	NODE_INDEX,// {x}[{x}]
 	NODE_FIELD,// {x}.{x}
 	NODE_METAFIELD,// {x}:{x}
@@ -96,7 +96,7 @@ typedef struct lNode {
 lnodeid langN_xyz(FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z);
 lnodeid langN_xy(FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x, lnodeid y);
 lnodeid langN_x(FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x);
-lnodeid lanN_node(FileState *fs, llineid, lnodeop k, lnodety t);
+lnodeid langN_nullary(FileState *fs, llineid, lnodeop k, lnodety t);
 
 lnodeid langN_group(FileState *fs, llineid, lnodeid x);
 

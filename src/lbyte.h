@@ -36,6 +36,8 @@ typedef enum lbyteop {
 
 	BC_LOADGLOBAL,
 	BC_LOADNUM, BC_LOADINT, BC_LOADNIL,
+	BC_LOADTHIS,
+	BC_RELOAD,
 
 	BC_LOADFILE, BC_LOADCLIB,
 	/* BC_CALL(io x,y,z):
@@ -47,14 +49,15 @@ typedef enum lbyteop {
 	should have allocated sufficient space for both the arguments
 	and the returns. */
 	BC_CALL,
-	BC_METANAME,
 	BC_METACALL,
 	BC_TABLECALL,
 	BC_STKGET, BC_STKLEN,
-	BC_RELOAD,
 	BC_LOADCACHED,
 	BC_INDEX,
 	BC_FIELD,
+	BC_SETMETACLASS,
+	BC_SETMETAFIELD,
+	BC_METAFIELD,
 	BC_SETGLOBAL,
 	BC_SETINDEX,
 	BC_SETFIELD,
@@ -101,6 +104,7 @@ lbyteclass lang_byteclass(lbyteop k) {
 		}
 		case BC_CLOSURE:
 		case BC_FIELD:
+		case BC_SETMETAFIELD:
 		case BC_SETFIELD: case BC_SETINDEX:
 		case BC_INDEX:
 		case BC_ISNIL:
@@ -112,7 +116,7 @@ lbyteclass lang_byteclass(lbyteop k) {
 		case BC_XOR:
 		case BC_CALL:
 		case BC_YIELD:
-		case BC_METANAME:
+		case BC_METAFIELD:
 		case BC_METACALL:
 		case BC_LOADFILE: {
 			return BC_CLASS_XYZ;
@@ -136,7 +140,9 @@ char const *lang_bytename(lbyteop k) {
 		case BC_JNZ: return "jnz";
 		case BC_ISNIL: return "isnil";
 		case BC_CALL: return "call";
-		case BC_METANAME: return "metaname";
+		case BC_LOADTHIS: return "this";
+		case BC_METAFIELD: return "metafield";
+		case BC_SETMETAFIELD: return "setmetafield";
 		case BC_METACALL: return "metacall";
 		case BC_LOADCACHED: return "loadcached";
 		case BC_LOADGLOBAL: return "loadglobal";
