@@ -134,6 +134,9 @@ settileid(GRASS,0,0,1)
 settileid(GRASS,0,0,2)
 settileid(GRASS,0,0,3)
 settileid(GRASS,0,0,4)
+settileid(GRASS,0,1,4)
+settileid(GRASS,0,2,4)
+settileid(GRASS,0,3,4)
 
 
 
@@ -167,15 +170,6 @@ for i in 0..textures:length() ? {
 }
 
 
-unplot = fun (x,y,z) ? {
-	let xx = (x - lgi_getSizeX() * .5) / ISO_TILE_XSKEW
-	let yy = (y - lgi_getSizeY() * .5) / ISO_TILE_YSKEW
-	let ss = TILE_DRAWDIMEN * 2.
-	let wx = (yy + xx) / ss + camerax
-	let wy = (yy - xx) / ss + cameray
-	let wz = z // ((y - (wx + wy) * ISO_TILE_YSKEW) / ISO_TILE_ZSKEW) / ss
-	leave vec3(wx,wy,wz):floor()
-}
 
 
 raycast = fun (x,y) ? {
@@ -192,8 +186,7 @@ plot = fun(x,y,z) ? {
 	let xx = x - camerax
 	let yy = y - cameray
 	let xxx = (xx - yy) * ISO_TILE_XSCALE
-	let yyy = (xx + yy) * ISO_TILE_YSCALE + z*ISO_TILE_ZSCALE
-
+	let yyy = (xx + yy + z) * ISO_TILE_YSCALE
 	let wx = lgi_getSizeX()*.5
 	let wy = lgi_getSizeY()*.5
 	leave vec3(xxx+wx,yyy+wy, 0)
@@ -202,22 +195,48 @@ plot = fun(x,y,z) ? {
 
 plot3 = fun(xyz) ? plot(xyz.x,xyz.y,xyz.z)
 
+
+unplot = fun (x,y,z) ? {
+	let xview = x - lgi_getSizeX() * .5
+	let yview = y - lgi_getSizeY() * .5
+	let xx = xview / (ISO_TILE_XSCALE*2)
+	let yy = yview / (ISO_TILE_YSCALE*2)
+	let wx = yy + xx + camerax
+	let wy = yy - xx + cameray
+	let wz = yview / ISO_TILE_YSCALE - xx - yy
+	leave vec3(wx,wy,wz):floor()
+}
+
+
 plotline = fun(x0,y0,x1,y1) ? {
 	let xy0 = plot(x0,y0,0)
 	let xy1 = plot(x1,y1,0)
-	// let ix0 = (x0 - y0 - camerax) * ISO_TILE_XSCALE
-	// let iy0 = (x0 + y0 - cameray) * ISO_TILE_YSCALE
-	// let ix1 = (x1 - y1 - camerax) * ISO_TILE_XSCALE
-	// let iy1 = (x1 + y1 - cameray) * ISO_TILE_YSCALE
-	// lgi_drawline(lgi_BLUE,1,ix0,iy0,ix1,iy1)
 	lgi_drawline(lgi_BLUE,1,xy0.x,xy0.y,xy1.x,xy1.y)
 }
 
 
+plotline3 = fun(color,x0,y0,z0,x1,y1,z1) ? {
+	let xy0 = plot(x0,y0,z0)
+	let xy1 = plot(x1,y1,z1)
+	lgi_drawline(color,1,xy0.x,xy0.y,xy1.x,xy1.y)
+}
+
+
 plotgrid = fun() ? {
-	for i in 0..8 ? {
-		plotline(0,i,8,i)
-		plotline(i,0,i,8)
+	let color = lgi_BLUE
+	color.a = .5
+	for z in 0..8 ? {
+		for i in 0..8 ? {
+			plotline3(color,0,i,z,8,i,z)
+			plotline3(color,i,0,z,i,8,z)
+		}
+	}
+	color = lgi_RED
+	color.a = .1
+	for y in 0..8 ? {
+		for x in 0..8 ? {
+			plotline3(color,x,y,0,x,y,8)
+		}
 	}
 }
 
@@ -225,16 +244,17 @@ plotgrid = fun() ? {
 plottileoutline = fun(xyz) ? {
 	let x = xyz.x
 	let y = xyz.y
-	plotline(x,y,x+1,y+0)
-	plotline(x,y,x+0,y+1)
-	plotline(x+1,y+1,x+1,y+0)
-	plotline(x+0,y+1,x+1,y+1)
+	plotline3(lgi_BLUE,x+0,y+0,0,x+1,y+0,0)
+	plotline3(lgi_BLUE,x+0,y+0,0,x+0,y+1,0)
+	plotline3(lgi_BLUE,x+1,y+1,0,x+1,y+0,0)
+	plotline3(lgi_BLUE,x+0,y+1,0,x+1,y+1,0)
 }
 
 
 plottile = fun(tileid,x,y,z) ? {
 	if tileid == AIR ? leave ()
-	/* offset the tiles cuz of the sprite */
+	/* offset x by -1 just so that sprite aligns
+	visually with the grid */
 	let p = plot(x-1,y,z)
 	let px = p.x
 	let py = p.y
@@ -435,6 +455,7 @@ forvisibletiles = fun(per) ? {
 }
 
 
+showgrid = false
 /* todo: we can do lighting trick by
 rendering tiles less times */
 do {
@@ -475,7 +496,15 @@ do {
 	let world = unplot(xcursor,ycursor,0)
 	plottileoutline(world)
 
+	if lgi_testKey('G') ? {
+		showgrid = showgrid == false
+	}
+	if showgrid ? {
+		plotgrid()
+	}
+
 	if lgi_isbuttondown(0) ? {
+		pf(world)
 		// let hit = raycast(xcursor,ycursor)
 		// if hit != nil ? {
 		// 	plottileoutline(hit)
@@ -483,7 +512,7 @@ do {
 		// }
 		// settileid3(TRUNK,world)
 	} elif lgi_isbuttondown(1) ? {
-		plotgrid()
+
 	}
 } while lgi_tick()
 
