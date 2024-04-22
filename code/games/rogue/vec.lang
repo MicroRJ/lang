@@ -1,0 +1,38 @@
+
+
+
+lerp = fun(x,y,z) ? (y + x * (z - y))
+unlerp = fun(x,y,z) ? ((x - y) / (z - y))
+map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
+
+
+let vec3__ = {
+	"clone" = fun() ? vec3(this.x,this.y,this.z),
+	"x" = fun(x) ? vec3(x,this.y,this.z),
+	"y" = fun(y) ? vec3(this.x,y,this.z),
+	"z" = fun(z) ? vec3(this.x,this.y,z),
+	"add" = fun(that) ? vec3(this.x+that.x,this.y+that.y,this.z+that.z),
+	"sub" = fun(that) ? vec3(this.x-that.x,this.y-that.y,this.z-that.z),
+	"mul" = fun(that) ? vec3(this.x*that.x,this.y*that.y,this.z*that.z),
+	"div" = fun(that) ? vec3(this.x/that.x,this.y/that.y,this.z/that.z),
+	"div1" = fun(that) ? vec3(this.x/that,this.y/that,this.z/that),
+	"dot" = fun(that) ? (this.x*that.x + this.y*that.y + this.z*that.z),
+	"len" = fun() ? sqrt(dot(this)),
+	"angle" = fun() ? atan2(this.x,this.y),
+	"lerp" = fun(that,ratio) ? {
+		leave vec3(lerp(ratio,this.x,that.x),
+					  lerp(ratio,this.y,that.y),
+					  lerp(ratio,this.z,that.z))
+	},
+	"floor" = fun() ? vec3(floor(this.x),floor(this.y),floor(this.z)),
+	"norm" = fun() ? this:div1(this:len()),
+	"perp" = fun(that) ? {
+		leave vec3(	this.y*that.z - this.z*that.y,
+						this.z*that.x - this.x*that.z,
+						this.x*that.y - this.y*that.x )
+	}
+}
+
+/* todo: instead use new keyword, new vec3__ {} */
+vec3 = fun(x,y,z) ? __of(vec3__,{"x"=x,"y"=y,"z"=z})
+

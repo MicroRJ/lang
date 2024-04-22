@@ -43,6 +43,12 @@ int crtlib_tan(lRuntime *R) {
 }
 
 
+int crtlib_atan2(lRuntime *R) {
+	lang_pushnum(R,atan2(lang_getnum(R,0),lang_getnum(R,1)));
+	return 1;
+}
+
+
 int crtlib_abort(lRuntime *rt) {
 	if(1) abort();
 	return 0;
@@ -200,6 +206,7 @@ lapi void crtlib_load(lRuntime *rt) {
 	lang_addglobal(md,lang_pushnewS(rt,"sin"),lang_C(crtlib_sin));
 	lang_addglobal(md,lang_pushnewS(rt,"cos"),lang_C(crtlib_cos));
 	lang_addglobal(md,lang_pushnewS(rt,"tan"),lang_C(crtlib_tan));
+	lang_addglobal(md,lang_pushnewS(rt,"atan2"),lang_C(crtlib_atan2));
 
 	lang_addglobal(md,lang_pushnewS(rt,"stderr"),lang_H(stderr));
 	lang_addglobal(md,lang_pushnewS(rt,"stdout"),lang_H(stdout));

@@ -1,0 +1,17 @@
+
+xorshift = fun(x) ? {
+	x = x ^ x << 13
+	x = x ^ x >> 7
+	x = x ^ x << 17
+	leave x
+}
+
+
+rnd__ = 5282
+rnd = fun(min,max) ? {
+	rnd__ = xorshift(rnd__)
+
+	if rnd__ < 0 ? rnd__ = - rnd__
+
+	leave min + rnd__ % (max - min)
+}

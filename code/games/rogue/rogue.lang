@@ -7,22 +7,10 @@ if _chdir("code/games/rogue") ? {
 	leave false
 }
 
-lerp = fun(x,y,z) ? (y + x * (z - y))
-unlerp = fun(x,y,z) ? ((x - y) / (z - y))
-map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
-
-vec3__ = {
-	add = fun(c) ? vec3(this.x+c.x,this.y+c.y,this.z+c.z),
-	sub = fun(c) ? vec3(this.x-c.x,this.y-c.y,this.z-c.z),
-	mul = fun(c) ? vec3(this.x*c.x,this.y*c.y,this.z*c.z),
-	div = fun(c) ? vec3(this.x/c.x,this.y/c.y,this.z/c.z),
-	lerp = fun(c,t) ? vec3(lerp(t,this.x,c.x),lerp(t,this.y,c.y),lerp(t,this.z,c.z)),
-	floor = fun() ? vec3(floor(this.x),floor(this.y),floor(this.z))
-}
-
-/* todo: instead use new keyword,
-new vec3__ {} */
-vec3 = fun(x,y,z) ? __of(vec3__,{"x"=x,"y"=y,"z"=z})
+/* this is done at runtime, which
+is not the greatest thing */
+load "vec.lang"
+load "rnd.lang"
 
 
 let enum {
@@ -43,12 +31,10 @@ let enum {
 	TILESET_ROWLEN =  11,
 	TILE_SLOTDIMEN =  32,
 	TILE_DRAWDIMEN = 128,
-	ISO_TILE_XSKEW = .50,
-	ISO_TILE_YSKEW = .25,
-	ISO_TILE_ZSKEW = .25,
-	ISO_TILE_XSCALE = TILE_DRAWDIMEN * ISO_TILE_XSKEW,
-	ISO_TILE_YSCALE = TILE_DRAWDIMEN * ISO_TILE_YSKEW,
-	ISO_TILE_ZSCALE = TILE_DRAWDIMEN * ISO_TILE_ZSKEW,
+	ISO_XSKEW = .50,
+	ISO_YSKEW = .25,
+	ISO_XSCALE = TILE_DRAWDIMEN * ISO_XSKEW,
+	ISO_YSCALE = TILE_DRAWDIMEN * ISO_YSKEW,
 }
 
 /* all critters are on a singular table,
@@ -59,8 +45,11 @@ World = {}
 
 WorldSide = 16
 WorldSize = WorldSide*WorldSide*WorldSide
-camerax = 0
-cameray = 0
+
+
+let camera = {
+	"xyz" = vec3(0,0,0)
+}
 
 
 
@@ -73,51 +62,21 @@ cameray = 0
 // 	LEAF   = 40,
 // }
 
-let enum {
-	AIR    = 1000,
-	DIRT   = 0,
-	GRASS  = 23,
-	FLOWER = 42,
-	OAK    = 30,
-	LEAF   = 40,
-	TRUNK  = 48,
-	WATER  = 110,
-}
+AIR    = 1000
+DIRT   = 0
+GRASS  = 23
+FLOWER = 42
+OAK    = 30
+LEAF   = 40
+TRUNK  = 48
+WATER  = 110
 
-
-let enum xorshift = fun(x) ? {
-	x = x ^ x << 13
-	x = x ^ x >> 7
-	x = x ^ x << 17
-	leave x
-}
-
-
-rndstate = 5282
-let enum rnd = fun(x,y) ? {
-	rndstate = xorshift(rndstate)
-	if rndstate < 0 ? rndstate = -rndstate
-	leave x + rndstate % (y - x)
-}
-
-
-let toworldid = fun(x,y,z) ? {
-	leave WorldSide*WorldSide*z + WorldSide * y + x
-}
-
-let toworldid3 = fun(xyz) ? toworldid(xyz.x,xyz.y,xyz.z)
-
-let gettileid = fun(x,y,z) ? {
-	leave World[toworldid(x,y,z)]
-}
-
-
-let settileid = fun(tileid,x,y,z) ? {
-	World[toworldid(x,y,z)] = tileid
-}
-
-let gettileid3 = fun(xyz) ? gettileid(xyz.x,xyz.y,xyz.z)
-let settileid3 = fun(id,xyz) ? settileid(id,xyz.x,xyz.y,xyz.z)
+toworldid = fun(x,y,z) ? (WorldSide*WorldSide*z + WorldSide * y + x)
+toworldid3 = fun(xyz) ? toworldid(xyz.x,xyz.y,xyz.z)
+gettileid = fun(x,y,z) ? (World[toworldid(x,y,z)])
+settileid = fun(tileid,x,y,z) ? {World[toworldid(x,y,z)] = tileid}
+gettileid3 = fun(xyz) ? gettileid(xyz.x,xyz.y,xyz.z)
+settileid3 = fun(id,xyz) ? settileid(id,xyz.x,xyz.y,xyz.z)
 
 World[0..WorldSize] = AIR
 for y in 0..WorldSide ? {
@@ -130,13 +89,25 @@ for i in 0..WorldSide*WorldSide/2 ? {
 	settileid(FLOWER,rnd(0,16),rnd(0,16),1)
 }
 
+settileid(GRASS,6,6,1)
+settileid(GRASS,7,6,2)
+settileid(GRASS,8,6,3)
+settileid(GRASS,9,6,4)
+settileid(GRASS,9,7,4)
+settileid(GRASS,9,8,4)
+settileid(GRASS,9,9,4)
+
+
 settileid(GRASS,0,0,1)
 settileid(GRASS,0,0,2)
 settileid(GRASS,0,0,3)
 settileid(GRASS,0,0,4)
-settileid(GRASS,0,1,4)
-settileid(GRASS,0,2,4)
-settileid(GRASS,0,3,4)
+settileid(GRASS,0,0,5)
+settileid(GRASS,0,0,6)
+settileid(GRASS,0,0,7)
+settileid(GRASS,0,1,7)
+settileid(GRASS,0,2,7)
+settileid(GRASS,0,3,7)
 
 
 
@@ -171,7 +142,6 @@ for i in 0..textures:length() ? {
 
 
 
-
 raycast = fun (x,y) ? {
 	/* todo: figure out the starting tile */
 	for z in 0..8 ? {
@@ -183,13 +153,14 @@ raycast = fun (x,y) ? {
 
 
 plot = fun(x,y,z) ? {
-	let xx = x - camerax
-	let yy = y - cameray
-	let xxx = (xx - yy) * ISO_TILE_XSCALE
-	let yyy = (xx + yy + z) * ISO_TILE_YSCALE
-	let wx = lgi_getSizeX()*.5
-	let wy = lgi_getSizeY()*.5
-	leave vec3(xxx+wx,yyy+wy, 0)
+	let xx = x - camera.xyz.x
+	let yy = y - camera.xyz.y
+	let zz = z - camera.xyz.z
+	let xxx = (xx - yy) * ISO_XSCALE
+	let yyy = (xx + yy + zz) * ISO_YSCALE
+	let wx = xxx + lgi_getSizeX()*.5
+	let wy = yyy + lgi_getSizeY()*.5
+	leave vec3(wx,wy,0)
 }
 
 
@@ -199,11 +170,11 @@ plot3 = fun(xyz) ? plot(xyz.x,xyz.y,xyz.z)
 unplot = fun (x,y,z) ? {
 	let xview = x - lgi_getSizeX() * .5
 	let yview = y - lgi_getSizeY() * .5
-	let xx = xview / (ISO_TILE_XSCALE*2)
-	let yy = yview / (ISO_TILE_YSCALE*2)
-	let wx = yy + xx + camerax
-	let wy = yy - xx + cameray
-	let wz = yview / ISO_TILE_YSCALE - xx - yy
+	let xx = xview / (ISO_XSCALE*2)
+	let yy = yview / (ISO_YSCALE*2)
+	let wx = yy + xx + camera.xyz.x
+	let wy = yy - xx + camera.xyz.y
+	let wz = yview / ISO_YSCALE - xx - yy
 	leave vec3(wx,wy,wz):floor()
 }
 
@@ -266,14 +237,6 @@ plottile = fun(tileid,x,y,z) ? {
 }
 
 
-// let move = fun(x) ? {
-// 	// camerax = camerax + -x.x * 10
-// 	// cameray = cameray + -x.y * 10
-// 	critterx = critterx + x.x
-// 	crittery = crittery + x.y
-// }
-
-
 updatecritterstate = fun(xthis,state) ? {
 	if state != xthis.state ? {
 		xthis.prevstate = xthis.state
@@ -286,15 +249,29 @@ getcritter = fun(xyz) ? {
 }
 
 
+issolid = fun(tile) ? {
+	let id = gettileid3(tile)
+	leave id != AIR && id != FLOWER
+}
+
+
 movecritter = fun(xthis,offset) ? {
 	let origin = xthis.xyzmov
 	let target = origin:add(offset)
 	if target.x < 0 ? leave false
 	if target.y < 0 ? leave false
 	if target.z < 0 ? leave false
-	let id = gettileid3(target:add(vec3(0,0,1)))
-	if id != AIR && id != FLOWER ? {
-		leave false
+	if issolid(target:add(vec3(0,0,2))) ? {
+		leave (false)
+	} elif issolid(target:add(vec3(0,0,1))) ? {
+		target = target:add(vec3(0,0,1))
+	/* check if we're going to fall */
+	} else iff issolid(target) ? {
+		/* is the fall too steep, if so bail */
+		iff issolid(target:add(vec3(0,0,-1))) ? {
+			leave (false)
+		}
+		target = target:add(vec3(0,0,-1))
 	}
 	let critter = getcritter(target)
 	if critter != nil ? leave false
@@ -330,12 +307,7 @@ crittercontroller_dummy = fun(critter) ? {
 
 critterplotter_stag = fun(xthis) ? {
 	let xyz = xthis.xyz
-	let x = xyz.x
-	let y = xyz.y
-	let z = xyz.z
-	/* todo: #langfeature something like xthis */
-	// let px,py = plot(xthis.xyz){"x","y"}
-	let pxy = plot(x,y)
+	let pxy = plot3(xyz)
 	let px = pxy.x
 	let py = pxy.y
 	let xanim = 32 * ((lgi_time() / .128) % 23)
@@ -442,7 +414,7 @@ for i in 0..8 ? {
 
 wolf = newstag(vec3(0,2,0))
 
-forvisibletiles = fun(per) ? {
+fortilesinplotorder = fun(per) ? {
 	for y in 0..12 ? {
 		let iy = 12-1-y
 		for x in 0..12 ? {
@@ -462,11 +434,7 @@ do {
 	let xcursor = lgi_getcursorx()
 	let ycursor = lgi_getcursory()
 
-	// pf(plot3(wolf.xyz))
-	// let wolfonscreen = plot3(wolf.xyz)
-	// pf(wolfonscreen)
-	camerax = wolf.xyz.x
-	cameray = wolf.xyz.y
+	camera.xyz = wolf.xyz:clone()
 	// pf(camerax, ", ", cameray)
 	// if lgi_testKey('W') ? move(UP)
 	// if lgi_testKey('D') ? move(RIGHT)
@@ -475,14 +443,14 @@ do {
 
 	lgi_clearBackground();
 
-	forvisibletiles(fun(x,y,z) ? {
+	fortilesinplotorder(fun(x,y,z) ? {
 		let critter = critters[toworldid(x,y,z)]
 		if critter != nil ? {
 			tickcritter(critter)
 		}
 	})
 
-	forvisibletiles(fun(x,y,z) ? {
+	fortilesinplotorder(fun(x,y,z) ? {
 		let tileid = gettileid(x,y,z)
 		plottile(tileid,x,y,z)
 		if z > 0 ? {
