@@ -570,7 +570,7 @@ do {
 			/* this is fine, but the problem is that
 			that when walking around, the critter will
 			switch tiles, and the animation will make
-			seem as if the tile were the critter is
+			seem as if the tile where the critter is
 			currently on is on top of the critter,
 			since the critter has to animate there,
 			maybe we could reserve the tile, and then
