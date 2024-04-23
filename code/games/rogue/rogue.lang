@@ -13,12 +13,18 @@ load "vec.lang"
 load "rnd.lang"
 
 
-let enum {
-	LEFT  = vec3(-1, 0, 0),
-	RIGHT = vec3( 1, 0, 0),
-	UP    = vec3( 0, 1, 0),
-	DOWN  = vec3( 0,-1, 0),
-}
+LEFT  = vec3(-1, 0, 0)
+RIGHT = vec3( 1, 0, 0)
+UP    = vec3( 0, 1, 0)
+DOWN  = vec3( 0,-1, 0)
+
+/* these are world directions, name as what
+they look to the user */
+NW = vec3(0,1,0)
+NE = vec3(1,0,0)
+SW = vec3(-1,0,0)
+SE = vec3(0,-1,0)
+
 
 
 // let enum {
@@ -128,30 +134,25 @@ settileid(GRASS,0,3,7)
 
 lgi_initWindowed(720,512, "rogue")
 
-textures = {
-	"tiles" = lgi_loadtexture("tiles2.png"),
-	"stag" = lgi_loadtexture("critter_stag.png"),
-	"wolf" = lgi_loadtexture("critter_wolf.png"),
-}
+loadassets = fun() ? {
+	let time_ = clocktime()
+	finally pf("loaded assets, took ", timediffs(time_))
 
-
-/* make it so that we change the default sampler */
-for i in 0..textures:length() ? {
-	lgi_setsampler(textures:idx(i),"point")
-}
-
-
-
-raycast = fun (x,y) ? {
-	/* todo: figure out the starting tile */
-	for z in 0..8 ? {
-		let p = unplot(x,y,8-1-z)
-		if gettileid3(p) != AIR ? leave p
+	pf("loading assets... ")
+	textures = {
+		"tiles" = lgi_loadtexture("tiles2.png"),
+		"stag" = lgi_loadtexture("critter_stag.png"),
+		"wolf" = lgi_loadtexture("critter_wolf.png"),
 	}
-	leave nil
+	/* make it so that we can change the default sampler */
+	for i in 0..textures:length() ? {
+		lgi_setsampler(textures:idx(i),"point")
+	}
 }
+loadassets()
 
 
+plot3 = fun(xyz) ? plot(xyz.x,xyz.y,xyz.z)
 plot = fun(x,y,z) ? {
 	let xx = x - camera.xyz.x
 	let yy = y - camera.xyz.y
@@ -164,7 +165,30 @@ plot = fun(x,y,z) ? {
 }
 
 
-plot3 = fun(xyz) ? plot(xyz.x,xyz.y,xyz.z)
+/* todo: I have to keep messing around with this:
+this will only work on one of the planes */
+unskew = fun (x,y,z) ? {
+	let xx = (x-lgi_getSizeX()*.5) / (ISO_XSKEW*2)
+	let yy = (y-lgi_getSizeY()*.5) / (ISO_YSKEW*2)
+	let wx = yy + xx + camera.xyz.x*TILE_DRAWDIMEN
+	let wy = yy - xx + camera.xyz.y*TILE_DRAWDIMEN
+	leave vec3(wx,wy)
+	/* convert from isometric projection to worldspace */
+	let xview = x - lgi_getSizeX() * .5
+	let yview = y - lgi_getSizeY() * .5
+	let xx = xview / (ISO_XSKEW*2)
+	let yy = yview / (ISO_YSKEW*2)
+	let wx = yy + xx + camera.xyz.x*TILE_DRAWDIMEN
+	let wy = yy - xx + camera.xyz.y*TILE_DRAWDIMEN
+	/* now we pretend there's an imaginary barrier
+	between the world and the camera, the transform
+	for this space is this: */
+	let wwx = wx - wy
+	let wwy = wy/ISO_YSKEW
+	/* now we've projected onto the barrier */
+	let wwz = wwy/(TILE_DRAWDIMEN*2)
+	leave vec3(wwx,wwy,wwy)
+}
 
 
 unplot = fun (x,y,z) ? {
@@ -172,10 +196,10 @@ unplot = fun (x,y,z) ? {
 	let yview = y - lgi_getSizeY() * .5
 	let xx = xview / (ISO_XSCALE*2)
 	let yy = yview / (ISO_YSCALE*2)
-	let wx = yy + xx + camera.xyz.x
-	let wy = yy - xx + camera.xyz.y
-	let wz = yview / ISO_YSCALE - xx - yy
-	leave vec3(wx,wy,wz):floor()
+	let wx = floor(yy + xx + camera.xyz.x)
+	let wy = floor(yy - xx + camera.xyz.y)
+	let wz = z
+	leave vec3(wx,wy,wz)
 }
 
 
@@ -187,9 +211,9 @@ plotline = fun(x0,y0,x1,y1) ? {
 
 
 plotline3 = fun(color,x0,y0,z0,x1,y1,z1) ? {
-	let xy0 = plot(x0,y0,z0)
-	let xy1 = plot(x1,y1,z1)
-	lgi_drawline(color,1,xy0.x,xy0.y,xy1.x,xy1.y)
+	let p0 = plot(x0,y0,z0)
+	let p1 = plot(x1,y1,z1)
+	lgi_drawline(color,1,p0.x,p0.y,p1.x,p1.y)
 }
 
 
@@ -197,18 +221,48 @@ plotgrid = fun() ? {
 	let color = lgi_BLUE
 	color.a = .5
 	for z in 0..8 ? {
+		plotline3(color,0,0,z,8,0,z)
+		plotline3(color,0,0,z,0,8,z)
+	}
+	for z in 0..1 ? {
 		for i in 0..8 ? {
 			plotline3(color,0,i,z,8,i,z)
 			plotline3(color,i,0,z,i,8,z)
 		}
 	}
-	color = lgi_RED
-	color.a = .1
-	for y in 0..8 ? {
-		for x in 0..8 ? {
-			plotline3(color,x,y,0,x,y,8)
-		}
-	}
+	// color = lgi_RED
+	// color.a = .1
+	// for y in 0..8 ? {
+	// 	for x in 0..8 ? {
+	// 		plotline3(color,x,y,0,x,y,8)
+	// 	}
+	// }
+}
+
+
+plotdebugfacex = fun(xyz,w,h) ? {
+	let x = xyz.x, y = xyz.y, z = xyz.z
+	plotline3(lgi_BLUE,x,y,z,x,y+w,z)
+	plotline3(lgi_BLUE,x,y,z,x,y,z+h)
+	plotline3(lgi_BLUE,x,y+w,z+h,x,y,z+h)
+	plotline3(lgi_BLUE,x,y+w,z,x,y+w,z+h)
+}
+
+
+plotdebugfacey = fun(xyz,w,h) ? {
+	let x = xyz.x, y = xyz.y, z = xyz.z
+	plotline3(lgi_BLUE,x,y,z,x+w,y,z)
+	plotline3(lgi_BLUE,x,y,z,x,y,z+h)
+	plotline3(lgi_BLUE,x+w,y,z+h,x,y,z+h)
+	plotline3(lgi_BLUE,x+w,y,z,x+w,y,z+h)
+}
+
+
+plotdebugcube = fun(xyz,sx,sy,sz) ? {
+	plotdebugfacex(xyz,sx,sz)
+	plotdebugfacey(xyz,sx,sz)
+	plotdebugfacex(xyz:add(vec3(sx,0,0)),sx,sz)
+	plotdebugfacey(xyz:add(vec3(0,sy,0)),sx,sz)
 }
 
 
@@ -254,16 +308,41 @@ issolid = fun(tile) ? {
 	leave id != AIR && id != FLOWER
 }
 
+makeanim = fun(nkeys,clock) ? {
+	let self = {}
+	self.nkeys = nkeys
+	self.clock = clock
+	self.timer = timer
+	self.index = 0
+	self.state = 0
+	self.xtick = fun(xthis) ? {
+		if xthis.timer > xthis.clock / xthis.nkeys ? {
+			xthis.index = (xthis.index + 1) % xthis.nkeys
+			xthis.timer = 0
+		}
+		xthis.timer = xthis.timer + lgi_deltatime()
+	}
+	leave self
+}
+
 
 movecritter = fun(xthis,offset) ? {
+	if xthis.ismoving ? leave false
+	xthis.facing = offset:clone()
 	let origin = xthis.xyzmov
 	let target = origin:add(offset)
 	if target.x < 0 ? leave false
 	if target.y < 0 ? leave false
 	if target.z < 0 ? leave false
-	if issolid(target:add(vec3(0,0,2))) ? {
-		leave (false)
-	} elif issolid(target:add(vec3(0,0,1))) ? {
+	let height = xthis.height
+	/* 0 floor, 1 jumpable, include the tile past
+	the height, because tiles are 1 in depth */
+	for z in 2..height+1 ? {
+		if issolid(target:add(vec3(0,0,z))) ? {
+			leave (false)
+		}
+	}
+	if issolid(target:add(vec3(0,0,1))) ? {
 		target = target:add(vec3(0,0,1))
 	/* check if we're going to fall */
 	} else iff issolid(target) ? {
@@ -277,17 +356,20 @@ movecritter = fun(xthis,offset) ? {
 	if critter != nil ? leave false
 	critters[toworldid3(origin)] = nil
 	critters[toworldid3(target)] = xthis
+	xthis.moveorigin = xthis.xyz:clone()
 	xthis.xyzmov = target
 	xthis.ismoving = true
+	/* todo: rename this to systime() */
+	xthis.timemoved = clocktime()
 	leave true
 }
 
 
 crittercontroller_player = fun(critter) ? {
-	if lgi_testKey('W') ? movecritter(critter,RIGHT)
-	if lgi_testKey('D') ? movecritter(critter,DOWN)
-	if lgi_testKey('A') ? movecritter(critter,UP)
-	if lgi_testKey('S') ? movecritter(critter,LEFT)
+	if lgi_iskeydown('W') ? movecritter(critter,RIGHT)
+	if lgi_iskeydown('D') ? movecritter(critter,DOWN)
+	if lgi_iskeydown('A') ? movecritter(critter,UP)
+	if lgi_iskeydown('S') ? movecritter(critter,LEFT)
 }
 
 
@@ -310,7 +392,6 @@ critterplotter_stag = fun(xthis) ? {
 	let pxy = plot3(xyz)
 	let px = pxy.x
 	let py = pxy.y
-	let xanim = 32 * ((lgi_time() / .128) % 23)
 	// if xthis.state == "grazing" ? {
 	// 	xanim = 32 * (21 + (lgi_time() / .512) % 4)
 	// }
@@ -323,7 +404,35 @@ critterplotter_stag = fun(xthis) ? {
 	py = py + s*.05
 	// lgi_drawQuad(lgi_WHITE,px,py,s,s*a)
 	// xanim,8*41
-	lgi_drawtexture(textures.stag,px,py,s,s*a,xanim,41*11,32,41)
+	let yanim = 41*11
+	let xanim = 32 * ((xthis.animtimer / .128) % 23)
+	let facing = xthis.facing
+	let animlabel = xthis.animlabel
+	if xthis.ismoving ? {
+		xanim = 32 * ((xthis.animtimer / .032) % 11)
+		// animlabel = "walking"
+		yanim = 0
+		  if facing:eq(SW) ? yanim = 0
+		elif facing:eq(SE) ? yanim = 41*1
+		elif facing:eq(NW) ? yanim = 41*2
+		elif facing:eq(NE) ? yanim = 41*3
+		else pf("error")
+	} else {
+		animlabel = "idle"
+		if facing:eq(SW) ? yanim = 41*8
+		elif facing:eq(SE) ? yanim = 41*9
+		elif facing:eq(NW) ? yanim = 41*10
+		elif facing:eq(NE) ? yanim = 41*11
+		else pf("error")
+	}
+	if animlabel != xthis.animlabel ? {
+		xthis.animtimer = 0
+		xthis.animlabel = animlabel
+		pf("switch animation")
+	}
+
+	lgi_drawtexture(textures.stag,px,py,s,s*a,xanim,yanim,32,41)
+	xthis.animtimer = xthis.animtimer + lgi_deltatime()
 }
 
 
@@ -359,14 +468,19 @@ newcritter = fun(xyz) ? {
 	and draw, entities move and we
 	may encounter them again within
 	the same tick loop */
+	xthis.xyz = xyz
 	xthis.ticked = false
 	xthis.turnclock = 2.
 	xthis.turntimer = 2.
+	xthis.timemoved = 0
 	xthis.moveclock = .256
-	xthis.movetimer = .0
-	xthis.ismoving = false
-	xthis.xyz = xyz
+	xthis.moveorigin = vec3()
 	xthis.xyzmov = xyz
+	xthis.ismoving = false
+	xthis.height = 3
+	xthis.animtimer = 0.
+	xthis.animlabel = "idle"
+	xthis.facing = NW
 	xthis.controller = crittercontroller_dummy
 	xthis.plotter = critterplotter_wolf
 
@@ -387,14 +501,13 @@ tickcritter = fun(xthis) ? {
 	if xthis.ticked ? leave ()
 	xthis.ticked = true
 	xthis.controller(xthis)
-	if xthis.movetimer >= xthis.moveclock ? {
+	let movetimediffs = timediffs(xthis.timemoved)
+	if movetimediffs >= xthis.moveclock ? {
 		xthis.ismoving = false
-		xthis.movetimer = 0
 	}
 	if xthis.ismoving ? {
-		let movedelta = xthis.movetimer / xthis.moveclock
-		xthis.xyz = xthis.xyz:lerp(xthis.xyzmov,movedelta)
-		xthis.movetimer = xthis.movetimer + lgi_deltatime()
+		let movedelta = movetimediffs / xthis.moveclock
+		xthis.xyz = xthis.moveorigin:lerp(xthis.xyzmov,movedelta)
 	}
 }
 
@@ -402,7 +515,7 @@ tickcritter = fun(xthis) ? {
 plotcritter = fun(xthis) ? {
 	xthis.ticked = false
 	xthis.plotter(xthis)
-	// plottileoutline(xthis.xyz)
+	if showgrid ? plotdebugcube(xthis.xyz,1,1,xthis.height)
 }
 
 
@@ -454,6 +567,15 @@ do {
 		let tileid = gettileid(x,y,z)
 		plottile(tileid,x,y,z)
 		if z > 0 ? {
+			/* this is fine, but the problem is that
+			that when walking around, the critter will
+			switch tiles, and the animation will make
+			seem as if the tile were the critter is
+			currently on is on top of the critter,
+			since the critter has to animate there,
+			maybe we could reserve the tile, and then
+			once the critter has finished moving there
+			switch it around in the table.. */
 			let critter = critters[toworldid(x,y,z-1)]
 			if critter != nil ? {
 				plotcritter(critter)
@@ -467,20 +589,13 @@ do {
 	if lgi_testKey('G') ? {
 		showgrid = showgrid == false
 	}
-	if showgrid ? {
-		plotgrid()
-	}
+
+	if showgrid ? plotgrid()
+	if showgrid ? plotdebugcube(vec3(0,0,0),12,12,12)
 
 	if lgi_isbuttondown(0) ? {
-		pf(world)
-		// let hit = raycast(xcursor,ycursor)
-		// if hit != nil ? {
-		// 	plottileoutline(hit)
-		// 	settileid3(TRUNK,hit:add(vec3(0,0,1)))
-		// }
-		// settileid3(TRUNK,world)
+		pf(unskew(xcursor,ycursor,0))
 	} elif lgi_isbuttondown(1) ? {
-
 	}
 } while lgi_tick()
 

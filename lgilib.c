@@ -239,6 +239,16 @@ llibfn int lgilib_testKey(lRuntime *R) {
 	return 1;
 }
 
+llibfn int lgilib_iskeydown(lRuntime *R) {
+	int key = (int) lang_getlong(R,0);
+
+	lang_pushlong(R,GetKeyState(key)>>15);
+
+	// lang_pushlong(R
+	// ,	lgi.Input.Keyboard.newKeyState[key] != 0
+ // 	||	lgi.Input.Keyboard.oldKeyState[key] != 0);
+	return 1;
+}
 
 llibfn int lgilib_getcursorx(lRuntime *rt) {
 	lang_pushlong(rt,lgi.Input.Mice.xcursor);

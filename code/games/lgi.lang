@@ -21,6 +21,7 @@ lgi_tick = lgifn("lgilib_tick")
 lgi_clearBackground = lgifn("lgilib_clearBackground")
 
 lgi_testKey = lgifn("lgilib_testKey")
+lgi_iskeydown = lgifn("lgilib_iskeydown")
 lgi_wasbuttondown = lgifn("lgilib_wasButtonDown")
 lgi_isbuttondown = lgifn("lgilib_isButtonDown")
 lgi_isbuttonreleased = lgifn("lgilib_isButtonReleased")

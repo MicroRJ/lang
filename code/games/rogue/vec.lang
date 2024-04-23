@@ -1,5 +1,13 @@
 
-
+abs = fun(x,y) ? {
+	if x < 0 ? leave -x else leave x
+}
+min = fun(x,y) ? {
+	if x < y ? leave x else leave y
+}
+max = fun(x,y) ? {
+	if x > y ? leave x else leave y
+}
 
 lerp = fun(x,y,z) ? (y + x * (z - y))
 unlerp = fun(x,y,z) ? ((x - y) / (z - y))
@@ -11,6 +19,7 @@ let vec3__ = {
 	"x" = fun(x) ? vec3(x,this.y,this.z),
 	"y" = fun(y) ? vec3(this.x,y,this.z),
 	"z" = fun(z) ? vec3(this.x,this.y,z),
+	"eq" = fun(that) ? (this.x==that.x&&this.y==that.y&&this.z==this.z),
 	"add" = fun(that) ? vec3(this.x+that.x,this.y+that.y,this.z+that.z),
 	"sub" = fun(that) ? vec3(this.x-that.x,this.y-that.y,this.z-that.z),
 	"mul" = fun(that) ? vec3(this.x*that.x,this.y*that.y,this.z*that.z),
