@@ -433,17 +433,18 @@ lnodeid langY_loadtable(FileState *fs) {
 			to do this, flag the loadexpr so that it doesn't bind entities
 			at first, otherwise the result of that expression should be
 			the key */
-			if (langX_pick(fs,TK_WORD) || langX_choose(fs,TK_INTEGER,TK_STRING)) {
+			if (langX_choose(fs,TK_WORD,TK_LETTER)
+			||  langX_choose(fs,TK_INTEGER,TK_STRING)) {
 				tk = fs->lasttk;
 				lnodeid key;
-				if (tk.type == TK_INTEGER) key = langN_longint(fs,tk.line,tk.i);
+				if (tk.type == TK_INTEGER || tk.type == TK_LETTER) key = langN_longint(fs,tk.line,tk.i);
 				else key = langN_S(fs,tk.line,tk.s);
 				langX_take(fs,TK_ASSIGN);
 				lnodeid val = langY_loadexpr(fs);
 				if (langX_checkexpr(fs,fs->tk.line,val)) break;
 				lnodeid f = langN_load(fs,fs->lasttk.line,langN_field(fs,fs->lasttk.line,table,key),val);
 				langA_varadd(z,f);
-			} else langX_error(fs,fs->tk.line,"expected either word, string or integer for key-value designator");
+			} else langX_error(fs,fs->tk.line,"expected either word, string, character or integer for key-value designator");
 		} else if (langX_test(fs,TK_COMMA) || langX_test(fs,TK_CURLY_RIGHT)) {
 			/* trap */
 		} else {

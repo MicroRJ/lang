@@ -256,15 +256,14 @@ void langL_yield(FileState *fs, llineid line, lnodeid id) {
 */
 void langL_localloadin(FileState *fs, llineid line, llocalid r, lnodeid id) {
 	/* the user can provide exactly the next free register,
-	or exactly the last allocated register, both are valid
-	memory states, but we want the second one to be true,
-	so we do it here, additionally, we double to check to
-	ensure that is the case, unnecessarily so, if this
-	function fails, is an internal error, or bug. */
+	or exactly the last allocated register * or a register
+	that's already been allocated, all are valid memory
+	states. */
 	if ((fs->fn->xmemory - r) == 0) {
 		langL_localalloc(fs,1);
 	}
-	if ((fs->fn->xmemory - r) != 1) {
+	/* != 1 */
+	if ((fs->fn->xmemory - r) <= 0) {
 		langX_error(fs,line,"invalid memory state");
 	}
 	langL_localload(fs,line,ltrue,r,1,id);
@@ -273,6 +272,8 @@ void langL_localloadin(FileState *fs, llineid line, llocalid r, lnodeid id) {
 
 llocalid langL_localize(FileState *fs, llineid line, lnodeid id) {
 	lNode v = fs->nodes[id];
+	/* todo: this literally contradicts SSA, this system is
+	obsolete, replace with something else... */
 	llocalid r = v.r;
 	/* the node is currently allocated */
 	if ((r != NO_SLOT) && (r < fs->fn->xmemory)) {

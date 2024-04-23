@@ -13,7 +13,6 @@ lerp = fun(x,y,z) ? (y + x * (z - y))
 unlerp = fun(x,y,z) ? ((x - y) / (z - y))
 map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
 
-
 let vec3__ = {
 	"clone" = fun() ? vec3(this.x,this.y,this.z),
 	"x" = fun(x) ? vec3(x,this.y,this.z),
@@ -42,6 +41,6 @@ let vec3__ = {
 	}
 }
 
-/* todo: instead use new keyword, new vec3__ {} */
+/* todo: make this better */
 vec3 = fun(x,y,z) ? __of(vec3__,{"x"=x,"y"=y,"z"=z})
 

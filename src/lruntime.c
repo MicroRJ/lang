@@ -339,10 +339,14 @@ int lang_resume(lRuntime *R) {
 				langR_typecheck(R,bc,b.x,b.y,frame->base[b.x].tag);
 			} break;
 			case BC_INDEX: case BC_FIELD: {
-				#define LNIL (lValue){TAG_NIL}
+				if (frame->base[b.y].tag == TAG_STR) {
+					langR_typecheck(R,bc,0,TAG_INT,frame->base[b.z].tag);
+					frame->base[b.x].tag = TAG_INT;
+					frame->base[b.x].i   = frame->base[b.y].s->c[frame->base[b.z].i];
+				} else
 				if (frame->base[b.y].tag == TAG_TAB) {
 					frame->base[b.x] = langH_lookup(frame->base[b.y].t,frame->base[b.z]);
-				} else frame->base[b.x] = LNIL;
+				} else frame->base[b.x] = (lValue){TAG_NIL};
 			} break;
 			case BC_SETINDEX: case BC_SETFIELD: {
 				if (langR_typecheck(R,bc,b.x,TAG_TAB,frame->base[b.x].tag)) {
