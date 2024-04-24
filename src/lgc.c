@@ -4,9 +4,10 @@
 ** Garbage Collector
 */
 
-#define L_GC_THRESHOLD (llongint) (8192)
+// #define L_GC_THRESHOLD (elf_int) (8192)
+#define L_GC_THRESHOLD (elf_int) (512)
 
-void langGC_collect(lRuntime *fs);
+void elf_collect(lRuntime *fs);
 
 
 void langGC_pause(lRuntime *fs) {
@@ -19,32 +20,32 @@ void langGC_unpause(lRuntime *fs) {
 }
 
 
-void langGC_markpink(lObject *obj) {
+void langGC_markpink(elf_obj *obj) {
 	obj->gccolor = GC_PINK;
 }
 
 
-void langGC_markwhite(lObject *obj) {
+void langGC_markwhite(elf_obj *obj) {
 	obj->gccolor = GC_WHITE;
 }
 
 
-void *langGC_allocobj(lRuntime *rt, ObjectType type, llongint length) {
-#if 0
+void *elf_newobj(lRuntime *rt, ObjectType type, elf_int length) {
+#if 1
 	if (rt != 0) {
 		if (!rt->isgcpaused) {
 			if (rt->gcthreshold <= 0) {
 				rt->gcthreshold = L_GC_THRESHOLD;
 			}
-			if (langA_varlen(rt->gc) >= rt->gcthreshold) {
-				langGC_collect(rt);
+			if (elf_arrlen(rt->gc) >= rt->gcthreshold) {
+				elf_collect(rt);
 				rt->gcthreshold *= 2;
 			}
 		}
 	}
 #endif
 
-	lObject *obj = langM_clearalloc(lHEAP,length);
+	elf_obj *obj = elf_newmemzro(lHEAP,length);
 	obj->type = type;
 
 	if (rt != 0) {
@@ -54,57 +55,59 @@ void *langGC_allocobj(lRuntime *rt, ObjectType type, llongint length) {
 }
 
 
-void langGC_remobj(lRuntime *fs, llongint i) {
-	lObject **gc = fs->gc;
+void elf_remobj(lRuntime *fs, elf_int i) {
+	elf_obj **gc = fs->gc;
 	if (gc == 0) return;
-	llongint n = langA_varlen(gc);
+	elf_int n = elf_arrlen(gc);
 	LASSERT(i >= 0 && i < n);
 	gc[i] = gc[n-1];
 	((Array*)(gc))[-1].min --;
 }
 
-void langGC_deallocobj(lObject *j) {
-	if (j->type == OBJ_TABLE) {
-		langH_free((lTable*)j);
-	}
-	langM_dealloc(lHEAP,j);
+
+void elf_delobj(elf_obj *obj) {
+	if (obj->type == OBJ_TAB) {
+		elf_deltab((elf_tab*)obj);
+	} else elf_delmem(lHEAP,obj);
 }
 
 
-void langGC_deallocvalue(lValue v) {
-	if (ttisobj(v.tag)) {
-		langGC_deallocobj(v.j);
-	}
+void elf_delval(elf_val v) {
+	if (elf_tagisobj(v.tag)) elf_delobj(v.j);
 }
 
 
-lbool langGC_markvalue(lValue *v);
-llongint langGC_marktable(lTable *table);
+elf_bool elf_markval(elf_val *v);
+elf_int elf_marktab(elf_tab *table);
 
 
-int langGC_markclosure(lClosure *cl) {
-	int n = 0;
-	int k;
+elf_int elf_markcl(elf_Closure *cl) {
+	elf_int n = 0, k;
 	for (k=0; k<cl->fn.ncaches; ++k) {
-		n += langGC_markvalue(&cl->caches[k]);
+		n += elf_markval(&cl->caches[k]);
 	}
 	return n;
 }
 
 
-llongint langGC_marktable(lTable *table) {
-	llongint n = 0, k = 0;
+elf_int elf_marktab(elf_tab *table) {
+	if (table->ntotal > 1024) {
+		lang_logdebug("marked high count table: %lli/%lli",
+		table->nslots,table->ntotal);
+	}
+	elf_int n = 0, k;
 	for (k=0; k<table->ntotal; ++k) {
-		n += langGC_markvalue(&table->slots[k].k);
+		n += elf_markval(&table->slots[k].k);
 	}
-	langA_varifor(table->v) {
-		n += langGC_markvalue(&table->v[i]);
+	elf_forivar(table->v) {
+		n += elf_markval(&table->v[i]);
 	}
 	return n;
 }
 
 
-lbool langGC_markobj(lObject *obj) {
+elf_bool elf_markobj(elf_obj *obj) {
+	if (obj == lnil) return 0;
 	/* Red and green objects are not collectable,
 	and thus cannot be marked black or white,
 	only white objects can be marked black,
@@ -112,56 +115,60 @@ lbool langGC_markobj(lObject *obj) {
 	if (obj->gccolor != GC_WHITE) {
 		return obj->gccolor == GC_BLACK;
 	}
-
 	obj->gccolor = GC_BLACK;
-
 	if (obj->type == OBJ_CLOSURE) {
-		return 1 + langGC_markclosure((lClosure*)obj);
+		return 1 + elf_markcl((elf_Closure*)obj);
 	}
-	if (obj->type == OBJ_TABLE) {
-		return 1 + langGC_marktable((lTable*)obj);
+	if (obj->type == OBJ_TAB) {
+		return 1 + elf_marktab((elf_tab*)obj);
 	}
-
 	return 1;
 }
 
 
-lbool langGC_markvalue(lValue *v) {
-	if (!ttisobj(v->tag)) return 0;
-	return langGC_markobj(v->j);
-}
-
-
-llongint langGC_mark(lRuntime *fs) {
-	/* mark global table first */
-	llongint n = langGC_marktable(fs->md->g);
-	lValue *v;
-	for (v = fs->s; v < fs->v; ++ v) {
-		n += langGC_markvalue(v);
+elf_bool elf_markval(elf_val *v) {
+	if (!elf_tagisobj(v->tag)) {
+	 	return 0;
+	} else {
+		return elf_markobj(v->x_obj);
 	}
-	return n;
 }
 
 
-void langGC_collect(lRuntime *fs) {
-	llongint n = langGC_mark(fs);
-	(void) n;
-	lang_loginfo("marked: %lli/%lli",langA_varlen(fs->gc),n);
+elf_int elf_markall(lRuntime *R) {
+	elf_int num;
+	elf_val *val;
+	num = elf_marktab(R->md->g);
+	for (val = R->stk; val < R->top; ++ val) {
+		num += elf_markval(val);
+	}
+	return num;
+}
 
-	llongint d = 0;
-	langA_varifor(fs->gc) {
-		lObject *it = fs->gc[i];
-		if (it == 0) continue;
+
+void elf_collect(lRuntime *R) {
+	elf_int num = elf_markall(R);
+	elf_int ngc = elf_arrlen(R->gc);
+	elf_int tbf = ngc-num;
+	lang_logdebug("marked: %lli/%lli -> %lli ~(%%%.1f)",num,ngc
+	, num, (elf_num)(tbf)/(elf_num)(ngc) * 100.);
+	elf_int nwo = 0;
+
+	elf_forivar(R->gc) {
+		elf_obj *it = R->gc[i];
+		if (it == lnil) continue;
+		if (it->gccolor == GC_RED) __debugbreak();
 		if (it->gccolor == GC_BLACK) {
+			num --;
 			it->gccolor = GC_WHITE;
 		} else
 		if (it->gccolor == GC_WHITE) {
 			it->gccolor = GC_RED;
-			d ++;
-			// langGC_deallocobj(it);
-			// langGC_remobj(fs,i);
-		}
+			tbf --;
+			elf_delobj(it);
+			elf_remobj(R,i);
+		} else nwo ++;
 	}
 
-	lang_loginfo("	=> collected: %lli",d);
+	lang_logdebug("	=> leaked: %lli, %lli, %lli",tbf,nwo,num);
 }

@@ -1,0 +1,55 @@
+__logging(false)
+load "code/games/lgi.lang"
+
+let enum {
+	FLOOR = 0,
+	APPLE = 1,
+	SNAKE = 2
+}
+
+
+let enum int2 = fun(x,y) ? ({"x"=x,"y"=y})
+let enum int2_add = fun(x,y) ? int2(x.x+y.x,x.y+y.y)
+
+
+let enum {
+	LEFT  = int2(-1, 0),
+	RIGHT = int2( 1, 0),
+	UP    = int2( 0, 1),
+	DOWN  = int2( 0,-1),
+}
+let grid = {}
+let gsize = SIDELEN*SIDELEN
+grid[0..gsize] = FLOOR
+
+let redraw = fun () ? {
+	// let _time = clocktime()
+	// finally pf(" => took: ", timediffs(_time))
+	for y in 0..SIDELEN  ? {
+		for x in 0..SIDELEN ? {
+			let i = y * SIDELEN + x
+			let cell = grid[i]
+
+			let color = lgi_BLACK
+			if cell == APPLE ? {
+				color = lgi_GREEN
+			} elif cell == SNAKE ? {
+				color = lgi_RED
+			} then {
+				let box_x = x * CELLPX + x * 2
+				let box_y = y * CELLPX + y * 2
+				lgi_drawQuad(color,box_x,box_y,CELLPX,CELLPX)
+			}
+		}
+	}
+}
+
+let time = 0
+let lastturntime = 0.
+let TURN = .128
+lgi_initWindowed((CELLPX+3)*SIDELEN,(CELLPX+3)*SIDELEN, "snake")
+do {
+	lgi_clearBackground();
+	redraw()
+	time = time + lgi_deltatime()
+} while lgi_tick()

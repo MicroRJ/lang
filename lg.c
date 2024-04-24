@@ -11,25 +11,21 @@
 int main(int n, char **c) {
 	(void) n;
 
-	langM_initmemory();
+	elf_inimem();
 
-	// char pwd[0x100];
-	// sys_pwd(sizeof(pwd),pwd);
-	// printf("working in: %s\n",pwd);
-
-	lModule md = {0};
+	elf_Module md = {0};
 
 	lRuntime rt = {&md};
 	rt.logging = lfalse;
 	rt.stklen = 4096;
-	rt.stk = rt.top = langM_clearalloc(lHEAP,sizeof(lValue) * rt.stklen);
-	rt.classofS = langS_newclass(&rt);
-	rt.classofH = langH_newclass(&rt);
-	lCallFrame root = {0};
+	rt.stk = rt.top = elf_newmemzro(lHEAP,sizeof(elf_val) * rt.stklen);
+	rt.metatable_str = elf_newstrmetatab(&rt);
+	rt.metatable_tab = elf_newtabmetatab(&rt);
+	elf_CallFrame root = {0};
 	root.base = rt.top;
 	rt.frame = &root;
 
-	md.g = lang_pushnewtable(&rt);
+	md.g = elf_pushnewtab(&rt);
 
 	/* todo: eventually we'll call this from the source file,
 	each lib will be built independently, or maybe we can add
@@ -39,12 +35,15 @@ int main(int n, char **c) {
 	tstlib_load(&rt);
 	crtlib_load(&rt);
 
-	lCallFrame frame = {0};
+	elf_CallFrame frame = {0};
 	frame.base = rt.top;
 	rt.frame = &frame;
-	lString *filename = lang_pushnewS(&rt,c[1]);
-	FileState fs = {0};
-	lang_loadfile(&rt,&fs,filename,0,0);
+	elf_str *filename = elf_pushnewstr(&rt,c[1]);
+	/* todo: mark this as trap to figure out why
+	gc is freeing this up! */
+	filename->obj.gccolor = GC_PINK;
+	elf_FileState fs = {0};
+	elf_loadfile(&rt,&fs,filename,0,0);
 
 	FILE *file;
 	fopen_s(&file,S_tpf("%s.module.ignore",filename->c),"wb");

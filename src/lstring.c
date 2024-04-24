@@ -1,22 +1,23 @@
 /*
 ** See Copyright Notice In lang.h
 ** lstring.c
-** String lObject and String Tools
+** String elf_obj and String Tools
 */
 
 
-lTable *langS_newclass(lRuntime *R) {
-	lTable *tab = lang_pushnewtable(R);
-	langH_mf(R,tab,"length",langS_length_);
-	langH_mf(R,tab,"match",langS_match_);
-	langH_mf(R,tab,"hash",langS_hash_);
+elf_tab *elf_newstrmetatab(lRuntime *R) {
+	elf_tab *tab = elf_pushnewtab(R);
+	elf_tabmfld(R,tab,"length",langS_length_);
+	elf_tabmfld(R,tab,"match",langS_match_);
+	elf_tabmfld(R,tab,"hash",langS_hash_);
+	elf_tabmfld(R,tab,"append",langS_append_);
 	return tab;
 }
 
 
-lString *langS_new2(lRuntime *R, llongint length) {
-	lString *obj = langGC_allocobj(R,OBJ_STRING,sizeof(lString)+length+1);
-	obj->obj.metaclass = R->classofS;
+elf_str *elf_newstrlen(lRuntime *R, elf_int length) {
+	elf_str *obj = elf_newobj(R,OBJ_STRING,sizeof(elf_str)+length+1);
+	if (R) obj->obj.metatable = R->metatable_str;
 	obj->length = length;
 	obj->hash = -1;
 	obj->c[length] = 0;
@@ -24,16 +25,16 @@ lString *langS_new2(lRuntime *R, llongint length) {
 }
 
 
-lString *langS_new(lRuntime *R, char const *junk) {
+elf_str *elf_newstr(lRuntime *R, char const *junk) {
 	int length = S_length(junk);
-	lString *obj = langS_new2(R,length);
+	elf_str *obj = elf_newstrlen(R,length);
 	langM_copy(obj->c,junk,length);
-	obj->hash = langH_hashS((char*)junk);
+	obj->hash = elf_tabhashstr((char*)junk);
 	return obj;
 }
 
 
-lbool langS_eq(lString *x, lString *y) {
+elf_bool elf_streq(elf_str *x, elf_str *y) {
 	if (x == y) return ltrue;
 	/* assuming we use the same hash function */
 	if (x->hash != y->hash) return lfalse;
@@ -55,7 +56,7 @@ int S_length(char const *s) {
 }
 
 
-lbool S_eql(char const *x, char const *y, int n) {
+elf_bool S_eql(char const *x, char const *y, int n) {
 	for (int i = 0; i < n; i += 1) {
 		if (x[i] != y[i]) {
 			return lfalse;
@@ -65,7 +66,7 @@ lbool S_eql(char const *x, char const *y, int n) {
 }
 
 
-lbool S_eq(char const *x, char const *y) {
+elf_bool S_eq(char const *x, char const *y) {
 	int lx = S_length(x);
 	int ly = S_length(y);
 	return (lx == ly) && S_eql(x,y,lx);
@@ -90,22 +91,36 @@ char *S_copy(Alloc *allocator, char const *string) {
 
 
 int langS_length_(lRuntime *c) {
-	lang_pushlong(c,((lString*)c->f->obj)->length);
+	elf_putint(c,((elf_str*)c->f->obj)->length);
 	return 1;
 }
 
 
-int langS_match_(lRuntime *c) {
-	lString *s = (lString*) c->f->obj;
-	lString *p = lang_getstr(c,0);
-	lang_pushlong(c,S_match(p->string,s->string));
+int langS_append_(lRuntime *R) {
+	elf_str *s = (elf_str*) elf_getthis(R);
+	elf_val v = elf_getval(R,0);
+	if (v.tag == TAG_INT) {
+		elf_str *r = elf_newstrlen(R,s->length+1);
+		elf_putstr(R,r);
+		memcpy(r->c,s->c,s->length);
+		r->c[r->length-1] = v.i;
+		r->hash = elf_tabhashstr(r->c);
+	} else LNOBRANCH;
+	return 1;
+}
+
+
+int langS_match_(lRuntime *R) {
+	elf_str *s = (elf_str*) elf_getthis(R);
+	elf_str *p = elf_getstr(R,0);
+	elf_putint(R,S_match(p->string,s->string));
 	return 1;
 }
 
 
 int langS_hash_(lRuntime *c) {
-	lString *s = (lString*) c->f->obj;
-	lang_pushlong(c,s->hash);
+	elf_str *s = (elf_str*) c->f->obj;
+	elf_putint(c,s->hash);
 	return 1;
 }
 
@@ -134,12 +149,12 @@ char *S_tpf_(char const *format, ...) {
 
 /*
 ** Simple pattern matcher utility.
-** Pattern, lString
+** Pattern, elf_str
 */
-lbool S_matchsingle(char *p, char *s);
+elf_bool S_matchsingle(char *p, char *s);
 
 
-lbool S_match(char *p, char *s) {
+elf_bool S_match(char *p, char *s) {
 	char *b = s;
 	while (!S_matchsingle(p,s)) {
 
@@ -152,7 +167,7 @@ lbool S_match(char *p, char *s) {
 }
 
 
-lbool S_matchsingle(char *p, char *s) {
+elf_bool S_matchsingle(char *p, char *s) {
 	while (*p != 0 && *p != '|') {
 		if (*p == '?') {
 			/* matches any character except terminator. */

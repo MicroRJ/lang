@@ -25,7 +25,7 @@ let vec3__ = {
 	"div" = fun(that) ? vec3(this.x/that.x,this.y/that.y,this.z/that.z),
 	"div1" = fun(that) ? vec3(this.x/that,this.y/that,this.z/that),
 	"dot" = fun(that) ? (this.x*that.x + this.y*that.y + this.z*that.z),
-	"len" = fun() ? sqrt(dot(this)),
+	"len" = fun() ? sqrt(this:dot(this)),
 	"angle" = fun() ? atan2(this.x,this.y),
 	"lerp" = fun(that,ratio) ? {
 		leave vec3(lerp(ratio,this.x,that.x),

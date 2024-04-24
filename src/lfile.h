@@ -17,16 +17,16 @@ typedef struct lentity {
 	char    *name;
 	llineid  line;
 	llocalid slot;
-	lbool     enm;
+	elf_bool     enm;
 	/* the level in which this name was
 	declared, for scoping */
 	int     level;
 } lentity;
 
 
-typedef struct FileFunc FileFunc;
-typedef struct FileFunc {
-	FileFunc *enclosing;
+typedef struct elf_FileFunc elf_FileFunc;
+typedef struct elf_FileFunc {
+	elf_FileFunc *enclosing;
 	llineid line;
 	/* for the basic register allocation system, where we have
 	an infinite number of register, but we still want to keep
@@ -54,12 +54,12 @@ typedef struct FileFunc {
 	/* todo: deprecated */
 	/* list of yield jumps to be patched */
 	lbyteid *yj;
-} FileFunc;
+} elf_FileFunc;
 
 
-typedef struct FileState {
+typedef struct elf_FileState {
 
-	union { lModule  *M,*md; };
+	union { elf_Module  *M,*md; };
 	union { lRuntime *R,*rt; };
 
 	char *filename;
@@ -85,14 +85,14 @@ typedef struct FileState {
 
 	/* hierarchical list of loading functions,
 	each allocated in C stack by caller function */
-	FileFunc *fn;
+	elf_FileFunc *fn;
 
 	lbyteid bytes;
 
 	unsigned statbreak: 1;
-} FileState;
+} elf_FileState;
 
 
-lnodeid langY_loadexpr(FileState *fs);
-lnodeid langY_loadunary(FileState *fs);
-void langY_loadstat(FileState *fs);
+lnodeid elfY_loadexpr(elf_FileState *fs);
+lnodeid elfY_loadunary(elf_FileState *fs);
+void elfY_loadstat(elf_FileState *fs);

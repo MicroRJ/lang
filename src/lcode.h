@@ -55,19 +55,19 @@ typedef struct Loop {
 } Loop;
 
 
-void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y);
-void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, lnodeid id);
-llocalid langL_localize(FileState *fs, llineid line, lnodeid id);
+void langL_moveto(elf_FileState *fs, llineid line, lnodeid x, lnodeid y);
+void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid x, llocalid y, lnodeid id);
+llocalid langL_localize(elf_FileState *fs, llineid line, lnodeid id);
 
 
-void langL_begindelayedblock(FileState *fs, llineid line, FileBlock *bl);
-void langL_closedelayedblock(FileState *fs, llineid line, FileBlock *bl);
+void langL_begindelayedblock(elf_FileState *fs, llineid line, FileBlock *bl);
+void langL_closedelayedblock(elf_FileState *fs, llineid line, FileBlock *bl);
 
 
-lbyteid langL_branchiffalse(FileState *fs, ljlist *js, llocalid x, lnodeid id);
-lbyteid langL_branchiftrue(FileState *fs, ljlist *js, llocalid x, lnodeid id);
-lbyteid *langL_jumpiftrue(FileState *fs, ljlist *js, llocalid x, lnodeid id);
-lbyteid *langL_jumpiffalse(FileState *fs, ljlist *js, llocalid x, lnodeid id);
+lbyteid langL_branchiffalse(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id);
+lbyteid langL_branchiftrue(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id);
+lbyteid *langL_jumpiftrue(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id);
+lbyteid *langL_jumpiffalse(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id);
 
 
 enum {
@@ -76,18 +76,18 @@ enum {
 };
 
 
-void langL_beginif(FileState *fs, char *line, Select *s, lnodeid x, int z);
-void langL_addelif(FileState *fs, char *line, Select *s, lnodeid x);
-void langL_addelse(FileState *fs, char *line, Select *s);
-void langL_addthen(FileState *fs, char *line, Select *s);
-void langL_closeif(FileState *fs, char *line, Select *s);
+void langL_beginif(elf_FileState *fs, char *line, Select *s, lnodeid x, int z);
+void langL_addelif(elf_FileState *fs, char *line, Select *s, lnodeid x);
+void langL_addelse(elf_FileState *fs, char *line, Select *s);
+void langL_addthen(elf_FileState *fs, char *line, Select *s);
+void langL_closeif(elf_FileState *fs, char *line, Select *s);
 
 
-void langL_beginrangedloop(FileState *fs, char *line, Loop *loop, lnodeid x, lnodeid lo, lnodeid hi);
-void langL_closerangedloop(FileState *fs, char *line, Loop *loop);
+void langL_beginrangedloop(elf_FileState *fs, char *line, Loop *loop, lnodeid x, lnodeid lo, lnodeid hi);
+void langL_closerangedloop(elf_FileState *fs, char *line, Loop *loop);
 
-void langL_begindowhile(FileState *fs, char *line, Loop *loop);
-void langL_closedowhile(FileState *fs, char *line, Loop *loop, lnodeid x);
+void langL_begindowhile(elf_FileState *fs, char *line, Loop *loop);
+void langL_closedowhile(elf_FileState *fs, char *line, Loop *loop, lnodeid x);
 
-void langL_beginwhile(FileState *fs, char *line, Loop *loop, lnodeid x);
-void langL_closewhile(FileState *fs, char *line, Loop *loop);
+void langL_beginwhile(elf_FileState *fs, char *line, Loop *loop, lnodeid x);
+void langL_closewhile(elf_FileState *fs, char *line, Loop *loop);

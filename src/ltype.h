@@ -6,13 +6,13 @@
 
 
 
-typedef long long int llongint;
-typedef signed int lbool;
-typedef double lnumber;
+typedef long long int elf_int;
+typedef signed int elf_bool;
+typedef double elf_num;
 
 
 
-typedef unsigned int lhashid;
+typedef unsigned int elf_hashint;
 typedef int llocalid;
 typedef int lbyteid;
 typedef int lglobalid;
@@ -22,7 +22,7 @@ typedef char *llineid;
 
 typedef char lchar;
 typedef void *Ptr;
-typedef void *lsysobj;
+typedef void *elf_Handle;
 
 
 typedef int (* lBinding)(lRuntime *);
@@ -31,7 +31,7 @@ typedef int (* lBinding)(lRuntime *);
 /*
 ** Function Prototype
 */
-typedef struct lProto {
+typedef struct elf_Proto {
 	/* xin, yield */
 	short x,y;
 	/* number of cached values */
@@ -41,7 +41,7 @@ typedef struct lProto {
 	short nlocals;
 	int nbytes;
 	int bytes;
-} lProto;
+} elf_Proto;
 
 
 

@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice Below.
 ** lang.h
-** The programming language with no name.
+** The elf-λ language.
 */
 #ifndef _lang_
 #define _lang_
@@ -59,17 +59,17 @@
 #define llibfn __declspec(dllexport)
 
 
-#define lfalse ("false",(lbool)(0))
-#define ltrue ("true",(lbool)(1))
+#define lfalse ("false",(elf_bool)(0))
+#define ltrue ("true",(elf_bool)(1))
 #define lnil ("nil",(Ptr)(0))
 
 
 typedef struct lRuntime lRuntime;
-typedef struct FileState FileState;
-typedef struct lTable lTable;
-typedef struct lString lString;
-typedef struct lObject lObject;
-typedef struct lClosure lClosure;
+typedef struct elf_FileState elf_FileState;
+typedef struct elf_tab elf_tab;
+typedef struct elf_str elf_str;
+typedef struct elf_obj elf_obj;
+typedef struct elf_Closure elf_Closure;
 
 
 #include <src/ltype.h>
@@ -85,7 +85,7 @@ typedef struct lClosure lClosure;
 #include <src/lmodule.h>
 #include <src/lruntime.h>
 
-void langH_mf(lRuntime *R, lTable *obj, char *name, lBinding b);
+void elf_tabmfld(lRuntime *R, elf_tab *obj, char *name, lBinding b);
 
 #include <src/lstring.h>
 #include <src/larray.h>
@@ -126,21 +126,22 @@ void langH_mf(lRuntime *R, lTable *obj, char *name, lBinding b);
 #include <src/lcrtlib.c>
 #include <src/lnetlib.c>
 #include <src/lruntime.c>
+#include <src/lapi.c>
 
 
-void langH_mf(lRuntime *R, lTable *obj, char *name, lBinding b) {
-	langH_insert(obj,lang_S(langS_new(R,name)),lang_C(b));
+void elf_tabmfld(lRuntime *R, elf_tab *obj, char *name, lBinding b) {
+	elf_tabput(obj,lang_S(elf_newstr(R,name)),lang_C(b));
 }
 
 
-llongint lang_clocktime() {
+elf_int lang_clocktime() {
 	return sys_clocktime();
 }
 
 
-lnumber lang_timediffs(llongint begin) {
+elf_num lang_timediffs(elf_int begin) {
 	/* todo: clockhz can be cached */
-	return (sys_clocktime() - begin) / (lnumber) sys_clockhz();
+	return (sys_clocktime() - begin) / (elf_num) sys_clockhz();
 }
 
 

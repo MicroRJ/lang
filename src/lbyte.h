@@ -55,7 +55,7 @@ typedef enum lbyteop {
 	BC_LOADCACHED,
 	BC_INDEX,
 	BC_FIELD,
-	BC_SETMETACLASS,
+	BC_SETMETATABLE,
 	BC_SETMETAFIELD,
 	BC_METAFIELD,
 	BC_SETGLOBAL,
@@ -79,7 +79,7 @@ though it would help performance quite a bit... */
 typedef struct lBytecode {
 	lbyteop k;
 	union {
-		llongint  i;
+		elf_int  i;
 		struct {
 			int x,y,z;
 		};

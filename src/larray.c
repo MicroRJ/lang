@@ -1,19 +1,19 @@
 /*
 ** See Copyright Notice In lang.h
 ** larray.c
-** Array lObject and Array Tools
+** Array elf_obj and Array Tools
 */
 
 #if 0
 /* todo?: will we have arrays or not? */
-Array *langA_new(lModule *fs, llongint n) {
+Array *langA_new(elf_Module *fs, elf_int n) {
 	// static MetaFunc _m[] = {
 		// {"length",langA_length_},
 		// {"slice",langA_slice_},
 		// {"clone",langA_clone_},
 	// };
 
-	Array *array = langGC_allocobj(fs,OBJ_ARRAY,sizeof(Array) + sizeof(lValue) * n);
+	Array *array = elf_newobj(fs,OBJ_ARRAY,sizeof(Array) + sizeof(elf_val) * n);
 	// array->obj._m = _m;
 	// array->obj._n = _countof(_m);
 	return array;
@@ -21,9 +21,9 @@ Array *langA_new(lModule *fs, llongint n) {
 #endif
 
 
-llongint langA_varadd_(void **var, llongint per, llongint res, llongint com) {
-	llongint max = 0;
-	llongint min = 0;
+elf_int langA_varadd_(void **var, elf_int per, elf_int res, elf_int com) {
+	elf_int max = 0;
+	elf_int min = 0;
 	Array *arr = 0;
 	if (*var != 0) {
 		arr = ((Array*)(*var)) - 1;

@@ -15,7 +15,7 @@ typedef struct ldebugloc {
 
 
 void lang_setasserthook(int (*hook)(ldebugloc));
-void lang_assertfn(ldebugloc ind, char const *name, lbool expr);
+void lang_assertfn(ldebugloc ind, char const *name, elf_bool expr);
 
 
 #define LHERE (ldebugloc){__FILE__,__LINE__,__func__}

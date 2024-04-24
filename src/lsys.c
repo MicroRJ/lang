@@ -20,21 +20,21 @@ lapi void sys_geterrormsg(int error, char *buff, int len) {
 }
 
 
-lapi void *sys_valloc(llongint length) {
+lapi void *sys_valloc(elf_int length) {
 #if defined(_WIN32)
 	return VirtualAlloc(NULL,length,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
 #endif
 }
 
 
-lapi void sys_sleep(llongint ms) {
+lapi void sys_sleep(elf_int ms) {
 #if defined(_WIN32)
 	Sleep((DWORD) ms);
 #endif
 }
 
 
-lapi llongint sys_clockhz() {
+lapi elf_int sys_clockhz() {
 #if defined(_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceFrequency(&largeInt);
@@ -43,7 +43,7 @@ lapi llongint sys_clockhz() {
 }
 
 
-lapi llongint sys_clocktime() {
+lapi elf_int sys_clocktime() {
 #if defined(_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceCounter(&largeInt);
@@ -80,14 +80,14 @@ lapi int sys_setpwd(char *buffer) {
 }
 
 
-lapi lsysobj sys_loadlib(char const *name) {
+lapi elf_Handle sys_loadlib(char const *name) {
 #if defined(_WIN32)
-	return (lsysobj) LoadLibraryA(name);
+	return (elf_Handle) LoadLibraryA(name);
 #endif
 }
 
 
-lapi void *sys_libfn(lsysobj dll, char const *name) {
+lapi void *sys_libfn(elf_Handle dll, char const *name) {
 #if defined(_WIN32)
 	return (void *) GetProcAddress(dll,name);
 #endif
@@ -122,7 +122,7 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 				goto leave;
 			}
 		} else {
-			langM_dealloc(allocator,buf);
+			elf_delmem(allocator,buf);
 			error = Error_CouldNotReadFile;
 			goto leave;
 		}
@@ -161,7 +161,7 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 }
 
 
-lapi Error sys_savefilebytes(char const *buffer, llongint length, char const *fileName) {
+lapi Error sys_savefilebytes(char const *buffer, elf_int length, char const *fileName) {
 
 	FILE *file;
 	fopen_s(&file,fileName,"wb");
@@ -171,7 +171,7 @@ lapi Error sys_savefilebytes(char const *buffer, llongint length, char const *fi
 	}
 
 	Error error = Error_None;
-	llongint lengthWritten = fwrite(buffer, 1, length, file);
+	elf_int lengthWritten = fwrite(buffer, 1, length, file);
 
 	if (lengthWritten != length) {
 		error = Error_CouldNotWriteEntireFile;

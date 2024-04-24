@@ -14,11 +14,11 @@
 /* -- Clearly, this isn't how you
 - do jitting, this is just me playing
 - around */
-lBinding jit(lModule *md, lProto fn);
+lBinding jit(elf_Module *md, elf_Proto fn);
 int jitlib_jit(lRuntime *rt) {
-	lValue v = lang_loadfile(rt,0);
+	elf_val v = elf_loadfile(rt,0);
 	lBinding b = jit(rt->md,v.f->fn);
-	lang_pushbinding(rt,b);
+	elf_putbinding(rt,b);
 	// __debugbreak();
 	(void) v;
 	return 1;
@@ -26,6 +26,6 @@ int jitlib_jit(lRuntime *rt) {
 
 
 lapi void jitlib_load(lRuntime *rt) {
-	lModule *md = rt->md;
-	lang_addglobal(md,lang_pushnewS(rt,"jit"),lang_C(jitlib_jit));
+	elf_Module *md = rt->md;
+	lang_addglobal(md,elf_pushnewstr(rt,"jit"),lang_C(jitlib_jit));
 }

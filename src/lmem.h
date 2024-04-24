@@ -17,10 +17,10 @@ typedef struct Alloc Alloc;
 #define GIGABYTES(x) ((x)*1024llu*1024llu*1024llu)
 
 
-#define ALLOCFN(NAME) Error NAME (Alloc *allocator, int flags, llongint oldSize, llongint newSize, void **oldAndNewMemory, ldebugloc loca)
+#define ALLOCFN(NAME) Error NAME (Alloc *allocator, int flags, elf_int oldSize, elf_int newSize, void **oldAndNewMemory, ldebugloc loca)
 
 
-typedef Error (* AllocFn)(Alloc *allocator, int flags, llongint oldSize, llongint newSize, void **oldAndNewMemory, ldebugloc loca);
+typedef Error (* AllocFn)(Alloc *allocator, int flags, elf_int oldSize, elf_int newSize, void **oldAndNewMemory, ldebugloc loca);
 
 
 typedef struct Alloc {
@@ -36,27 +36,27 @@ typedef struct MemBlock {
 	MemBlock *then;
 	ldebugloc loca;
 	ldebugloc freeloca;
-	llongint contentssize;
+	elf_int contentssize;
 	unsigned int foottrap;
 } MemBlock;
 #endif
 
 
 void langM_debugdealloc(void *mem, ldebugloc loca);
-void *langM_debugrealloc(void *mem, llongint contentssize, ldebugloc loca);
-void *langM_debugalloc(llongint contentssize, ldebugloc loca);
+void *langM_debugrealloc(void *mem, elf_int contentssize, ldebugloc loca);
+void *langM_debugalloc(elf_int contentssize, ldebugloc loca);
 
 
 lapi void langM_dealloc_(Alloc *allocator, void const *memory, ldebugloc loca);
-lapi void *langM_realloc_(Alloc *allocator, llongint size, void *memory, ldebugloc loca);
-lapi void *langM_alloc_(Alloc *allocator, llongint size, ldebugloc loca);
-lapi void *langM_clearalloc_(Alloc *allocator, llongint size, ldebugloc loca);
+lapi void *langM_realloc_(Alloc *allocator, elf_int size, void *memory, ldebugloc loca);
+lapi void *langM_alloc_(Alloc *allocator, elf_int size, ldebugloc loca);
+lapi void *langM_clearalloc_(Alloc *allocator, elf_int size, ldebugloc loca);
 
 
-#define langM_dealloc(cator,mem) langM_dealloc_(cator,mem,LHERE)
+#define elf_delmem(cator,mem) langM_dealloc_(cator,mem,LHERE)
 #define langM_realloc(cator,sze,mem) langM_realloc_(cator,sze,mem,LHERE)
 #define langM_alloc(cator,sze) langM_alloc_(cator,sze,LHERE)
-#define langM_clearalloc(cator,sze) langM_clearalloc_(cator,sze,LHERE)
+#define elf_newmemzro(cator,sze) langM_clearalloc_(cator,sze,LHERE)
 
 
 lapi ALLOCFN(langM_deftlocalallocfn);

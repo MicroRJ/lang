@@ -1,29 +1,29 @@
 /*
 ** See Copyright Notice In lang.h
 ** lmodule.c
-** lObject/lBytecode lModule
+** elf_obj/lBytecode elf_Module
 */
 
 
 /* todo: ensure that we don't have to replace symbols */
-lglobalid lang_addsymbol(lModule *md, lString *name) {
+lglobalid lang_addsymbol(elf_Module *md, elf_str *name) {
 	if (name == 0) {
 		return langA_variadd(md->g->v,1);
 	}
-	lglobalid id = langH_take(md->g,lang_S(name));
+	lglobalid id = elf_tabtake(md->g,lang_S(name));
 	// lang_logdebug("global '%s' -> %i",name->c,id);
 	return id;
 }
 
 
-lglobalid lang_addglobal(lModule *md, lString *name, lValue v) {
+lglobalid lang_addglobal(elf_Module *md, elf_str *name, elf_val v) {
 	lglobalid i = lang_addsymbol(md,name);
 	md->g->v[i] = v;
 	return i;
 }
 
 
-lglobalid lang_addproto(lModule *md, lProto p) {
+lglobalid lang_addproto(elf_Module *md, elf_Proto p) {
 	lglobalid i = langA_variadd(md->p,1);
 	md->p[i] = p;
 	return i;
@@ -42,8 +42,8 @@ int linelen(char *p, int m) {
 }
 
 
-int syslib_fpfv_(FILE *file, lValue v, lbool quotes);
-void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
+int syslib_fpfv_(FILE *file, elf_val v, elf_bool quotes);
+void bytefpf(elf_Module *md, FILE *file, lbyteid id, lBytecode b) {
 	fprintf(file,"%04i\t%s"
 	,	id, lang_bytename(b.k));
 	if (lang_byteclass(b.k) == BC_CLASS_XYZ) {
@@ -71,14 +71,14 @@ void bytefpf(lModule *md, FILE *file, lbyteid id, lBytecode b) {
 }
 
 
-void langX_getlocinfo(char *q, char *p, int *linenum, char **lineloc);
+void elfX_getlocinfo(char *q, char *p, int *linenum, char **lineloc);
 
 
-void lang_dumpmodule(lModule *md, lsysobj file) {
+void lang_dumpmodule(elf_Module *md, elf_Handle file) {
 #if 0
-	fprintf(file,"lModule:\n");
+	fprintf(file,"elf_Module:\n");
 	fprintf(file,"Globals:\n");
-	langA_varifor(md->g->v) {
+	elf_forivar(md->g->v) {
 		fprintf(file,"%04llX: ", i);
 		syslib_fpfv_(file,md->g->v[i],ltrue);
 		fprintf(file,"\n");
@@ -87,22 +87,22 @@ void lang_dumpmodule(lModule *md, lsysobj file) {
 	fprintf(file,"-- BYTECODE --\n");
 	fprintf(file,"- INSTR: %i\n",md->nbytes);
 	fprintf(file,"- PID: %i\n",sys_getmypid());
-	langA_varifor(md->files) {
-		lFile ff = md->files[i];
+	elf_forivar(md->files) {
+		elf_File ff = md->files[i];
 		fprintf(file,"- FILE (%s):\n",ff.name);
 		fprintf(file,"INDEX INSTRUCTION\n");
 		for (lbyteid j = 0; j < ff.nbytes; ++j) {
 			lBytecode b = md->bytes[ff.bytes+j];
 			// int linenum;
 			// char *lineloc;
-			// langX_getlocinfo(md->file,md->lines[j],&linenum,&lineloc);
+			// elfX_getlocinfo(md->file,md->lines[j],&linenum,&lineloc);
 			// fprintf(file,"%-3i:%-3i",linenum,(int)(md->lines[j]-lineloc));
 			bytefpf(md,file,j,b);
 		}
 	}
 #if 0
-	langA_varifor(md->p) {
-		lProto p = md->p[i];
+	elf_forivar(md->p) {
+		elf_Proto p = md->p[i];
 		fprintf(file,"FUNC: [%i] %i,%i (%i:%i):\n",(int)i,p.bytes,p.nbytes,p.x,p.nlocals);
 		for (lbyteid j = 0; j < p.nbytes; ++j) {
 			lBytecode b = md->bytes[p.bytes+j];

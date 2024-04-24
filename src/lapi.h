@@ -5,6 +5,38 @@
 */
 
 
+lapi elf_obj *elf_getthis(lRuntime *R);
+
+lapi elf_val elf_getval(lRuntime *R, llocalid x);
+lapi elf_int elf_getint(lRuntime *R, llocalid x);
+lapi elf_num elf_getnum(lRuntime *R, llocalid x);
+lapi elf_str *elf_getstr(lRuntime *R, llocalid x);
+lapi elf_obj *elf_getobj(lRuntime *R, llocalid x);
+lapi elf_tab *elf_gettab(lRuntime *R, llocalid x);
+lapi elf_Handle elf_getsys(lRuntime *R, llocalid x);
+lapi elf_Closure *elf_getcls(lRuntime *R, llocalid x);
+
+
+/*
+** Loads an expression from source string.
+** The expression is converted to a
+** function and is called as a root
+** function, can only reference global
+** expressions.
+** The expression can be a function itself,
+** in which case you call the function and
+** pass in arguments.
+*/
+int elf_loadexpr(lRuntime *, elf_str *contents, llocalid x, llocalid y);
+
+
+/*
+** Loads a file and calls its function,
+** returns the number of results.
+*/
+int elf_loadfile(lRuntime *, elf_FileState *fs, elf_str *filename, llocalid rx, int ny);
+
+
 /*
 ** Ultimately, calls a function of any kind.
 ** Takes an optional object for meta calls,
@@ -20,48 +52,38 @@
 ** the results are written to.
 ** ry can be equal to rx.
 */
-lapi int lang_call(lRuntime *, lObject *obj, llocalid rx, llocalid ry, int nx, int ny);
+lapi int elf_callfn(lRuntime *, elf_obj *obj, llocalid rx, llocalid ry, int nx, int ny);
 
 
 /*
 ** Performs a root call, where rx and ry are the same
 ** and obj is nil.
 */
-lapi int lang_rootcall(lRuntime *, llocalid rx, int nx, int ny);
-
-lapi llongint lang_toplen(lRuntime *c);
-
-lapi int lang_resume(lRuntime *);
-int lang_loadexpr(lRuntime *, lString *contents, llocalid x, llocalid y);
-int lang_loadfile(lRuntime *, FileState *fs, lString *filename, llocalid x, int y);
-
-lapi llongint lang_poplong(lRuntime *c);
-
-lapi void lang_checkcl(lRuntime *c, llocalid x);
-lapi lString *lang_checkString(lRuntime *c, llocalid x);
-
-lapi lValue lang_load(lRuntime *R, llocalid x);
-lapi lsysobj lang_getsysobj(lRuntime *R, llocalid x);
-lapi lClosure *lang_loadcl(lRuntime *R, llocalid x);
-lapi llongint lang_getlong(lRuntime *R, llocalid x);
-lapi lnumber lang_getnum(lRuntime *R, llocalid x);
-lapi lString *lang_getstr(lRuntime *R, llocalid x);
-lapi lObject *lang_getobj(lRuntime *R, llocalid x);
-lapi lTable *lang_gettab(lRuntime *R, llocalid x);
-llocalid lang_stkalloc(lRuntime *R, int n);
-
-lapi llocalid lang_pushvalue(lRuntime *, lValue v);
-lapi void lang_pushnil(lRuntime *);
-lapi void lang_pushlong(lRuntime *, llongint i);
-lapi void lang_pushnum(lRuntime *, lnumber n);
-lapi void lang_pushbinding(lRuntime *, lBinding c);
-lapi void lang_pushsysobj(lRuntime *c, lsysobj h);
-lapi void lang_pushtable(lRuntime *, lTable *t);
-lapi llocalid lang_pushclosure(lRuntime *, lClosure *f);
-lapi void lang_pushString(lRuntime *, lString *s);
+lapi int elf_rootcall(lRuntime *, llocalid rx, int nx, int ny);
 
 
-lapi lTable *lang_pushnewtable(lRuntime *);
-lapi lString *lang_pushnewS(lRuntime *, char const *c);
-lapi llocalid lang_pushnewclosure(lRuntime *, lProto fn);
+lapi int elf_run(lRuntime *);
+
+
+lapi void elf_checkcl(lRuntime *c, llocalid x);
+lapi elf_str *elf_checkstr(lRuntime *c, llocalid x);
+
+
+lapi llocalid elf_stkput(lRuntime *R, int n);
+lapi llocalid elf_stklen(lRuntime *c);
+
+lapi llocalid elf_putval(lRuntime *, elf_val v);
+lapi void elf_putnil(lRuntime *);
+lapi void elf_putint(lRuntime *, elf_int i);
+lapi void elf_putnum(lRuntime *, elf_num n);
+lapi void elf_putbinding(lRuntime *, lBinding c);
+lapi void elf_putsys(lRuntime *c, elf_Handle h);
+lapi void elf_puttab(lRuntime *, elf_tab *t);
+lapi llocalid elf_putcl(lRuntime *, elf_Closure *f);
+lapi void elf_putstr(lRuntime *, elf_str *s);
+
+
+lapi elf_tab *elf_pushnewtab(lRuntime *);
+lapi elf_str *elf_pushnewstr(lRuntime *, char const *c);
+lapi llocalid elf_pushnewcl(lRuntime *, elf_Proto fn);
 

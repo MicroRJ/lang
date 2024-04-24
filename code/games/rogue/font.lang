@@ -1,26 +1,29 @@
+/* silly font tools */
 
 loadfont = fun() ? {
 	FontTexture = lgi_loadtexture(Font.file)
 	lgi_setsampler(FontTexture,"point")
 }
 
-plottext = fun(x,y,text) ? {
+plottext = fun(x,y,text,h,color) ? {
+	h ?= 32.
 	if text == nil ? leave false
-	let scale = 64./16.
+	let scale = iton(h) / iton(Font.size)
 	let length = text:length()
 	for i in 0..length ? {
 		let char = Font.chars[text[i]]
 		let width = iton(char.width)
 		let height = iton(char.height)
 		lgi_drawtexture(FontTexture,x,y*scale,width*scale,height*scale
-		,char.x,char.y,char.width,char.height)
+		,char.x,char.y,char.width,char.height,color)
 		x = x + char.xadvance*scale
 	}
 }
 
+
 Font ?= {
 	"face" = "NicoPups",
-	"file" = "BasicPupWhite.png",
+	"file" = "assets/BasicPupWhite.png",
 	"size" = 16,
 	"bold" = 0,
 	"italic" = 0,

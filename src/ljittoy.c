@@ -79,18 +79,18 @@ void jittestall() {
 }
 
 #if 0
-void do_add(lValue *x, lValue *y) {
+void do_add(elf_val *x, elf_val *y) {
 	if (x->tag == TAG_NUM) {
-		x->n = ltonumber(* x) + ltonumber(* y);
+		x->n = elf_iton(* x) + elf_iton(* y);
 	} else
 	if (x->tag == TAG_INT) {
-		x->i = ltolong(* x) + ltolong(* y);
+		x->i = elf_ntoi(* x) + elf_ntoi(* y);
 	}
 }
 #endif
 
 
-llongint do_add(llongint x, llongint y) {
+elf_int do_add(elf_int x, elf_int y) {
 	pf("do add %lli, %lli\n", x, y);
 	return x + y;
 }
@@ -140,7 +140,7 @@ void emit86_shift(lbyteop type, ljValue x, ljValue y) {
 }
 
 
-lBinding jit(lModule *md, lProto fn) {
+lBinding jit(elf_Module *md, elf_Proto fn) {
 	pf("jitting fn\n");
 	int loc = ((fn.nlocals*8+15)/16)*16;
 	DO_PUSH_RBP();

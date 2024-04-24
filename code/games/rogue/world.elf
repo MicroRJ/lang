@@ -1,0 +1,12 @@
+
+critters = {}
+World = {}
+WorldSide = 32
+WorldSize = WorldSide*WorldSide*WorldSide
+
+toworldid = fun(x,y,z) ? (WorldSide*WorldSide*ntoi(z) + WorldSide*ntoi(y) + ntoi(x))
+toworldid3 = fun(xyz) ? toworldid(xyz.x,xyz.y,xyz.z)
+gettileid = fun(x,y,z) ? (World[toworldid(x,y,z)])
+settileid = fun(tileid,x,y,z) ? {World[toworldid(x,y,z)] = tileid}
+gettileid3 = fun(xyz) ? gettileid(xyz.x,xyz.y,xyz.z)
+settileid3 = fun(id,xyz) ? settileid(id,xyz.x,xyz.y,xyz.z)

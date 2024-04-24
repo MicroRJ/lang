@@ -5,10 +5,10 @@
 */
 
 
-typedef struct lString lString;
-typedef struct lObject lObject;
-typedef struct lClosure lClosure;
-typedef struct lValue lValue;
+typedef struct elf_str elf_str;
+typedef struct elf_obj elf_obj;
+typedef struct elf_Closure elf_Closure;
+typedef struct elf_val elf_val;
 
 
 typedef enum GCColor {
@@ -24,7 +24,7 @@ typedef enum ObjectType {
 	OBJ_CLOSURE,
 	OBJ_STRING,
 	OBJ_ARRAY,
-	OBJ_TABLE,
+	OBJ_TAB,
 	OBJ_CUSTOM,
 } ObjectType;
 
@@ -35,11 +35,11 @@ typedef struct MetaFunc {
 } MetaFunc;
 
 
-typedef struct lObject {
+typedef struct elf_obj {
 	ObjectType type;
 	GCColor gccolor;
-	lTable *metaclass;
-} lObject;
+	elf_tab *metatable;
+} elf_obj;
 
 
 /* first object tag must be OBJECT, all other
@@ -65,24 +65,24 @@ lglobaldecl char const *tag2s[] = {
 
 
 
-typedef struct lValue {
+typedef struct elf_val {
 	lvaluetag tag;
 	union {
 		Ptr       p;
-		lsysobj    h;
-		llongint     i;
-		lnumber   n;
+		elf_Handle    h;
+		elf_int     i;
+		elf_num   n;
 		lBinding   c;
-		lObject   *j,*x_obj;
-		lTable    *t,*x_tab;
-		lString   *s;
-		lClosure  *f;
+		elf_obj   *j,*x_obj;
+		elf_tab    *t,*x_tab;
+		elf_str   *s;
+		elf_Closure  *f;
 	};
-} lValue;
+} elf_val;
 
 
-typedef struct lClosure {
-	lObject obj;
+typedef struct elf_Closure {
+	elf_obj obj;
    /* I guess one of the things we could do
    if we ever get to having multi-byte encoding,
    is encode the entire prototype in the
@@ -91,29 +91,29 @@ typedef struct lClosure {
    If not, then there's no need to store the
    whole prototype here, we can instead store an
    index into the proto table. */
-	lProto   fn;
+	elf_Proto   fn;
    /* current instruction index (coroutines) */
 	int       j;
    /* allocated past this point */
-	lValue caches[1];
-} lClosure;
+	elf_val caches[1];
+} elf_Closure;
 
 
-lapi lValue lang_T(lTable *t);
-lapi lValue lang_C(lBinding c);
-lapi lValue lang_S(lString *s);
-lapi lValue lang_F(lClosure *f);
-lapi lValue lang_I(llongint i);
-lapi lValue lang_N(lnumber n);
+lapi elf_val lang_T(elf_tab *t);
+lapi elf_val lang_C(lBinding c);
+lapi elf_val lang_S(elf_str *s);
+lapi elf_val lang_F(elf_Closure *f);
+lapi elf_val lang_I(elf_int i);
+lapi elf_val lang_N(elf_num n);
 
 
 
-lbool ttisnumeric(lvaluetag tag) {
+elf_bool ttisnumeric(lvaluetag tag) {
 	return tag == TAG_NUM || tag == TAG_INT;
 }
 
 
-lbool ttisobj(lvaluetag tag) {
+elf_bool elf_tagisobj(lvaluetag tag) {
 	switch (tag) {
 		case TAG_STR: case TAG_TAB:
 		case TAG_OBJ: case TAG_CLS: {
@@ -124,10 +124,10 @@ lbool ttisobj(lvaluetag tag) {
 }
 
 
-lvaluetag ttobj2val(ObjectType type) {
+lvaluetag elf_tttotag(ObjectType type) {
 	switch(type) {
 		case OBJ_CLOSURE: return TAG_CLS;
-		case OBJ_TABLE: return TAG_TAB;
+		case OBJ_TAB: return TAG_TAB;
 		case OBJ_STRING: return TAG_STR;
 	}
 	LNOBRANCH;
@@ -135,56 +135,56 @@ lvaluetag ttobj2val(ObjectType type) {
 }
 
 
-int tisnil(lValue x) {
+int tisnil(elf_val x) {
 	return (x.tag == TAG_NIL) || (!ttisnumeric(x.tag) && (x.p == lnil));
 }
 
 
 
-lapi lValue lang_T(lTable *t) {
-	lValue v = (lValue){TAG_TAB};
+lapi elf_val lang_T(elf_tab *t) {
+	elf_val v = (elf_val){TAG_TAB};
 	v.t = t;
 	return v;
 }
 
 
-lapi lValue lang_C(lBinding c) {
-	lValue v = (lValue){TAG_BID};
+lapi elf_val lang_C(lBinding c) {
+	elf_val v = (elf_val){TAG_BID};
 	v.c = c;
 	return v;
 }
 
 
-lapi lValue lang_H(lsysobj h) {
-	lValue v = (lValue){TAG_SYS};
+lapi elf_val lang_H(elf_Handle h) {
+	elf_val v = (elf_val){TAG_SYS};
 	v.h = h;
 	return v;
 }
 
 
-lapi lValue lang_S(lString *s) {
-	lValue v = (lValue){TAG_STR};
+lapi elf_val lang_S(elf_str *s) {
+	elf_val v = (elf_val){TAG_STR};
 	v.s = s;
 	return v;
 }
 
 
-lapi lValue lang_F(lClosure *f) {
-	lValue v = (lValue){TAG_CLS};
+lapi elf_val lang_F(elf_Closure *f) {
+	elf_val v = (elf_val){TAG_CLS};
 	v.f = f;
 	return v;
 }
 
 
-lapi lValue lang_I(llongint i) {
-	lValue v = (lValue){TAG_INT};
+lapi elf_val lang_I(elf_int i) {
+	elf_val v = (elf_val){TAG_INT};
 	v.i = i;
 	return v;
 }
 
 
-lapi lValue lang_N(lnumber n) {
-	lValue v = (lValue){TAG_NUM};
+lapi elf_val lang_N(elf_num n) {
+	elf_val v = (elf_val){TAG_NUM};
 	v.n = n;
 	return v;
 }

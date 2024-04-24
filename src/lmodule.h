@@ -1,11 +1,11 @@
 /*
 ** See Copyright Notice In lang.h
 ** lmodule.h
-** lObject/lBytecode lModule
+** elf_obj/lBytecode elf_Module
 */
 
 
-typedef struct lFile {
+typedef struct elf_File {
 	char *name;
 	lbyteid bytes;
 	lbyteid nbytes;
@@ -14,7 +14,7 @@ typedef struct lFile {
 	char *pathondisk;
 	llineid lines;
 	int nlines;
-} lFile;
+} elf_File;
 
 
 /*
@@ -31,41 +31,41 @@ typedef struct lFile {
 ** time.
 **
 */
-typedef struct lModule {
-	lTable *g;
+typedef struct elf_Module {
+	elf_tab *g;
 
-	lProto *p;
-	lnumber *kn;
-	llongint *ki;
+	elf_Proto *p;
+	elf_num *kn;
+	elf_int *ki;
 
 	lBytecode *bytes;
 	lbyteid nbytes;
 	char **lines;
-	lFile *files;
-} lModule;
+	elf_File *files;
+} elf_Module;
 
 
-lglobalid lang_addsymbol(lModule *md, lString *name);
-lglobalid lang_addglobal(lModule *md, lString *name, lValue v);
-lglobalid lang_addproto(lModule *md, lProto p);
+lglobalid lang_addsymbol(elf_Module *md, elf_str *name);
+lglobalid lang_addglobal(elf_Module *md, elf_str *name, elf_val v);
+lglobalid lang_addproto(elf_Module *md, elf_Proto p);
 
 /*
-	lModule\r: runtime is stored here
+	elf_Module\r: runtime is stored here
 for garbage collection.
-	lModule\gc: all objects to be automatically
+	elf_Module\gc: all objects to be automatically
 managed, or garbage collected, are listed here.
 By default all objects are added here, you
 can however remove them from this array.
 
-lModule\gf: buffer for functions definitions,
+elf_Module\gf: buffer for functions definitions,
 essentially a type table, anonymous functions
 are also added here.
 
-lModule\g: global symbol table which
+elf_Module\g: global symbol table which
 maps names to values, indexed
 at runtime by index.
 
-lModule\bytes: buffer for bytes, all the bytes
+elf_Module\bytes: buffer for bytes, all the bytes
 are stored here, functions index into this
 buffer.
 

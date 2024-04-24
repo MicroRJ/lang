@@ -7,6 +7,7 @@
 
 log ?= pf
 
+log("loading lgi...")
 let enum _time = clocktime()
 finally log(" loaded lgi, took: ",timediffs(_time))
 
@@ -14,7 +15,11 @@ lgi ?= {}
 lgi.lib ?= loadlib("build/lgilib.exe")
 
 let enum lgilib = lgi.lib
-let lgifn = fun(name) ? libfn(lgilib,name)
+let lgifn = fun(name) ? {
+	let fn = libfn(lgilib,name)
+	if fn == lnil ? log("error: function ", name, "() could not be loaded")
+	leave fn
+}
 
 lgi_initWindowed = lgifn("lgilib_initWindowed")
 lgi_tick = lgifn("lgilib_tick")
@@ -22,6 +27,7 @@ lgi_clearBackground = lgifn("lgilib_clearBackground")
 
 lgi_testKey = lgifn("lgilib_testKey")
 lgi_iskeydown = lgifn("lgilib_iskeydown")
+lgi_isshiftdown = lgifn("lgilib_isshiftdown")
 lgi_wasbuttondown = lgifn("lgilib_wasButtonDown")
 lgi_isbuttondown = lgifn("lgilib_isButtonDown")
 lgi_isbuttonreleased = lgifn("lgilib_isButtonReleased")
@@ -88,17 +94,20 @@ lgi_drawQuadUV = fun (color,tex,x,y,w,h) ? {
 }
 
 
-lgi_drawtexture = fun(tex,x,y,xx,yy,u,v,uu,vv) ? {
-	let w = lgi_gettexturewidth(tex)
-	let h = lgi_gettextureheight(tex)
+lgi_drawtexture = fun(tex,x,y,xx,yy,u,v,uu,vv,color) ? {
+	let w = iton(lgi_gettexturewidth(tex))
+	let h = iton(lgi_gettextureheight(tex))
 	/* todo: do this better */
-	u = u / 1. / w
-	v = v / 1. / h
-	uu = uu / 1. / w
-	vv = vv / 1. / h
+	u  = iton(u) / w
+	v  = iton(v) / h
+	uu = iton(uu) / w
+	vv = iton(vv) / h
 	lgi_bindtexture(tex)
 	lgi_beginvertices(6,4)
-	lgi_attrrgba(1,1,1,1)
+	if color != nil ? {
+		lgi_attrrgba(color.r,color.g,color.b,color.a)
+	} else lgi_attrrgba(1,1,1,1)
+
 	lgi_addnidx(0,1,2, 0,2,3)
 	lgi_attrxyuv(x   ,y   ,u   ,v+vv) lgi_pushvertex()
 	lgi_attrxyuv(x   ,y+yy,u   ,v   ) lgi_pushvertex()

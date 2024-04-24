@@ -5,19 +5,19 @@
 */
 
 
-lnumber ltonumber(lValue v) {
-	return v.tag == TAG_INT ? (lnumber) v.i : v.n;
+elf_num elf_iton(elf_val v) {
+	return v.tag == TAG_INT ? (elf_num) v.i : v.n;
 }
 
 
-llongint ltolong(lValue v) {
-	return v.tag == TAG_NUM ? (llongint) v.n : v.i;
+elf_int elf_ntoi(elf_val v) {
+	return v.tag == TAG_NUM ? (elf_int) v.n : v.i;
 }
 
 
-int fndfile(lModule *md, llineid line) {
-	lFile *files = md->files;
-	int nfiles = langA_varlen(files);
+int fndfile(elf_Module *md, llineid line) {
+	elf_File *files = md->files;
+	int nfiles = elf_arrlen(files);
 	for (int x = 0; x < nfiles; ++ x) {
 		if (line < files[x].lines) continue;
 		if (line > files[x].lines+files[x].nlines-1) continue;
@@ -27,42 +27,40 @@ int fndfile(lModule *md, llineid line) {
 }
 
 
-void langR_error(lRuntime *R, lbyteid id, char *error) {
-	lModule *md = R->md;
+void elf_throw(lRuntime *R, lbyteid id, char *error) {
+	elf_Module *md = R->md;
 	if (id == NO_BYTE) id = R->j;
 	llineid line = md->lines[id];
 	int fileid = fndfile(md,line);
 	if (fileid != -1) {
-		lFile *file = &md->files[fileid];
-		langX_error2(file->name,file->lines,line,error);
+		elf_File *file = &md->files[fileid];
+		elfX_error2(file->name,file->lines,line,error);
 	}
 }
 
 
 int langR_typecheck(lRuntime *R, lbyteid id, llocalid loc, lvaluetag x, lvaluetag y) {
 	if (x != y) {
-		langR_error(R,id,S_tpf("$%i, expected %s, instead got %s",loc,tag2s[x],tag2s[y]));
+		elf_throw(R,id,S_tpf("$%i, expected %s, instead got %s",loc,tag2s[x],tag2s[y]));
 	}
 	return x == y;
 }
 
 
-int lang_rootcall(lRuntime *R, llocalid rxy, int nx, int ny) {
-	return lang_call(R,lnil,rxy,rxy,nx,ny);
+int elf_rootcall(lRuntime *R, llocalid rxy, int nx, int ny) {
+	return elf_callfn(R,lnil,rxy,rxy,nx,ny);
 }
 
 
-int lang_call(lRuntime *R, lObject *obj, llocalid rx, llocalid ry, int nx, int ny) {
-	LASSERT((R->top - R->call->base) >= 0);
-	/* clear the locals? */
-	lCallFrame *caller = R->call;
-	lValue fn = caller->locals[rx];
-	lValue *locals = caller->locals + rx + 1;
+int elf_callfn(lRuntime *R, elf_obj *obj, llocalid rx, llocalid ry, int nx, int ny) {
+	elf_CallFrame *caller = R->call;
+	elf_val fn = caller->locals[rx];
+	elf_val *locals = caller->locals + rx + 1;
 	/* top always points to one past locals,
 	so far we only have nx argument locals,
 	top is later incremented to match nlocals */
-	lValue *top  = locals + nx;
-	lCallFrame call = {0};
+	elf_val *top  = locals + nx;
+	elf_CallFrame call = {0};
 	call.caller = caller;
 	call.top = R->top;
 	call.obj = obj;
@@ -83,7 +81,7 @@ int lang_call(lRuntime *R, lObject *obj, llocalid rx, llocalid ry, int nx, int n
 	R->call = &call;
 	llocalid nyield = 0;
 	if (fn.tag == TAG_CLS) {
-		nyield = lang_resume(R);
+		nyield = elf_run(R);
 	} else
 	if (fn.tag == TAG_BID) {
 		if (fn.c != lnil) {
@@ -99,7 +97,7 @@ int lang_call(lRuntime *R, lObject *obj, llocalid rx, llocalid ry, int nx, int n
 		}
 	} else {
 		nyield = -1;
-		langR_error(R,NO_BYTE,"not a function");
+		elf_throw(R,NO_BYTE,"not a function");
 	}
 	/* finally restore stack */
 	R->call = caller;
@@ -108,19 +106,9 @@ int lang_call(lRuntime *R, lObject *obj, llocalid rx, llocalid ry, int nx, int n
 }
 
 
-/*
-** Loads an expression from source string.
-** The expression is converted to a function
-** and is called* as a root function, can only
-** reference global expressions.
-** The expression can be a function itself,
-** in which case you may pass in arguments.
-** * maybe we should instead return the function
-** and not call it.
-*/
-int lang_loadexpr(lRuntime *R, lString *contents, llocalid rxy, int ny) {
-	lModule *M = R->M;
-	FileState fs = {0};
+int elf_loadexpr(lRuntime *R, elf_str *contents, llocalid rxy, int ny) {
+	elf_Module *M = R->M;
+	elf_FileState fs = {0};
 	fs.R = R;
 	fs.M = M;
 	fs.bytes = M->nbytes;
@@ -131,51 +119,45 @@ int lang_loadexpr(lRuntime *R, lString *contents, llocalid rxy, int ny) {
 	fs.linenumber = 1;
 
 	/* kick start by lexing the first two tokens */
-	langX_yield(&fs);
-	langX_yield(&fs);
+	elfX_yield(&fs);
+	elfX_yield(&fs);
 
-	FileFunc fn = {0};
-	langY_beginfn(&fs,&fn,fs.tk.line);
-	lnodeid id = langY_loadexpr(&fs);
+	elf_FileFunc fn = {0};
+	elfY_beginfn(&fs,&fn,fs.tk.line);
+	lnodeid id = elfY_loadexpr(&fs);
 	langL_yield(&fs,fs.tk.line,id);
-	langY_closefn(&fs);
+	elfY_closefn(&fs);
 
 	/* todo: this is temporary, please remove this or make
 	some sort of object out of it... */
-	lFile fl = {0};
+	elf_File fl = {0};
 	fl.bytes = fn.bytes;
 	fl.nbytes = M->nbytes - fn.bytes;
 	fl.lines = contents->c;
 	fl.nlines = strlen(contents->c);
 	langA_varadd(M->files,fl);
 
-	lProto p = {0};
+	elf_Proto p = {0};
 	p.nlocals = fn.nlocals;
 	p.bytes = fn.bytes;
 	p.nbytes = M->nbytes - fn.bytes;
 
 	/* base register becomes closure */
-	R->frame->locals[rxy].tag = TAG_CLS;
-	R->frame->locals[rxy].f   = langF_newclosure(R,p);
-
-	int nyield = lang_rootcall(R,rxy,0,ny);
-	return nyield;
+	R->call->locals[rxy].tag = TAG_CLS;
+	R->call->locals[rxy].f   = elf_newcl(R,p);
+	return elf_rootcall(R,rxy,0,ny);
 }
 
 
-/*
-** Loads a file and calls its function,
-** returns the number of results.
-*/
-int lang_loadfile(lRuntime *R, FileState *fs, lString *filename, llocalid x, int y) {
+int elf_loadfile(lRuntime *R, elf_FileState *fs, elf_str *filename, llocalid x, int y) {
 
-	if (filename == lnil) filename = lang_checkString(R,x);
+	if (filename == lnil) filename = elf_checkstr(R,x);
 
 	char *contents;
 	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
 	if (LFAILED(error)) return -1;
 
-	lModule *M = R->M;
+	elf_Module *M = R->M;
 	fs->R = R;
 	fs->M = M;
 	fs->bytes = M->nbytes;
@@ -186,18 +168,18 @@ int lang_loadfile(lRuntime *R, FileState *fs, lString *filename, llocalid x, int
 	fs->linenumber = 1;
 
 	/* kick start by lexing the first two tokens */
-	langX_yield(fs);
-	langX_yield(fs);
+	elfX_yield(fs);
+	elfX_yield(fs);
 
 
-	FileFunc fn = {0};
-	langY_beginfn(fs,&fn,fs->tk.line);
-	while (!langX_test(fs,0)) langY_loadstat(fs);
-	langY_closefn(fs);
+	elf_FileFunc fn = {0};
+	elfY_beginfn(fs,&fn,fs->tk.line);
+	while (!elfX_test(fs,0)) elfY_loadstat(fs);
+	elfY_closefn(fs);
 
 	/* todo: this is temporary, please remove this or make
 	some sort of object out of it... */
-	lFile fl = {0};
+	elf_File fl = {0};
 	fl.bytes = fn.bytes;
 	fl.nbytes = M->nbytes - fn.bytes;
 	fl.name = filename->c;
@@ -206,36 +188,37 @@ int lang_loadfile(lRuntime *R, FileState *fs, lString *filename, llocalid x, int
 	fl.pathondisk = filename->c;
 	langA_varadd(M->files,fl);
 
-	lProto p = {0};
+	elf_Proto p = {0};
 	p.nlocals = fn.nlocals;
 	p.bytes = fn.bytes;
 	p.nbytes = M->nbytes - fn.bytes;
 
 	R->frame->locals[x].tag = TAG_CLS;
-	R->frame->locals[x].f   = langF_newclosure(R,p);
+	R->frame->locals[x].f   = elf_newcl(R,p);
 	if (R->top == R->call->locals) __debugbreak(); // ++ R->top;
-	int nyield = lang_call(R,lnil,x,x,0,y);
+	int nyield = elf_callfn(R,lnil,x,x,0,y);
 
 	/* todo: lines? */
-	// langM_dealloc(lHEAP,contents);
+	// elf_delmem(lHEAP,contents);
 	return nyield;
 }
 
 
-int lang_resume(lRuntime *R) {
+int elf_run(lRuntime *R) {
 	/* todo: these names are deprecated */
-	lCallFrame *c = R->f;
-	lCallFrame *frame = R->frame;
-	lModule *md = R->md;
+	elf_CallFrame *c = R->f;
+	elf_CallFrame *frame = R->frame;
+	elf_Module *md = R->md;
 	//
-	lCallFrame *call = R->call;
-	lClosure *cl = c->cl;
-	lProto fn = cl->fn;
-	lCallFrame *caller = call->caller;
+	elf_CallFrame *call = R->call;
+	elf_Closure *cl = call->cl;
+	elf_Proto fn = cl->fn;
+	elf_CallFrame *caller = call->caller;
+	elf_val *locals = call->locals;
 
 	while (c->j < fn.nbytes) {
-		llongint jp = c->j ++;
-		llongint bc = fn.bytes + jp;
+		elf_int jp = c->j ++;
+		elf_int bc = fn.bytes + jp;
 		lBytecode b = md->bytes[bc];
 
 #ifdef _DEBUG
@@ -245,9 +228,9 @@ int lang_resume(lRuntime *R) {
 
 		switch (b.k) {
 			case BC_LEAVE: {
-				if (frame->dl != lnil) {
-					frame-> j = frame->dl->j;
-					frame->dl = frame->dl->n;
+				if (call->dl != lnil) {
+					call-> j = call->dl->j;
+					call->dl = call->dl->n;
 				} else goto leave;
 			} break;
 			case BC_DELAY: {
@@ -266,143 +249,148 @@ int lang_resume(lRuntime *R) {
 				expected outputs */
 				int ny = MIN(b.z,call->ny);
 				for (llocalid y = 0; y < ny; ++y) {
-					caller->locals[call->ry+y] = call->locals[b.y+y];
+					caller->locals[call->ry+y] = locals[b.y+y];
 				}
 				call->ny = ny;
 				call->j = jp + b.x;
 			} break;
 			case BC_STKGET: {
-				langR_typecheck(R,bc,0,TAG_INT,frame->base[b.y].tag);
-				frame->base[b.x] = frame->base[frame->base[b.y].i];
+				langR_typecheck(R,bc,0,TAG_INT,locals[b.y].tag);
+				locals[b.x] = locals[locals[b.y].i];
 			} break;
 			case BC_STKLEN: {
-				frame->base[b.x].tag = TAG_INT;
-				frame->base[b.x].i   = R->top - frame->base;
+				locals[b.x].tag = TAG_INT;
+				locals[b.x].i   = R->top - locals;
 			} break;
 			case BC_LOADFILE: {
-				FileState fs = {0};
-				lang_loadfile(R,&fs,lnil,b.x,b.y);
+				elf_FileState fs = {0};
+				elf_loadfile(R,&fs,lnil,b.x,b.y);
 			} break;
 			case BC_J: {
 				c->j = jp + b.i;
 			} break;
 			case BC_JZ: {
-				if (c->base[b.y].i == 0) c->j = jp + b.x;
+				if (locals[b.y].i == 0) call->j = jp + b.x;
 			} break;
 			case BC_JNZ: {
-				if (c->base[b.y].i != 0) c->j = jp + b.x;
+				if (locals[b.y].i != 0) call->j = jp + b.x;
 			} break;
 			case BC_LOADTHIS: {
-				frame->base[b.x].tag = ttobj2val(frame->obj->type);
-				frame->base[b.x].x_obj = frame->obj;
+				locals[b.x].tag = elf_tttotag(call->obj->type);
+				locals[b.x].x_obj = call->obj;
 			} break;
 			case BC_RELOAD: {
-				frame->base[b.x] = frame->base[b.y];
+				locals[b.x] = locals[b.y];
 			} break;
 			case BC_LOADGLOBAL: {
-				frame->base[b.x] = md->g->v[b.y];
+				locals[b.x] = md->g->v[b.y];
 			} break;
 			case BC_SETGLOBAL: {
-				md->g->v[b.x] = frame->base[b.y];
+				md->g->v[b.x] = call->base[b.y];
 			} break;
 			case BC_LOADNIL: {
-				frame->base[b.x].tag = TAG_NIL;
-				frame->base[b.x].i   = 0;
+				locals[b.x].tag = TAG_NIL;
+				locals[b.x].i   = 0;
 			} break;
 			case BC_LOADINT: {
-				frame->base[b.x].tag = TAG_INT;
-				frame->base[b.x].i   = md->ki[b.y];
+				locals[b.x].tag = TAG_INT;
+				locals[b.x].i   = md->ki[b.y];
 			} break;
 			case BC_LOADNUM: {
-				frame->base[b.x].tag = TAG_NUM;
-				frame->base[b.x].n   = md->kn[b.y];
+				locals[b.x].tag = TAG_NUM;
+				locals[b.x].n   = md->kn[b.y];
 			} break;
 			case BC_LOADCACHED: {
 				LASSERT(b.y >= 0 && b.y < fn.ncaches);
-				frame->base[b.x] = cl->caches[b.y];
+				locals[b.x] = cl->caches[b.y];
 			} break;
 			case BC_CLOSURE: {
-				LASSERT(b.y >= 0 && b.y < langA_varlen(md->p));
-				lProto p = md->p[b.y];
-				lClosure *ncl = langF_newclosure(R,p);
+				LASSERT(b.y >= 0 && b.y < elf_arrlen(md->p));
+				elf_Proto p = md->p[b.y];
+				elf_Closure *ncl = elf_newcl(R,p);
 				for (int i = 0; i < p.ncaches; ++i) {
-					ncl->caches[i] = frame->base[b.x+i];
+					ncl->caches[i] = locals[b.x+i];
 				}
-				frame->base[b.x].tag = TAG_CLS;
-				frame->base[b.x].f   = ncl;
+				locals[b.x].tag = TAG_CLS;
+				locals[b.x].f   = ncl;
 			} break;
 			case BC_TABLE: {
-				frame->base[b.x].tag = TAG_TAB;
-				frame->base[b.x].t   = langH_new(R);
+				locals[b.x].tag = TAG_TAB;
+				locals[b.x].t   = elf_newtab(R);
 			} break;
 			case BC_TYPEGUARD: {
-				langR_typecheck(R,bc,b.x,b.y,frame->base[b.x].tag);
+				langR_typecheck(R,bc,b.x,b.y,locals[b.x].tag);
 			} break;
 			case BC_INDEX: case BC_FIELD: {
-				if (frame->base[b.y].tag == TAG_STR) {
-					langR_typecheck(R,bc,0,TAG_INT,frame->base[b.z].tag);
-					frame->base[b.x].tag = TAG_INT;
-					frame->base[b.x].i   = frame->base[b.y].s->c[frame->base[b.z].i];
+				if (locals[b.y].tag == TAG_STR) {
+					langR_typecheck(R,bc,0,TAG_INT,locals[b.z].tag);
+					locals[b.x].tag = TAG_INT;
+					locals[b.x].i   = locals[b.y].s->c[locals[b.z].i];
 				} else
-				if (frame->base[b.y].tag == TAG_TAB) {
-					frame->base[b.x] = langH_lookup(frame->base[b.y].t,frame->base[b.z]);
-				} else frame->base[b.x] = (lValue){TAG_NIL};
+				if (locals[b.y].tag == TAG_TAB) {
+					locals[b.x] = langH_lookup(locals[b.y].t,locals[b.z]);
+				} else locals[b.x] = (elf_val){TAG_NIL};
 			} break;
 			case BC_SETINDEX: case BC_SETFIELD: {
-				if (langR_typecheck(R,bc,b.x,TAG_TAB,frame->base[b.x].tag)) {
-					langH_insert(frame->base[b.x].t,frame->base[b.y],frame->base[b.z]);
+				if (langR_typecheck(R,bc,b.x,TAG_TAB,locals[b.x].tag)) {
+					elf_tabput(locals[b.x].t,locals[b.y],locals[b.z]);
 				} else LNOBRANCH;
 			} break;
-			case BC_SETMETACLASS: {
-				if (ttisobj(frame->base[b.x].tag) && ttisobj(frame->base[b.y].tag)) {
-					frame->base[b.x].x_obj->metaclass = frame->base[b.y].x_obj->metaclass;
+			case BC_SETMETATABLE: {
+				elf_val xx = locals[b.x];
+				elf_val yy = locals[b.y];
+				if (elf_tagisobj(xx.tag) && elf_tagisobj(yy.tag)) {
+					xx.x_obj->metatable = yy.x_obj->metatable;
 				} else LNOBRANCH;
 			} break;
 			case BC_SETMETAFIELD: {
-				if (ttisobj(frame->base[b.x].tag)) {
-					langH_insert(frame->base[b.x].x_obj->metaclass,frame->base[b.y],frame->base[b.z]);
-				} else LNOBRANCH;
+				elf_val xx = locals[b.x];
+				if (elf_tagisobj(xx.tag)) {
+					elf_val yy = locals[b.y];
+					elf_val zz = locals[b.z];
+					elf_tabput(xx.x_obj->metatable,yy,zz);
+				} else elf_throw(R,bc,S_tpf("'%s': not an object", tag2s[xx.tag]));
 			} break;
 			case BC_METAFIELD: {
-				lValue *yy = &frame->base[b.y];
-				if (ttisobj(yy->tag)) {
-					frame->base[b.x] = langH_lookup(yy->j->metaclass,frame->base[b.z]);
+				elf_val *yy = &locals[b.y];
+				if (elf_tagisobj(yy->tag)) {
+					locals[b.x] = langH_lookup(yy->j->metatable,locals[b.z]);
 				} else {
-					frame->base[b.x] = (lValue){TAG_NIL};
-					langR_error(R,bc,S_tpf("'%s': not an object", tag2s[yy->tag]));
+					locals[b.x] = (elf_val){TAG_NIL};
+					elf_throw(R,bc,S_tpf("'%s': not an object", tag2s[yy->tag]));
 				}
 			} break;
 			case BC_METACALL: {
 				R->j = bc;
-				lang_call(R,frame->base[b.x].j,b.x+1,b.x,b.y,b.z);
+				elf_callfn(R,locals[b.x].j,b.x+1,b.x,b.y,b.z);
 			} break;
 			case BC_CALL: {
 				R->j = bc;
-				lang_rootcall(R,b.x,b.y,b.z);
+				elf_rootcall(R,b.x,b.y,b.z);
 			} break;
 			case BC_ISNIL: {
-				lValue x = frame->base[b.y];
-				lbool nan = x.tag != TAG_INT && x.tag != TAG_NUM;
-				frame->base[b.x].tag = TAG_INT;
-				frame->base[b.x].i   = x.tag == TAG_NIL || (nan && x.i == 0);
+				elf_val x = locals[b.y];
+				elf_bool nan = x.tag != TAG_INT && x.tag != TAG_NUM;
+				locals[b.x].tag = TAG_INT;
+				locals[b.x].i   = x.tag == TAG_NIL || (nan && x.i == 0);
 			} break;
 			case BC_EQ: case BC_NEQ: {
-				lValue x = frame->base[b.y];
-				lValue y = frame->base[b.z];
-				lbool eq = lfalse;
+				elf_val x = locals[b.y];
+				elf_val y = locals[b.z];
+				elf_bool eq = lfalse;
 				/* todo: fix nil comparisons */
 				if (x.tag == TAG_NIL || y.tag == TAG_NIL) {
 					eq = tisnil(x) == tisnil(y);
 				} else
 				if (x.tag == TAG_STR && y.tag == TAG_STR) {
-					eq = langS_eq(x.s,y.s);
+					eq = elf_streq(x.s,y.s);
 				} else {
 					eq = x.i == y.i;
 				}
 				if (b.k == BC_NEQ) eq = !eq;
 
-				frame->base[b.x].tag = TAG_INT;
-				frame->base[b.x].i   = eq;
+				locals[b.x].tag = TAG_INT;
+				locals[b.x].i   = eq;
 			} break;
 
 
@@ -410,7 +398,7 @@ int lang_resume(lRuntime *R) {
 			#define CASE_IBOP(OPNAME,OP) \
 			case OPNAME : {\
 				c->l[b.x].tag = TAG_INT;\
-				c->l[b.x].i   = ltolong(c->l[b.y]) OP ltolong(c->l[b.z]);\
+				c->l[b.x].i   = elf_ntoi(c->l[b.y]) OP elf_ntoi(c->l[b.z]);\
 			} break
 
 			/* todo: make this better */
@@ -418,33 +406,33 @@ int lang_resume(lRuntime *R) {
 			case OPCODE : {\
 				if (c->l[b.y].tag == TAG_NUM || c->l[b.z].tag == TAG_NUM) {\
 					c->l[b.x].tag = TAG_NUM;\
-					c->l[b.x].n   = ltonumber(c->l[b.y]) OP ltonumber(c->l[b.z]);\
+					c->l[b.x].n   = elf_iton(c->l[b.y]) OP elf_iton(c->l[b.z]);\
 				} else {\
 					c->l[b.x].tag = TAG_INT;\
-					c->l[b.x].i   = ltolong(c->l[b.y]) OP ltolong(c->l[b.z]);\
+					c->l[b.x].i   = elf_ntoi(c->l[b.y]) OP elf_ntoi(c->l[b.z]);\
 				}\
 			} break
 
 			case BC_LTEQ: {
-				lValue x = c->l[b.y];
-				lValue y = c->l[b.z];
+				elf_val x = c->l[b.y];
+				elf_val y = c->l[b.z];
 				if (x.tag == TAG_NUM || y.tag == TAG_NUM) {
 					c->l[b.x].tag = TAG_INT;
-					c->l[b.x].i   = ltonumber(x) <= ltonumber(y);
+					c->l[b.x].i   = elf_iton(x) <= elf_iton(y);
 				} else {
 					c->l[b.x].tag = TAG_INT;
-					c->l[b.x].i   = ltolong(x) <= ltolong(y);
+					c->l[b.x].i   = elf_ntoi(x) <= elf_ntoi(y);
 				}
 			} break;
 			case BC_LT: {
-				lValue x = c->l[b.y];
-				lValue y = c->l[b.z];
+				elf_val x = c->l[b.y];
+				elf_val y = c->l[b.z];
 				if (x.tag == TAG_NUM || y.tag == TAG_NUM) {
 					c->l[b.x].tag = TAG_NUM;
-					c->l[b.x].n   = ltonumber(x) < ltonumber(y);
+					c->l[b.x].n   = elf_iton(x) < elf_iton(y);
 				} else {
 					c->l[b.x].tag = TAG_INT;
-					c->l[b.x].i   = ltolong(x) < ltolong(y);
+					c->l[b.x].i   = elf_ntoi(x) < elf_ntoi(y);
 				}
 			} break;
 
@@ -470,198 +458,3 @@ int lang_resume(lRuntime *R) {
 	return c->y;
 }
 
-
-lapi llongint lang_toplen(lRuntime *R) {
-	return R->top - R->call->locals;
-}
-
-
-lapi lValue lang_load(lRuntime *R, llocalid x) {
-	return R->call->locals[x];
-}
-
-
-lapi llongint lang_poplong(lRuntime *R) {
-	LASSERT(lang_toplen(R) >= 1);
-	lValue v = *(-- R->top);
-	langR_typecheck(R,NO_BYTE,-1,TAG_INT,v.tag);
-	return v.i;
-}
-
-
-lapi lString *lang_getstr(lRuntime *R, llocalid x) {
-	lValue v = R->call->locals[x];
-	if (v.tag != TAG_NIL && v.tag != TAG_STR) {
-		langR_error(R,NO_BYTE,S_tpf("expected string at local %i",x));
-		LNOBRANCH;
-	}
-	return v.s;
-}
-
-
-lapi lObject *lang_getobj(lRuntime *R, llocalid x) {
-	lValue v = R->call->locals[x];
-	if (v.tag != TAG_NIL && !ttisobj(v.tag)) {
-		langR_error(R,NO_BYTE,S_tpf("expected object at local %i",x));
-		LNOBRANCH;
-	}
-	return v.x_obj;
-}
-
-
-lapi lTable *lang_gettab(lRuntime *R, llocalid x) {
-	lValue v = R->call->locals[x];
-	if (v.tag != TAG_NIL && v.tag != TAG_TAB) {
-		langR_error(R,NO_BYTE,S_tpf("expected table at local %i",x));
-		LNOBRANCH;
-	}
-	return v.x_tab;
-}
-
-
-lapi lClosure *lang_loadcl(lRuntime *R, llocalid x) {
-	lValue v = R->call->locals[x];
-	if (v.tag != TAG_NIL && v.tag != TAG_CLS) {
-		langR_error(R,NO_BYTE,S_tpf("expected closure at local %i",x));
-		LNOBRANCH;
-	}
-	return v.f;
-}
-
-
-lapi lsysobj lang_getsysobj(lRuntime *R, llocalid x) {
-	lValue v = R->call->locals[x];
-	if (v.tag != TAG_NIL && v.tag != TAG_SYS) {
-		langR_error(R,NO_BYTE,S_tpf("expected system object at local %i",x));
-		LNOBRANCH;
-	}
-	return v.h;
-}
-
-
-lapi void lang_checkcl(lRuntime *R, llocalid x) {
-	LASSERT(R->call->locals[x].tag == TAG_CLS);
-}
-
-
-lapi lString *lang_checkString(lRuntime *R, llocalid x) {
-	LASSERT(R->call->locals[x].tag == TAG_STR);
-	return R->call->locals[x].s;
-}
-
-
-lapi llongint lang_getlong(lRuntime *R, int x) {
-	lValue v = R->call->locals[x];
-	if (v.tag == TAG_NUM) {
-		return (llongint) v.n;
-	}
-	LASSERT(v.tag == TAG_INT);
-	return v.i;
-}
-
-
-lapi lnumber lang_getnum(lRuntime *R, llocalid x) {
-	lValue v = R->call->locals[x];
-	if (v.tag == TAG_INT) return (lnumber) v.i;
-	if (v.tag != TAG_NUM) {
-		langR_error(R,NO_BYTE,S_tpf("expected number at local %i",x));
-		LNOBRANCH;
-	}
-	return v.n;
-}
-
-
-llocalid lang_stkalloc(lRuntime *R, int n) {
-	llocalid stkptr = R->top - R->stk;
-	if (stkptr <= R->stklen) {
-		R->top += n;
-	} else LNOBRANCH;
-	return stkptr;
-}
-
-
-llocalid lang_pushvalue(lRuntime *R, lValue v) {
-	*R->top = v;
-	return lang_stkalloc(R,1);
-}
-
-
-void lang_pushnil(lRuntime *R) {
-	R->top->tag = TAG_NIL;
-	++ R->top;
-}
-
-
-void lang_pushlong(lRuntime *R, llongint i) {
-	R->top->tag = TAG_INT;
-	R->top->i = i;
-	++ R->top;
-}
-
-
-void lang_pushnum(lRuntime *R, lnumber n) {
-	R->top->tag = TAG_NUM;
-	R->top->n = n;
-	++ R->top;
-}
-
-
-void lang_pushsysobj(lRuntime *R, lsysobj h) {
-	R->top->tag = TAG_SYS;
-	R->top->h = h;
-	++ R->top;
-}
-
-
-void lang_pushString(lRuntime *R, lString *s) {
-	R->top->tag = TAG_STR;
-	R->top->s = s;
-	++ R->top;
-}
-
-
-llocalid lang_pushclosure(lRuntime *R, lClosure *cl) {
-	R->top->tag = TAG_CLS;
-	R->top->f   = cl;
-	return R->top ++ - R->call->locals;
-}
-
-
-void lang_pushtable(lRuntime *R, lTable *t) {
-	R->top->tag = TAG_TAB;
-	R->top->t = t;
-	++ R->top;
-}
-
-
-void lang_pushbinding(lRuntime *R, lBinding b) {
-	R->top->tag = TAG_BID;
-	R->top->c = b;
-	++ R->top;
-}
-
-
-lTable *lang_pushnewtable(lRuntime *R) {
-	lTable *t = langH_new(R);
-	lang_pushtable(R,t);
-	return t;
-}
-
-
-lString *lang_pushnewS(lRuntime *R, char const *junk) {
-	lString *s = langS_new(R,junk);
-	lang_pushString(R,s);
-	return s;
-}
-
-
-llocalid lang_pushnewclosure(lRuntime *R, lProto fn) {
-	lClosure *cl = langF_newclosure(R,fn);
-	LASSERT(lang_toplen(R) >= fn.ncaches);
-	R->top -= fn.ncaches;
-	int i;
-	for (i=0; i<fn.ncaches; ++i) {
-		cl->caches[i] = R->top[i];
-	}
-	return lang_pushclosure(R,cl);
-}

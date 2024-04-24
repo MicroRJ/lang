@@ -1,0 +1,264 @@
+
+updatecritterstate = fun(xthis,state) ? {
+	if state != xthis.state ? {
+		xthis.prevstate = xthis.state
+		xthis.state = state
+	}
+}
+
+getcritter = fun(xyz) ? {
+	leave critters[toworldid3(xyz)]
+}
+
+
+movecritter = fun(xthis,move,dir) ? {
+	if xthis.kind == "dummy" ? {
+		log("warning: dummy critters cannot be moved")
+		leave false
+	}
+	if xthis.transing ? leave false
+	let facing = xthis.facing
+	if facing:eq(dir) == false ? {
+		xthis.facing = dir:clone()
+		leave (false)
+	}
+	if move == 0 ? leave (true)
+	let origin = xthis.transtiletarget
+	let target = origin:add(dir)
+	if target.x < 0 ? leave false
+	if target.y < 0 ? leave false
+	if target.z < 0 ? leave false
+	let height = xthis.height
+	/* 0 floor, 1 jumpable, include the tile past
+	the height, because tiles are 1 in depth */
+	for z in 2..height+1 ? {
+		if issolid(target:add(vec3(0,0,z))) ? {
+			leave (false)
+		}
+	}
+	if issolid(target:add(vec3(0,0,1))) ? {
+		target = target:add(vec3(0,0,1))
+	/* check if we're going to fall */
+	} else iff issolid(target) ? {
+		/* if the fall is too steep bail */
+		iff issolid(target:add(vec3(0,0,-1))) ? {
+			leave (false)
+		}
+		target = target:add(vec3(0,0,-1))
+	}
+	let critter = getcritter(target)
+	if critter != nil ? {
+		if critter.kind == "dummy" ? {
+			if critter.proxy != xthis ? {
+				leave (false)
+			}
+		} else leave (false)
+	}
+
+	let facing = xthis.facing
+	/* this is to make the game more appealing
+	visually, it has to do with rendering quirks */
+	if facing:eq(NW) || facing:eq(NE) ? {
+		/* reserve the target tile so that
+		no other entities can occupy it,
+		then swap after the move is done,
+		this to avoid rendering the tile
+		we're currently over above us,
+		which is not really that big a
+		problem it just makes the game
+		seem as if it is artifact'ing a bit  */
+	  	let dummy = newcritter("dummy",target)
+	  	dummy.proxy = target
+  	} else {
+  		/* here just swap immediatly so that
+  		way render on top of the tile we're
+  		going to move to, when the move is done
+  		we swap again with ourselves, so no
+  		harm done */
+		critters[toworldid3(origin)] = nil
+		critters[toworldid3(target)] = xthis
+  	}
+	xthis.transtileorigin = origin
+	xthis.transtiletarget = target
+	xthis.transing = true
+
+	/* todo: rename this to systime() */
+	xthis.timemoved = clocktime()
+	leave true
+}
+
+
+crittercontroller_player = fun(critter) ? {
+	let move = lgi_isshiftdown() == false
+	if lgi_iskeydown('W') ? movecritter(critter,true,RIGHT)
+	if lgi_iskeydown('D') ? movecritter(critter,true,DOWN)
+	if lgi_iskeydown('A') ? movecritter(critter,true,UP)
+	if lgi_iskeydown('S') ? movecritter(critter,true,LEFT)
+}
+
+critterplotter_dummy = fun(critter) ? ()
+crittercontroller_dummy = fun(critter) ? ()
+
+crittercontroller_wolf = fun(critter) ? {
+	if critter.turntimer < .0 ? {
+		critter.turntimer = critter.turnclock
+		movecritter(critter,1,vec3(rnd(-1,2),rnd(-1,2),0))
+	}
+	critter.turntimer = critter.turntimer - lgi_deltatime()
+}
+
+
+critterplotter_stag = fun(xthis) ? {
+	let xyz = xthis.xyz
+	let pxy = plot3(xyz)
+	let px = pxy.x
+	let py = pxy.y
+	let w = 32.
+	let h = 41.
+	let a = h / w
+	let s = 128
+	px = px - s*.35
+	py = py + s*.05
+	// lgi_drawQuad(lgi_WHITE,px,py,s,s*a)
+	// xanim,8*41
+	let yanim = 41*11
+	let xanim = 32 * ((xthis.animtimer / .128) % 23)
+	let facing = xthis.facing
+	let animlabel = xthis.animlabel
+	if xthis.transing ? {
+		xanim = 32 * ((xthis.animtimer / .032) % 11)
+		// animlabel = "walking"
+		yanim = 0
+		  if facing:eq(SW) ? yanim = 0
+		elif facing:eq(SE) ? yanim = 41*1
+		elif facing:eq(NW) ? yanim = 41*2
+		elif facing:eq(NE) ? yanim = 41*3
+		else pf("error")
+	} else {
+		animlabel = "idle"
+		if facing:eq(SW) ? yanim = 41*8
+		elif facing:eq(SE) ? yanim = 41*9
+		elif facing:eq(NW) ? yanim = 41*10
+		elif facing:eq(NE) ? yanim = 41*11
+		else pf("error")
+	}
+	if animlabel != xthis.animlabel ? {
+		xthis.animtimer = 0
+		xthis.animlabel = animlabel
+		pf("switch animation")
+	}
+
+	lgi_drawtexture(textures.stag,px,py,s,s*a,xanim,yanim,32,41)
+	xthis.animtimer = xthis.animtimer + lgi_deltatime()
+}
+
+
+critterplotter_wolf = fun(xthis) ? {
+	let xyz = xthis.xyz
+	let x = xyz.x
+	let y = xyz.y
+	let z = xyz.z
+	/* todo: #langfeature something like xthis */
+	// let px,py = plot(critter.xyz).{"x","y"}
+	let pxy = plot(x,y)
+	let px = pxy.x
+	let py = pxy.y
+
+	let xanim = 64 * ((lgi_time() / .128) % 4)
+	let w = 64.
+	let h = 64.
+	let a = h / w
+	let s = 256
+	let v = s*a
+	px = px - s*.5
+	py = py - v*.2
+	// lgi_drawQuad(lgi_WHITE,px,py,256,v)
+	lgi_drawtexture(textures.wolf,px,py,s,v,xanim,64*12,64,64)
+}
+
+
+newcritter = fun(kind,xyz) ? {
+	kind ?= "dummy"
+	let xthis = {}
+	updatecritterstate(xthis,"idle")
+	xthis.kind = kind
+	xthis.xyz = xyz
+	/* we iterate over the visible
+	tiles to find entities to tick
+	and draw, entities move and we
+	may encounter them again within
+	the same tick loop */
+	xthis.ticked = false
+	xthis.turnclock = 2.
+	xthis.turntimer = 2.
+	xthis.timemoved = 0
+	xthis.moveclock = .256
+	xthis.transtileorigin = vec3()
+	xthis.transtiletarget = xyz
+	xthis.transing = false
+	xthis.height = 3
+	xthis.animtimer = 0.
+	xthis.animlabel = "idle"
+	xthis.facing = NW
+	xthis.controller = crittercontroller_dummy
+	xthis.plotter = critterplotter_dummy
+	let already = critters[toworldid3(xyz)]
+	if already != nil && already != "dummy" ? {
+		pf("error, critter already here")
+	} else critters[toworldid3(xyz)] = xthis
+	leave xthis
+}
+
+
+newwolf = fun(xyz) ? {
+	let xthis = newcritter("wolf",xyz)
+	xthis.controller = crittercontroller_wolf
+	xthis.plotter = critterplotter_wolf
+	leave xthis
+}
+
+
+newstag = fun(xyz) ? {
+	let xthis = newcritter("stag",xyz)
+	xthis.controller = crittercontroller_player
+	xthis.plotter = critterplotter_stag
+	leave xthis
+}
+
+
+tickcritter = fun(xthis) ? {
+	if xthis.kind == "dummy" ? leave ()
+	xthis.ticked = xthis.ticked + 1
+	// if xthis.ticked > 1 ? pf("ticked: ", xthis.ticked)
+	if xthis.ticked - 1 != 0 ? leave ()
+	xthis.ticked = true
+	xthis.controller(xthis)
+	let diffs = timediffs(xthis.timemoved)
+	if xthis.transing ? {
+		if diffs < xthis.moveclock ? {
+			let movedelta = diffs / xthis.moveclock
+			xthis.xyz = xthis.transtileorigin:lerp(xthis.transtiletarget,movedelta)
+		} else {
+			xthis.transing = false
+			let origin = toworldid3(xthis.transtileorigin)
+			if critters[origin] != nil ? {
+				if critters[origin] == xthis ? {
+					critters[origin] = nil
+				} elif critters[origin].kind == "dummy" ? {
+					if critters[origin].proxy == xthis ? {
+						critters[origin] = nil
+					}
+				}
+			}
+			critters[toworldid3(xthis.transtiletarget)] = xthis
+		}
+	}
+}
+
+
+plotcritter = fun(xthis) ? {
+	xthis.ticked = false
+	xthis.plotter(xthis)
+	if showgrid ? plotdebugcube(xthis.xyz,1,1,xthis.height)
+}
+

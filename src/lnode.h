@@ -19,8 +19,8 @@ typedef enum lnodety {
 
 
 typedef enum lnodeop {
-	Y_NONE = 0,
-	Y_NOP  = 1,
+	NODE_NONE = 0,
+	NODE_NOP  = 1,
 	/* -- 4.9.24 ------------------------------------
 	the following are set up in counterpart pairs,
 	this enables us to easily derive their opposite
@@ -80,53 +80,51 @@ typedef struct lNode {
 	r represents a tangible memory
 	location, used for register
 	allocation. */
-	struct {
-		lnodeid x,y,*z;
-	};
+	struct { lnodeid x,y,*z; };
 	llocalid r;
 	/* todo?: don't quite union these two for debugging? */
 	union {
-		char const *s;
-		llongint    i;
-		lnumber     n;
+		char   *s;
+		elf_int i;
+		elf_num n;
 	} lit;
 } lNode;
 
 
-lnodeid langN_xyz(FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z);
-lnodeid langN_xy(FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x, lnodeid y);
-lnodeid langN_x(FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x);
-lnodeid langN_nullary(FileState *fs, llineid, lnodeop k, lnodety t);
+lnodeid elf_nodexyz(elf_FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z);
+lnodeid elf_nodebinary(elf_FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x, lnodeid y);
+lnodeid elf_nodeunary(elf_FileState *fs, llineid, lnodeop k, lnodety t, lnodeid x);
+lnodeid elf_nodenullary(elf_FileState *fs, llineid, lnodeop k, lnodety t);
 
-lnodeid langN_group(FileState *fs, llineid, lnodeid x);
+lnodeid elf_nodegroup(elf_FileState *fs, llineid, lnodeid x);
 
-lnodeid langN_longint(FileState *fs, llineid, llongint i);
-lnodeid langN_number(FileState *fs, llineid, lnumber n);
-lnodeid langN_S(FileState *fs, llineid, char *);
-lnodeid langN_table(FileState *fs, llineid, lnodeid *z);
-lnodeid langN_closure(FileState *fs, llineid, lnodeid x, lnodeid *z);
-lnodeid langN_nil(FileState *fs, llineid);
+lnodeid elf_nodenil(elf_FileState *fs, llineid);
+lnodeid elf_nodeint(elf_FileState *fs, llineid, elf_int i);
+lnodeid elf_nodenum(elf_FileState *fs, llineid, elf_num n);
+lnodeid elf_nodestr(elf_FileState *fs, llineid, char *);
+lnodeid elf_nodetab(elf_FileState *fs, llineid, lnodeid *z);
+lnodeid elf_nodecls(elf_FileState *fs, llineid, lnodeid x, lnodeid *z);
 
-lnodeid langN_load(FileState *fs, llineid line, lnodeid x, lnodeid y);
+lnodeid elf_nodeload(elf_FileState *fs, llineid line, lnodeid x, lnodeid y);
 
-lnodeid langN_local(FileState *fs, llineid line, lnodeid i);
-lnodeid langN_cache(FileState *fs, llineid line, lnodeid i);
-lnodeid langN_global(FileState *fs, llineid line, lnodeid i);
+lnodeid elf_nodelocal(elf_FileState *fs, llineid line, lnodeid i);
+lnodeid elf_nodecache(elf_FileState *fs, llineid line, lnodeid i);
+lnodeid elf_nodeglobal(elf_FileState *fs, llineid line, lnodeid i);
 
-lnodeid langN_typeguard(FileState *fs, llineid line, lnodeid x, lnodety y);
-lnodeid langN_metafield(FileState *fs, llineid line, lnodeid x, lnodeid y);
-lnodeid langN_field(FileState *fs, llineid line, lnodeid x, lnodeid y);
-lnodeid langN_index(FileState *fs, llineid line, lnodeid x, lnodeid y);
+lnodeid elf_nodetypeguard(elf_FileState *fs, llineid line, lnodeid x, lnodety y);
+lnodeid elf_nodemetafield(elf_FileState *fs, llineid line, lnodeid x, lnodeid y);
+lnodeid elf_nodefield(elf_FileState *fs, llineid line, lnodeid x, lnodeid y);
+lnodeid elf_nodeindex(elf_FileState *fs, llineid line, lnodeid x, lnodeid y);
 
-lnodeid langN_loadfile(FileState *fs, llineid line, lnodeid x);
+lnodeid elf_nodeloadfile(elf_FileState *fs, llineid line, lnodeid x);
 
-lnodeid langN_rangedindex(FileState *fs, llineid line, lnodeid x, lnodeid y);
+lnodeid elf_noderangedindex(elf_FileState *fs, llineid line, lnodeid x, lnodeid y);
 
-lnodeid langN_builtincall(FileState *fs, llineid line, ltokentype k, lnodeid *z);
-lnodeid langN_call(FileState *fs, llineid line, lnodeid x, lnodeid *z);
+lnodeid elf_nodebuiltincall(elf_FileState *fs, llineid line, ltokentype k, lnodeid *z);
+lnodeid elf_nodecall(elf_FileState *fs, llineid line, lnodeid x, lnodeid *z);
 
 
-lvaluetag langN_ttotag(lnodety ty) {
+lvaluetag elf_nodettotag(lnodety ty) {
 	switch (ty) {
 		case NT_SYS: return TAG_SYS;
 		case NT_NUM: return TAG_NUM;
@@ -191,16 +189,6 @@ And this, is "liberating".
 	A problem is not merely a situation where things don't go as
 planned; rather, it's a discrepancy between desired outcomes
 and actual results.
-	For instance, being unable to hit a baseball with enough power
-constitutes a genuine problem because it hinders achieving the
-goal of hitting the ball effectively. However, statements like
-'I don't understand why I can't just run to first base' may not
-represent a problem per se, but rather a lack of knowledge or
-understanding of the rules of the game. Therefore, it's essential
-to distinguish between genuine problems and instances where one
-is simply misinformed or uninformed. In essence, a problem only
-truly exists when it's acknowledged as such, requiring active
-effort to resolve.
 	To put it in other words, a genuine problem can be thought of
 as a boulder in the middle of the road, a road that goes from A
 to B, where you can barely peek through and see the destination.

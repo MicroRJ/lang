@@ -1,35 +1,36 @@
 /*
 ** See Copyright Notice In lang.h
 ** lstring.h
-** String lObject and String Tools
+** String elf_obj and String Tools
 */
 
 
-typedef struct lString {
-	lObject  obj;
-	lhashid   hash;
+typedef struct elf_str {
+	elf_obj  obj;
+	elf_hashint   hash;
 	int     length;
 	union {
 		char   string[1];
 		char   c[1];
 	};
-} lString;
+} elf_str;
 
 
-lString *langS_new2(lRuntime *fs, llongint length);
-lString *langS_new(lRuntime *fs, char const *contents);
-lTable *langS_newclass(lRuntime *R);
+elf_str *elf_newstrlen(lRuntime *fs, elf_int length);
+elf_str *elf_newstr(lRuntime *fs, char const *contents);
+elf_tab *elf_newstrmetatab(lRuntime *R);
 
 
 int langS_length_(lRuntime *c);
 int langS_match_(lRuntime *c);
+int langS_append_(lRuntime *R);
 int langS_hash_(lRuntime *c);
 
 
-lbool S_match(char *p, char *s);
+elf_bool S_match(char *p, char *s);
 char *S_copy(Alloc *cator, char const *contents);
 int S_length(char const *contents);
-lbool S_eq(char const *x, char const *y);
+elf_bool S_eq(char const *x, char const *y);
 unsigned int S_hashcontents (char const *contents, unsigned int length);
 
 

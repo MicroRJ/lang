@@ -8,15 +8,15 @@
 lbyteop nodetobyte(lnodeop tt);
 
 
-lbyteid langL_getlabel(FileState *fs) {
+lbyteid langL_getlabel(elf_FileState *fs) {
 	return fs->md->nbytes;
 }
 
 
-llocalid langL_localalloc(FileState *fs, llocalid n) {
+llocalid langL_localalloc(elf_FileState *fs, llocalid n) {
 	LASSERT(n > NO_SLOT);
 
-	FileFunc *fn = fs->fn;
+	elf_FileFunc *fn = fs->fn;
 
 	llocalid id = fn->xmemory;
 	fn->xmemory += n;
@@ -28,19 +28,19 @@ llocalid langL_localalloc(FileState *fs, llocalid n) {
 }
 
 
-void langL_localdealloc(FileState *fs, llocalid x) {
+void langL_localdealloc(elf_FileState *fs, llocalid x) {
 	LASSERT(x > NO_SLOT);
 
-	FileFunc *fn = fs->fn;
+	elf_FileFunc *fn = fs->fn;
 
 	LASSERT(x == fn->xmemory-1);
 	fn->xmemory = x;
 }
 
 
-lbyteid langL_addbyte(FileState *fs, llineid line, lBytecode byte) {
-	FileFunc *fn = fs->fn;
-	lModule *md = fs->md;
+lbyteid langL_addbyte(elf_FileState *fs, llineid line, lBytecode byte) {
+	elf_FileFunc *fn = fs->fn;
+	elf_Module *md = fs->md;
 	if (0) bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
 
 	langA_varadd(md->lines,line);
@@ -49,12 +49,12 @@ lbyteid langL_addbyte(FileState *fs, llineid line, lBytecode byte) {
 }
 
 
-lbyteid langL_byte(FileState *fs, llineid line, lbyteop k, llongint i) {
+lbyteid langL_byte(elf_FileState *fs, llineid line, lbyteop k, elf_int i) {
 	return langL_addbyte(fs,line,(lBytecode){k,i});
 }
 
 
-lbyteid langL_bytexy(FileState *fs, llineid line, lbyteop k, int x, int y) {
+lbyteid langL_bytexy(elf_FileState *fs, llineid line, lbyteop k, int x, int y) {
 	lBytecode b = (lBytecode){k};
 	b.x = x;
 	b.y = y;
@@ -62,7 +62,7 @@ lbyteid langL_bytexy(FileState *fs, llineid line, lbyteop k, int x, int y) {
 }
 
 
-lbyteid langL_bytexyz(FileState *fs, llineid line, lbyteop k, int x, int y, int z) {
+lbyteid langL_bytexyz(elf_FileState *fs, llineid line, lbyteop k, int x, int y, int z) {
 	lBytecode b = (lBytecode){k};
 	b.x = x;
 	b.y = y;
@@ -71,14 +71,14 @@ lbyteid langL_bytexyz(FileState *fs, llineid line, lbyteop k, int x, int y, int 
 }
 
 
-void langL_tieloosejto(FileState *fs, lbyteid id, lbyteid j) {
-	lModule *md = fs->md;
+void langL_tieloosejto(elf_FileState *fs, lbyteid id, lbyteid j) {
+	elf_Module *md = fs->md;
 	lBytecode *bytes = md->bytes;
 	lBytecode b = bytes[id];
 
 	lbyteid l = j - id;
 	// if (l == NO_JUMP) {
-	// 	langX_error(fs,md->lines[id],"opt, no jump");
+	// 	elfX_error(fs,md->lines[id],"opt, no jump");
 	// }
 	switch (b.k) {
 		case BC_J:
@@ -95,38 +95,38 @@ void langL_tieloosejto(FileState *fs, lbyteid id, lbyteid j) {
 }
 
 
-void langL_tieloosej(FileState *fs, lbyteid i) {
+void langL_tieloosej(elf_FileState *fs, lbyteid i) {
 	langL_tieloosejto(fs,i,langL_getlabel(fs));
 }
 
 
-void langL_tieloosejs(FileState *fs, lbyteid *js) {
-	langA_varifor(js) {
+void langL_tieloosejs(elf_FileState *fs, lbyteid *js) {
+	elf_forivar(js) {
 		langL_tieloosej(fs,js[i]);
 	}
 }
 
 
-void langL_tieloosejsto(FileState *fs, lbyteid *js, lbyteid j) {
-	langA_varifor(js) {
+void langL_tieloosejsto(elf_FileState *fs, lbyteid *js, lbyteid j) {
+	elf_forivar(js) {
 		langL_tieloosejto(fs,js[i],j);
 	}
 }
 
 
-lbyteid langL_jump(FileState *fs, llineid line, lbyteid j) {
+lbyteid langL_jump(elf_FileState *fs, llineid line, lbyteid j) {
 	return langL_byte(fs,line,BC_J,j-fs->md->nbytes);
 }
 
 
-void langL_fnepiloge(FileState *fs, llineid line) {
-	lModule *md = fs->md;
-	FileFunc *fn = fs->fn;
+void langL_fnepiloge(elf_FileState *fs, llineid line) {
+	elf_Module *md = fs->md;
+	elf_FileFunc *fn = fs->fn;
 
 	/* todo: this is unncessary, we know were
 	the return instruction is at. */
 	langL_tieloosejs(fs,fn->yj);
-	langA_vardel(fn->yj);
+	elf_delvar(fn->yj);
 	fn->yj = lnil;
 
 	/* finally, return control flow */
@@ -140,7 +140,7 @@ void langL_fnepiloge(FileState *fs, llineid line) {
 ** expression, only one register is necessary, if no registers
 ** are given one is allocated and deallocated automatically.
 */
-lbyteid langL_branchif(FileState *fs, ljlist *js, lbool z, llocalid x, lnodeid id) {
+lbyteid langL_branchif(elf_FileState *fs, ljlist *js, elf_bool z, llocalid x, lnodeid id) {
 	lNode v = fs->nodes[id];
 	lbyteid j = NO_BYTE;
 
@@ -191,12 +191,12 @@ lbyteid langL_branchif(FileState *fs, ljlist *js, lbool z, llocalid x, lnodeid i
 }
 
 
-lbyteid langL_branchiffalse(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
+lbyteid langL_branchiffalse(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 	return langL_branchif(fs,js,lfalse,x,id);
 }
 
 
-lbyteid langL_branchiftrue(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
+lbyteid langL_branchiftrue(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 	return langL_branchif(fs,js,ltrue,x,id);
 }
 
@@ -206,31 +206,31 @@ lbyteid langL_branchiftrue(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 ** address becomes the false target, thus all false
 ** branches converge here. all true branches are returned.
 */
-lbyteid *langL_jumpiftrue(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
+lbyteid *langL_jumpiftrue(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 	langL_branchiftrue(fs,js,x,id);
 	langL_tieloosejs(fs,js->f);
-	langA_vardel(js->f);
+	elf_delvar(js->f);
 	js->f = lnil;
 	return js->t;
 }
 
 
-lbyteid *langL_jumpiffalse(FileState *fs, ljlist *js, llocalid x, lnodeid id) {
+lbyteid *langL_jumpiffalse(elf_FileState *fs, ljlist *js, llocalid x, lnodeid id) {
 	langL_branchiffalse(fs,js,x,id);
 	langL_tieloosejs(fs,js->t);
-	langA_vardel(js->t);
+	elf_delvar(js->t);
 	js->t = lnil;
 	return js->f;
 }
 
 
-lbyteid *langL_jumpifnotnil(FileState *fs, llineid line, ljlist *js, lnodeid id) {
-	return langL_jumpiffalse(fs,js,NO_SLOT,langN_xy(fs,line,NODE_EQ,NT_BOL,id,langN_nil(fs,line)));
+lbyteid *langL_jumpifnotnil(elf_FileState *fs, llineid line, ljlist *js, lnodeid id) {
+	return langL_jumpiffalse(fs,js,NO_SLOT,elf_nodebinary(fs,line,NODE_EQ,NT_BOL,id,elf_nodenil(fs,line)));
 }
 
 
 /* todo: add support for multiple results */
-void langL_yield(FileState *fs, llineid line, lnodeid id) {
+void langL_yield(elf_FileState *fs, llineid line, lnodeid id) {
 	int n = 0;
 	llocalid x = 0;
 	if (id != NO_NODE) {
@@ -254,7 +254,7 @@ void langL_yield(FileState *fs, llineid line, lnodeid id) {
 ** given one and loads the node to that
 ** local.
 */
-void langL_localloadin(FileState *fs, llineid line, llocalid r, lnodeid id) {
+void langL_localloadin(elf_FileState *fs, llineid line, llocalid r, lnodeid id) {
 	/* the user can provide exactly the next free register,
 	or exactly the last allocated register * or a register
 	that's already been allocated, all are valid memory
@@ -264,13 +264,13 @@ void langL_localloadin(FileState *fs, llineid line, llocalid r, lnodeid id) {
 	}
 	/* != 1 */
 	if ((fs->fn->xmemory - r) <= 0) {
-		langX_error(fs,line,"invalid memory state");
+		elfX_error(fs,line,"invalid memory state");
 	}
 	langL_localload(fs,line,ltrue,r,1,id);
 }
 
 
-llocalid langL_localize(FileState *fs, llineid line, lnodeid id) {
+llocalid langL_localize(elf_FileState *fs, llineid line, lnodeid id) {
 	lNode v = fs->nodes[id];
 	/* todo: this literally contradicts SSA, this system is
 	obsolete, replace with something else... */
@@ -284,7 +284,7 @@ llocalid langL_localize(FileState *fs, llineid line, lnodeid id) {
 }
 
 
-void langL_emit(FileState *fs, llineid line, lnodeid id) {
+void langL_emit(elf_FileState *fs, llineid line, lnodeid id) {
 	llocalid mem = fs->fn->xmemory;
 	lNode v = fs->nodes[id];
 	switch (v.k) {
@@ -313,7 +313,7 @@ void langL_emit(FileState *fs, llineid line, lnodeid id) {
 ** if y is 0 the instruction is omitted if
 ** no side effects.
 */
-void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, llocalid y, lnodeid id) {
+void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid x, llocalid y, lnodeid id) {
 	LASSERT(x > NO_SLOT);
 	LASSERT(x < fs->fn->xmemory);
 
@@ -322,8 +322,8 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 
 	if (line == 0) line = v.line;
 
-	lModule *md = fs->md;
-	FileFunc *fn = fs->fn;
+	elf_Module *md = fs->md;
+	elf_FileFunc *fn = fs->fn;
 
 	/* finally restore memory state */
 	llocalid mem = fs->fn->xmemory;
@@ -384,14 +384,14 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 		case NODE_STRING: {
 			if (y == 0) goto leave;
 			/* -- todo: allocate this in constant pool */
-			int g = lang_addglobal(fs->md,0,lang_S(langS_new(fs->rt,v.lit.s)));
+			int g = lang_addglobal(fs->md,0,lang_S(elf_newstr(fs->rt,v.lit.s)));
 			langL_bytexy(fs,line,BC_LOADGLOBAL,x,g);
 		} break;
 		case NODE_TABLE: {
 			if (y == 0) goto leave;
 			LASSERT(v.line != 0);
 			langL_bytexy(fs,line,BC_TABLE,x,0);
-			langA_varifor(v.z) langL_emit(fs,line,v.z[i]);
+			elf_forivar(v.z) langL_emit(fs,line,v.z[i]);
 		} break;
 		case NODE_FIELD: case NODE_INDEX: {
 			if (y == 0) goto leave;
@@ -402,7 +402,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 		case NODE_CLOSURE: {
 			if (y == 0) goto leave;
 			llocalid xx = x;
-			langA_varifor(v.z) {
+			elf_forivar(v.z) {
 				if (i != 0) xx = langL_localalloc(fs,1);
 				if ((xx - x) != i) LNOBRANCH;
 				langL_localload(fs,line,ltrue,xx++,1,v.z[i]);
@@ -413,7 +413,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			if (y == 0) goto leave;
 			langL_localload(fs,line,reload,x,y,v.x);
 			fs->nodes[id].r = x = fs->nodes[v.x].r;
-			langL_bytexy(fs,v.line,BC_TYPEGUARD,x,langN_ttotag(v.y));
+			langL_bytexy(fs,v.line,BC_TYPEGUARD,x,elf_nodettotag(v.y));
 		} break;
 		case NODE_GROUP: {
 			if (y == 0) goto leave;
@@ -426,8 +426,8 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 		} break;
 		case NODE_BUILTIN: {
 			llocalid xx = x;
-			int n = langA_varlen(v.z);
-			langA_varifor(v.z) {
+			int n = elf_arrlen(v.z);
+			elf_forivar(v.z) {
 				langL_localloadin(fs,NO_LINE,xx ++,v.z[i]);
 			}
 			if (v.x == TK_STKLEN) {
@@ -458,10 +458,10 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 				langL_localloadin(fs,line,hh ++,xx.x);
 			}
 			langL_localloadin(fs,line,hh ++,v.x);
-			langA_varifor(v.z) {
+			elf_forivar(v.z) {
 				langL_localloadin(fs,line,hh ++,v.z[i]);
 			}
-			int n = langA_varlen(v.z);
+			int n = elf_arrlen(v.z);
 			langL_bytexyz(fs,line,xx.k == NODE_METAFIELD ? BC_METACALL : BC_CALL,x,n,y);
 		} break;
 		case NODE_AND: case NODE_OR: {
@@ -470,12 +470,12 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 			boolean expressions */
 			ljlist js = {0};
 			langL_jumpiffalse(fs,&js,NO_SLOT,id);
-			langL_localload(fs,line,ltrue,x,1,langN_longint(fs,line,ltrue));
+			langL_localload(fs,line,ltrue,x,1,elf_nodeint(fs,line,ltrue));
 			int j = langL_jump(fs,line,-1);
 			langL_tieloosejs(fs,js.f);
-			langA_vardel(js.f);
+			elf_delvar(js.f);
 			js.f = lnil;
-			langL_localload(fs,line,ltrue,x,1,langN_longint(fs,line,lfalse));
+			langL_localload(fs,line,ltrue,x,1,elf_nodeint(fs,line,lfalse));
 			langL_tieloosej(fs,j);
 		} break;
 		case NODE_NEQ: case NODE_EQ:
@@ -511,7 +511,7 @@ void langL_localload(FileState *fs, llineid line, lbool reload, llocalid x, lloc
 }
 
 
-void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
+void langL_moveto(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
 	lNode v = fs->nodes[x];
 	LASSERT(v.level <= fs->level);
 	LASSERT(x >= 0);
@@ -526,7 +526,7 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 			langL_bytexy(fs,line,BC_SETGLOBAL,v.x,yy);
 		} break;
 		case NODE_CACHE: {
-			langX_error(fs,line,"assignment to cache value is not supported yet");
+			elfX_error(fs,line,"assignment to cache value is not supported yet");
 		} break;
 		case NODE_LOCAL: {
 			/* -- todo: account for {x = x} opt ?  */
@@ -549,7 +549,7 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 		case NODE_RANGE_INDEX: {
 			lnodeid lo = fs->nodes[v.y].x;
 			lnodeid hi = fs->nodes[v.y].y;
-			lnodeid ii = langN_local(fs,line,langL_localalloc(fs,1));
+			lnodeid ii = elf_nodelocal(fs,line,langL_localalloc(fs,1));
 			llocalid xx = langL_localize(fs,line,v.x);
 			llocalid yy = langL_localize(fs,line,y);
 			Loop loop = {0};
@@ -567,7 +567,7 @@ void langL_moveto(FileState *fs, llineid line, lnodeid x, lnodeid y) {
 }
 
 
-void langL_beginif(FileState *fs, llineid line, Select *s, lnodeid x, int z) {
+void langL_beginif(elf_FileState *fs, llineid line, Select *s, lnodeid x, int z) {
 	ljlist js = {0};
 	langL_branchif(fs,&js,z,NO_SLOT,x);
 	// if  0 = jz
@@ -575,13 +575,13 @@ void langL_beginif(FileState *fs, llineid line, Select *s, lnodeid x, int z) {
 	if (z == L_IF) {
 		LASSERT(js.f != 0);
 		langL_tieloosejs(fs,js.t);
-		langA_vardel(js.t);
+		elf_delvar(js.t);
 		js.t = 0;
 		s->jz = js.f;
 	} else {
 		LASSERT(js.t != 0);
 		langL_tieloosejs(fs,js.f);
-		langA_vardel(js.f);
+		elf_delvar(js.f);
 		js.f = 0;
 		s->jz = js.t;
 	}
@@ -593,24 +593,24 @@ void langL_beginif(FileState *fs, llineid line, Select *s, lnodeid x, int z) {
 ** escape jump, patches previous jz (jump if false)
 ** list to enter this block.
 */
-void langL_addelse(FileState *fs, llineid line, Select *s) {
+void langL_addelse(elf_FileState *fs, llineid line, Select *s) {
 	LASSERT(s->jz != 0);
 	int j = langL_jump(fs,line,-1);
 	langA_varadd(s->j,j);
 
 	langL_tieloosejs(fs,s->jz);
-	langA_vardel(s->jz);
+	elf_delvar(s->jz);
 	s->jz = lnil;
 }
 
 
-void langL_addelif(FileState *fs, llineid line, Select *s, int x) {
+void langL_addelif(elf_FileState *fs, llineid line, Select *s, int x) {
 	langL_addelse(fs,line,s);
 	langL_beginif(fs,line,s,x,L_IF);
 }
 
 
-void langL_addthen(FileState *fs, llineid line, Select *s) {
+void langL_addthen(elf_FileState *fs, llineid line, Select *s) {
 	/* we don't need to close the previous block, it can just fall
 	through to our branch, do collect all the other exit jumps and
 	tie them to this branch block, naturally we don't need to add
@@ -618,45 +618,45 @@ void langL_addthen(FileState *fs, llineid line, Select *s) {
 	this block, multiple then blocks are simply chained together
 	naturally. */
 	langL_tieloosejs(fs,s->j);
-	langA_vardel(s->j);
+	elf_delvar(s->j);
 	s->j = lnil;
 }
 
 
-void langL_closeif(FileState *fs, llineid line, Select *s) {
+void langL_closeif(elf_FileState *fs, llineid line, Select *s) {
 	/* collect missing else branch */
 	if (s->jz != lnil) {
 		langL_tieloosejs(fs,s->jz);
-		langA_vardel(s->jz);
+		elf_delvar(s->jz);
 		s->jz = lnil;
 	}
 	/* collect missing then branch */
 	if (s->j != lnil) {
 		langL_tieloosejs(fs,s->j);
-		langA_vardel(s->j);
+		elf_delvar(s->j);
 		s->j = lnil;
 	}
 }
 
 
-void langL_begindowhile(FileState *fs, llineid line, Loop *loop) {
+void langL_begindowhile(elf_FileState *fs, llineid line, Loop *loop) {
 	loop->e = langL_getlabel(fs);
 	loop->x = NO_NODE;
 	loop->f = lnil;
 }
 
 
-void langL_closedowhile(FileState *fs, llineid line, Loop *loop, lnodeid x) {
+void langL_closedowhile(elf_FileState *fs, llineid line, Loop *loop, lnodeid x) {
 	ljlist js = {lnil};
 	langL_jumpiftrue(fs,&js,NO_SLOT,x);
 
 	langL_tieloosejsto(fs,js.t,loop->e);
-	langA_vardel(js.t);
+	elf_delvar(js.t);
 	js.t = lnil;
 }
 
 
-void langL_beginwhile(FileState *fs, llineid line, Loop *loop, lnodeid x) {
+void langL_beginwhile(elf_FileState *fs, llineid line, Loop *loop, lnodeid x) {
 	loop->e = langL_getlabel(fs);
 	loop->x = x;
 	ljlist js = {lnil};
@@ -664,29 +664,29 @@ void langL_beginwhile(FileState *fs, llineid line, Loop *loop, lnodeid x) {
 }
 
 
-void langL_closewhile(FileState *fs, llineid line, Loop *loop) {
+void langL_closewhile(elf_FileState *fs, llineid line, Loop *loop) {
 	langL_jump(fs,line,loop->e);
 	langL_tieloosejs(fs,loop->f);
-	langA_vardel(loop->f);
+	elf_delvar(loop->f);
 	loop->f = lnil;
 }
 
 
-lnodeid langN_ilessthan(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	x = langN_typeguard(fs,fs->nodes[x].line,x,NT_INT);
-	y = langN_typeguard(fs,fs->nodes[y].line,y,NT_INT);
-	return langN_xy(fs,line,NODE_LT,NT_BOL,x,y);
+lnodeid elf_nodeilessthan(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
+	x = elf_nodetypeguard(fs,fs->nodes[x].line,x,NT_INT);
+	y = elf_nodetypeguard(fs,fs->nodes[y].line,y,NT_INT);
+	return elf_nodebinary(fs,line,NODE_LT,NT_BOL,x,y);
 }
 
 
-void langL_beginrangedloop(FileState *fs, llineid line, Loop *loop, lnodeid x, lnodeid lo, lnodeid hi) {
+void langL_beginrangedloop(elf_FileState *fs, llineid line, Loop *loop, lnodeid x, lnodeid lo, lnodeid hi) {
 	LASSERT(x != NO_NODE);
 	loop->x = x;
 	loop->r = langL_localize(fs,line,x);
 
 	langL_localload(fs,line,ltrue,loop->r,1,lo);
 
-	lnodeid c = langN_ilessthan(fs,line,loop->x,hi);
+	lnodeid c = elf_nodeilessthan(fs,line,loop->x,hi);
 	loop->e = langL_getlabel(fs);
 
 	ljlist js = {lnil};
@@ -694,29 +694,29 @@ void langL_beginrangedloop(FileState *fs, llineid line, Loop *loop, lnodeid x, l
 }
 
 
-void langL_closerangedloop(FileState *fs, llineid line, Loop *loop) {
+void langL_closerangedloop(elf_FileState *fs, llineid line, Loop *loop) {
 	LASSERT(loop->r == fs->nodes[loop->x].r);
 	int x = loop->x;
-	int k = langN_xy(fs,NO_LINE,NODE_ADD,NT_INT,x,langN_longint(fs,NO_LINE,1));
+	int k = elf_nodebinary(fs,NO_LINE,NODE_ADD,NT_INT,x,elf_nodeint(fs,NO_LINE,1));
 	langL_moveto(fs,line,x,k);
 	langL_jump(fs,line,loop->e);
 	langL_tieloosejs(fs,loop->f);
-	langA_vardel(loop->f);
+	elf_delvar(loop->f);
 	loop->f = 0;
 }
 
 
 /* -- todo? we could merge with adjacent blocks, but this
 would change the order of execution, should leave as is? */
-void langL_begindelayedblock(FileState *fs, llineid line, FileBlock *d) {
+void langL_begindelayedblock(elf_FileState *fs, llineid line, FileBlock *d) {
 	d->j = langL_byte(fs,line,BC_DELAY,NO_JUMP);
 }
 
 
-void langL_closedelayedblock(FileState *fs, llineid line, FileBlock *bl) {
-	// langX_error(fs,line,"closed block, %i",langL_getlocallabel(fs));
+void langL_closedelayedblock(elf_FileState *fs, llineid line, FileBlock *bl) {
+	// elfX_error(fs,line,"closed block, %i",langL_getlocallabel(fs));
 
-	FileFunc *fn = fs->fn;
+	elf_FileFunc *fn = fs->fn;
 
 	langL_byte(fs,line,BC_LEAVE,0);
 	langL_tieloosej(fs,bl->j);
@@ -744,6 +744,6 @@ lbyteop nodetobyte(lnodeop tt) {
 	}
 	/* for intended use cases, this is an error */
 	LNOBRANCH;
-	return Y_NONE;
+	return NODE_NONE;
 }
 

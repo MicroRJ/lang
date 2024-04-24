@@ -6,17 +6,17 @@
 
 
 
-lbool langX_islineend(char x) {
+elf_bool elfX_islineend(char x) {
 	return x == '\r' || x == '\n' || x == '\0';
 }
 
 
 /* finds line number and line loc from single source location */
-void langX_getlocinfo(char *q, char *loc, int *linenum, char **lineloc) {
+void elfX_getlocinfo(char *q, char *loc, int *linenum, char **lineloc) {
 	char *c = q;
 	int n = 0;
 	while (q < loc) {
-		while (!langX_islineend(*q) && q < loc) q ++;
+		while (!elfX_islineend(*q) && q < loc) q ++;
 		if (*q == 0) break;
 		if ((*q != '\n') || (c = ++ q, n ++, 1)) {
 			if ((*q == '\r') && (c = ++ q, n ++, 1)) {
@@ -31,10 +31,10 @@ void langX_getlocinfo(char *q, char *loc, int *linenum, char **lineloc) {
 
 
 /* diagnostics function for syntax errors */
-void langX_error2(char *filename, char *contents, char *loc, char const *fmt, ...) {
+void elfX_error2(char *filename, char *contents, char *loc, char const *fmt, ...) {
 	int linenum;
 	char *lineloc;
-	langX_getlocinfo(contents,loc,&linenum,&lineloc);
+	elfX_getlocinfo(contents,loc,&linenum,&lineloc);
 
 	/* skip initial blank characters for optimal gimmicky */
 	while (*lineloc == '\t' || *lineloc == ' ') {
@@ -74,10 +74,10 @@ void langX_error2(char *filename, char *contents, char *loc, char const *fmt, ..
 }
 
 
-void langX_error(FileState *fs, char *loc, char const *fmt, ...) {
+void elfX_error(elf_FileState *fs, char *loc, char const *fmt, ...) {
 	int linenum;
 	char *lineloc;
-	langX_getlocinfo(fs->contents,loc,&linenum,&lineloc);
+	elfX_getlocinfo(fs->contents,loc,&linenum,&lineloc);
 
 	/* skip initial blank characters for optimal gimmicky */
 	while (*lineloc == '\t' || *lineloc == ' ') {
@@ -117,35 +117,35 @@ void langX_error(FileState *fs, char *loc, char const *fmt, ...) {
 }
 
 
-lbool langX_isdigit(char x) {
+elf_bool elfX_isdigit(char x) {
 	return x >= '0' && x <= '9';
 }
 
 
-lbool langX_islowercase(char x) {
+elf_bool elfX_islowercase(char x) {
 	return x >= 'a' && x <= 'z';
 }
 
 
-lbool langX_isuppercase(char x) {
+elf_bool elfX_isuppercase(char x) {
 	return x >= 'A' && x <= 'Z';
 }
 
 
-lbool langX_isletter(char x) {
-	return langX_isuppercase(x) || langX_islowercase(x);
+elf_bool elfX_isletter(char x) {
+	return elfX_isuppercase(x) || elfX_islowercase(x);
 }
 
 
-lbool langX_isalphanum(char x) {
-	return langX_isletter(x) || langX_isdigit(x) || (x) == '_';
+elf_bool elfX_isalphanum(char x) {
+	return elfX_isletter(x) || elfX_isdigit(x) || (x) == '_';
 }
 
 
 ltokentype wordorkeyword(char *name) {
 	/* todo: */
 	for (ltokentype i = FIRST_KEYWORD; i < LAST_KEYWORD; ++ i) {
-		ltokenintel intel = langX_tokenintel[i];
+		ltokenintel intel = elfX_tokenintel[i];
 		if (S_eq(intel.name,name)) {
 			return i;
 		}
@@ -161,7 +161,7 @@ ltokentype wordorkeyword(char *name) {
 #define cmovchr(xx) ((thischr() == (xx)) ? movechr(), 1 : 0)
 
 
-int langX_escapechr(FileState *file) {
+int elfX_escapechr(elf_FileState *file) {
 	int tk = movechr();
 	if (tk != '\\') return tk;
 
@@ -177,7 +177,7 @@ int langX_escapechr(FileState *file) {
 }
 
 
-ltoken langX_yield(FileState *file) {
+ltoken elfX_yield(elf_FileState *file) {
 
 	/* remove, not needed #todo */
 	lglobaldecl char buffer[0x100];
@@ -191,11 +191,11 @@ ltoken langX_yield(FileState *file) {
 	statement, but that just makes it look incredibly silly  */
 	switch (thischr()) {
 		default: {
-			if (langX_isletter(thischr()) || (thischr() == '_')) {
+			if (elfX_isletter(thischr()) || (thischr() == '_')) {
 				int length = 0;
 				do {
 					buffer[length++] = movechr();
-				} while (langX_isalphanum(thischr()));
+				} while (elfX_isalphanum(thischr()));
 				buffer[length] = 0;
 
 				tk.type = wordorkeyword(buffer);
@@ -213,7 +213,7 @@ ltoken langX_yield(FileState *file) {
 		case '5':case '6':case '7':case '8':case '9': {
 			tk.type = TK_INTEGER;
 
-			llongint base = 10;
+			elf_int base = 10;
 			if (thischr() == '0') {
 				if (thenchr() == 'x') {
 					movxchr(2);
@@ -221,7 +221,7 @@ ltoken langX_yield(FileState *file) {
 				}
 			}
 
-			llongint i = 0;
+			elf_int i = 0;
 			if (base == 10) {
 				do {
 					i = i * 10 + (movechr() - '0');
@@ -245,8 +245,8 @@ ltoken langX_yield(FileState *file) {
 					movechr();
 					tk.type = TK_NUMBER;
 
-					lnumber p = 1;
-					lnumber n = 0;
+					elf_num p = 1;
+					elf_num n = 0;
 					if (isdigit(thischr())) {
 						do  {
 							n = n * 10 + (movechr() - '0');
@@ -269,7 +269,7 @@ ltoken langX_yield(FileState *file) {
 			} while(0);
 
 			if (!cmovchr('\'')) {
-				langX_error(file,tk.line,"invalid character constant, expected \"'\"");
+				elfX_error(file,tk.line,"invalid character constant, expected \"'\"");
 			}
 		} break;
 		case '"': {
@@ -277,12 +277,12 @@ ltoken langX_yield(FileState *file) {
 
 			int length = 0;
 			while (thischr() != '"') {
-				buffer[length ++] = langX_escapechr(file);
+				buffer[length ++] = elfX_escapechr(file);
 			}
 			buffer[length] = 0;
 
 			if (!cmovchr('"')) {
-				langX_error(file,tk.line,"invalid string");
+				elfX_error(file,tk.line,"invalid string");
 			}
 			tk.type = TK_STRING;
 			tk.s = S_ncopy(lHEAP,length,buffer);
@@ -297,8 +297,8 @@ ltoken langX_yield(FileState *file) {
 			} else
 			if (isdigit(thischr())) {
 				tk.type = TK_NUMBER;
-				lnumber n = 0;
-				lnumber p = 1;
+				elf_num n = 0;
+				elf_num p = 1;
 				do {
 					n = n * 10 + (movechr() - '0');
 					p *= 10;
@@ -330,7 +330,7 @@ ltoken langX_yield(FileState *file) {
 		} goto retry;
 		case ';': {
 			movechr();
-			while (!langX_islineend(thischr())) {
+			while (!elfX_islineend(thischr())) {
 				movechr();
 			}
 			goto retry;
@@ -425,7 +425,7 @@ ltoken langX_yield(FileState *file) {
 				goto retry;
 			} else
 			if (cmovchr('/')) {
-				while (!langX_islineend(thischr())) {
+				while (!elfX_islineend(thischr())) {
 					movechr();
 				}
 				goto retry;
@@ -459,6 +459,6 @@ file->lasttk = file->tk;
 file->tk = file->thentk;
 file->thentk = tk;
 
-	// langX_error(files,tk.line,"token %s",langX_tokenintel[tk.type].name);
+	// elfX_error(files,tk.line,"token %s",elfX_tokenintel[tk.type].name);
 return file->lasttk;
 }

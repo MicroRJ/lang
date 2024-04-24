@@ -13,7 +13,7 @@ lglobaldecl Alloc langM_globalalloc = {"default-heap-allocator",langM_defglobala
 
 /* todo: should prob migrate to using something
 like stb leak */
-void *langM_clear(void *target, llongint length) {
+void *langM_clear(void *target, elf_int length) {
 #if defined(_WIN32)
 	ZeroMemory(target,length);
 #else
@@ -23,7 +23,7 @@ void *langM_clear(void *target, llongint length) {
 }
 
 
-void *langM_copy(void *target, void const *source, llongint length) {
+void *langM_copy(void *target, void const *source, elf_int length) {
 #if defined(_WIN32)
 	CopyMemory(target,source,length);
 #else
@@ -40,7 +40,7 @@ void langM_dealloc_(Alloc *c, const void *memory, ldebugloc loca) {
 }
 
 
-void *langM_alloc_(Alloc *c, llongint length, ldebugloc loca) {
+void *langM_alloc_(Alloc *c, elf_int length, ldebugloc loca) {
 	void *memory = 0;
 	Error error = c->fn(c,0,0,length,&memory,loca);
 	LASSERT(LPASSED(error));
@@ -48,7 +48,7 @@ void *langM_alloc_(Alloc *c, llongint length, ldebugloc loca) {
 }
 
 
-void *langM_realloc_(Alloc *c, llongint length, void *memory, ldebugloc loca) {
+void *langM_realloc_(Alloc *c, elf_int length, void *memory, ldebugloc loca) {
 
 	Error error = c->fn(c,0,0,length,&memory,loca);
 	LASSERT(LPASSED(error));
@@ -56,7 +56,7 @@ void *langM_realloc_(Alloc *c, llongint length, void *memory, ldebugloc loca) {
 }
 
 
-void *langM_clearalloc_(Alloc *c, llongint size, ldebugloc loca) {
+void *langM_clearalloc_(Alloc *c, elf_int size, ldebugloc loca) {
 	return langM_clear(langM_alloc_(c,size,loca),size);
 }
 
@@ -64,15 +64,15 @@ void *langM_clearalloc_(Alloc *c, llongint size, ldebugloc loca) {
 #if 0
 #if defined(_DEBUG)
 MemBlock *M_free;
-llongint M_nfree;
-llongint M_length;
-llongint M_cursor;
+elf_int M_nfree;
+elf_int M_length;
+elf_int M_cursor;
 unsigned char *M_memory;
 #endif
 #endif
 
 #if defined(_DEBUG)
-void langM_initmemory() {
+void elf_inimem() {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF|_CRTDBG_LEAK_CHECK_DF|_CRTDBG_REPORT_FLAG);
 	_CrtSetReportMode(_CRT_ERROR,_CRTDBG_MODE_DEBUG);
 #if 0
@@ -81,7 +81,7 @@ void langM_initmemory() {
 #endif
 }
 #else
-	#define langM_initmemory()
+	#define elf_inimem()
 #endif
 
 
@@ -162,8 +162,8 @@ void langM_checkmemptr(void *mem) {
 		, file->headtrap, file->foottrap);
 	}
 
-	llongint contentssize = file->contentssize;
-	llongint chunkcatedsize = CHUNKCATE(contentssize,CHUNKSIZE);
+	elf_int contentssize = file->contentssize;
+	elf_int chunkcatedsize = CHUNKCATE(contentssize,CHUNKSIZE);
 	for (int i = contentssize; i < chunkcatedsize; ++i) {
 		LASSERT(((unsigned char *)mem)[i] == (FLYTRAP & 0xFF));
 	}
@@ -183,7 +183,7 @@ void langM_debugdealloc(void *mem, ldebugloc loca) {
 }
 
 
-void *langM_debugalloc(llongint contentssize, ldebugloc loca) {
+void *langM_debugalloc(elf_int contentssize, ldebugloc loca) {
 	#if 0
 	MemBlock *then;
 	for (then = M_free; then != 0; then = then->then) {
@@ -194,11 +194,11 @@ void *langM_debugalloc(llongint contentssize, ldebugloc loca) {
 	}
 	#endif
 
-	llongint chunkcatedsize = CHUNKCATE(contentssize+256,CHUNKSIZE);
+	elf_int chunkcatedsize = CHUNKCATE(contentssize+256,CHUNKSIZE);
 	LASSERT(chunkcatedsize >= 512);
 	// lang_loginfo("alloc %lli",contentssize);
 
-	llongint totalsize = sizeof(MemBlock)+chunkcatedsize;
+	elf_int totalsize = sizeof(MemBlock)+chunkcatedsize;
 
 	LASSERT(M_cursor + totalsize <= M_length);
 
@@ -222,7 +222,7 @@ void *langM_debugalloc(llongint contentssize, ldebugloc loca) {
 }
 
 
-void *langM_debugrealloc(void *mem, llongint contentssize, ldebugloc loca) {
+void *langM_debugrealloc(void *mem, elf_int contentssize, ldebugloc loca) {
 	if (mem == 0) return langM_debugalloc(contentssize,loca);
 
 	MemBlock *file = (MemBlock *) mem - 1;

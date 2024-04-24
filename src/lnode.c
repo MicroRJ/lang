@@ -5,7 +5,7 @@
 */
 
 
-lnodeid langN_xyz(FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z) {
+lnodeid elf_nodexyz(elf_FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z) {
 	if (langA_varmin(fs->nodes) <= fs->nnodes) {
 		langA_variadd(fs->nodes,1);
 	}
@@ -22,28 +22,28 @@ lnodeid langN_xyz(FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, 
 }
 
 
-lnodeid langN_xy(FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, lnodeid y) {
-	return langN_xyz(fs,line,k,t,x,y,lnil);
+lnodeid elf_nodebinary(elf_FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, lnodeid y) {
+	return elf_nodexyz(fs,line,k,t,x,y,lnil);
 }
 
 
-lnodeid langN_x(FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x) {
-	return langN_xy(fs,line,k,t,x,NO_NODE);
+lnodeid elf_nodeunary(elf_FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x) {
+	return elf_nodebinary(fs,line,k,t,x,NO_NODE);
 }
 
 
-lnodeid langN_nullary(FileState *fs, llineid line, lnodeop k, lnodety t) {
-	return langN_x(fs,line,k,t,NO_NODE);
+lnodeid elf_nodenullary(elf_FileState *fs, llineid line, lnodeop k, lnodety t) {
+	return elf_nodeunary(fs,line,k,t,NO_NODE);
 }
 
 
-lnodeid langN_load(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	return langN_xy(fs,line,NODE_LOAD,NT_ANY,x,y);
+lnodeid elf_nodeload(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
+	return elf_nodebinary(fs,line,NODE_LOAD,NT_ANY,x,y);
 }
 
 
-lnodeid langN_typeguard(FileState *fs, llineid line, lnodeid x, lnodety y) {
-	lnodeid id = langN_xy(fs,line,NODE_TYPEGUARD,y,x,y);
+lnodeid elf_nodetypeguard(elf_FileState *fs, llineid line, lnodeid x, lnodety y) {
+	lnodeid id = elf_nodebinary(fs,line,NODE_TYPEGUARD,y,x,y);
 	/* todo: please, figure out how to solve this */
 	if (fs->nodes[x].k == NODE_LOCAL) {
 		fs->nodes[id].r = fs->nodes[x].r;
@@ -52,101 +52,101 @@ lnodeid langN_typeguard(FileState *fs, llineid line, lnodeid x, lnodety y) {
 }
 
 
-lnodeid langN_group(FileState *fs, llineid line, lnodeid x) {
-	return langN_x(fs,line,NODE_GROUP,fs->nodes[x].t,x);
+lnodeid elf_nodegroup(elf_FileState *fs, llineid line, lnodeid x) {
+	return elf_nodeunary(fs,line,NODE_GROUP,fs->nodes[x].t,x);
 }
 
 
-lnodeid langN_longint(FileState *fs, llineid line, llongint i) {
-	int v = langN_nullary(fs,line,NODE_INTEGER,NT_INT);
+lnodeid elf_nodeint(elf_FileState *fs, llineid line, elf_int i) {
+	lnodeid v = elf_nodenullary(fs,line,NODE_INTEGER,NT_INT);
 	fs->nodes[v].lit.i = i;
 	return v;
 }
 
 
-lnodeid langN_number(FileState *fs, llineid line, lnumber n) {
-	int v = langN_nullary(fs,line,NODE_NUMBER,NT_NUM);
+lnodeid elf_nodenum(elf_FileState *fs, llineid line, elf_num n) {
+	lnodeid v = elf_nodenullary(fs,line,NODE_NUMBER,NT_NUM);
 	fs->nodes[v].lit.n = n;
 	return v;
 }
 
 
-lnodeid langN_S(FileState *fs, llineid line, char *s) {
-	int v = langN_nullary(fs,line,NODE_STRING,NT_STR);
+lnodeid elf_nodestr(elf_FileState *fs, llineid line, char *s) {
+	lnodeid v = elf_nodenullary(fs,line,NODE_STRING,NT_STR);
 	fs->nodes[v].lit.s = s;
 	return v;
 }
 
 
-lnodeid langN_table(FileState *fs, llineid line, lnodeid *z) {
-	return langN_xyz(fs,line,NODE_TABLE,NT_TAB,NO_NODE,NO_NODE,z);
+lnodeid elf_nodetab(elf_FileState *fs, llineid line, lnodeid *z) {
+	return elf_nodexyz(fs,line,NODE_TABLE,NT_TAB,NO_NODE,NO_NODE,z);
 }
 
 
-lnodeid langN_closure(FileState *fs, llineid line, lnodeid x, lnodeid *z) {
-	return langN_xyz(fs,line,NODE_CLOSURE,NT_FUN,x,NO_NODE,z);
+lnodeid elf_nodecls(elf_FileState *fs, llineid line, lnodeid x, lnodeid *z) {
+	return elf_nodexyz(fs,line,NODE_CLOSURE,NT_FUN,x,NO_NODE,z);
 }
 
 
-lnodeid langN_nil(FileState *fs, llineid line) {
-	return langN_nullary(fs,line,NODE_NIL,NT_NIL);
+lnodeid elf_nodenil(elf_FileState *fs, llineid line) {
+	return elf_nodenullary(fs,line,NODE_NIL,NT_NIL);
 }
 
 
-lnodeid langN_cache(FileState *fs, llineid line, llocalid x) {
-	return langN_x(fs,line,NODE_CACHE,NT_ANY,x);
+lnodeid elf_nodecache(elf_FileState *fs, llineid line, llocalid x) {
+	return elf_nodeunary(fs,line,NODE_CACHE,NT_ANY,x);
 }
 
 
-lnodeid langN_local(FileState *fs, llineid line, llocalid x) {
-	return langN_x(fs,line,NODE_LOCAL,NT_ANY,x);
+lnodeid elf_nodelocal(elf_FileState *fs, llineid line, llocalid x) {
+	return elf_nodeunary(fs,line,NODE_LOCAL,NT_ANY,x);
 }
 
 
-lnodeid langN_global(FileState *fs, llineid line, lglobalid x) {
-	return langN_x(fs,line,NODE_GLOBAL,NT_ANY,x);
+lnodeid elf_nodeglobal(elf_FileState *fs, llineid line, lglobalid x) {
+	return elf_nodeunary(fs,line,NODE_GLOBAL,NT_ANY,x);
 }
 
 
-lnodeid langN_field(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	return langN_xy(fs,line,NODE_FIELD,NT_ANY,x,y);
+lnodeid elf_nodefield(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
+	return elf_nodebinary(fs,line,NODE_FIELD,NT_ANY,x,y);
 }
 
 
-lnodeid langN_index(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	return langN_xy(fs,line,NODE_INDEX,NT_ANY,x,y);
+lnodeid elf_nodeindex(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
+	return elf_nodebinary(fs,line,NODE_INDEX,NT_ANY,x,y);
 }
 
 
-lnodeid langN_rangedindex(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	return langN_xy(fs,line,NODE_RANGE_INDEX,NT_ANY,x,y);
+lnodeid elf_noderangedindex(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
+	return elf_nodebinary(fs,line,NODE_RANGE_INDEX,NT_ANY,x,y);
 }
 
 
-lnodeid langN_metafield(FileState *fs, llineid line, lnodeid x, lnodeid y) {
-	return langN_xy(fs,line,NODE_METAFIELD,NT_ANY,x,y);
+lnodeid elf_nodemetafield(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
+	return elf_nodebinary(fs,line,NODE_METAFIELD,NT_ANY,x,y);
 }
 
 
-lnodeid langN_call(FileState *fs, llineid line, lnodeid x, lnodeid *z) {
-	return langN_xyz(fs,line,NODE_CALL,NT_ANY,x,NO_NODE,z);
+lnodeid elf_nodecall(elf_FileState *fs, llineid line, lnodeid x, lnodeid *z) {
+	return elf_nodexyz(fs,line,NODE_CALL,NT_ANY,x,NO_NODE,z);
 }
 
 
-lnodeid langN_loadfile(FileState *fs, llineid line, lnodeid x) {
-	return langN_x(fs,line,NODE_FILE,NT_ANY,x);
+lnodeid elf_nodeloadfile(elf_FileState *fs, llineid line, lnodeid x) {
+	return elf_nodeunary(fs,line,NODE_FILE,NT_ANY,x);
 }
 
 
-lnodeid langN_builtincall(FileState *fs, llineid line, ltokentype k, lnodeid *z) {
-	return langN_xyz(fs,line,NODE_BUILTIN,NT_ANY,k,NO_NODE,z);
+lnodeid elf_nodebuiltincall(elf_FileState *fs, llineid line, ltokentype k, lnodeid *z) {
+	return elf_nodexyz(fs,line,NODE_BUILTIN,NT_ANY,k,NO_NODE,z);
 }
 
 
-lValue langN_tolitval(FileState *fs, lnodeid id);
+elf_val elf_nodetolitval(elf_FileState *fs, lnodeid id);
 
 
-void langN_litapply(FileState *fs, lTable *tab, lnodeid id) {
+void elf_nodelitapply(elf_FileState *fs, elf_tab *tab, lnodeid id) {
 	lNode v = fs->nodes[id];
 	switch (v.k) {
 		case NODE_LOAD: {
@@ -155,9 +155,9 @@ void langN_litapply(FileState *fs, lTable *tab, lnodeid id) {
 				LNOBRANCH;
 			} else
 			if ((x.k == NODE_FIELD) || (x.k == NODE_INDEX)) {
-				lValue key = langN_tolitval(fs,x.x);
-				lValue val = langN_tolitval(fs,v.y);
-				langH_insert(tab,key,val);
+				elf_val key = elf_nodetolitval(fs,x.x);
+				elf_val val = elf_nodetolitval(fs,v.y);
+				elf_tabput(tab,key,val);
 			} else LNOBRANCH;
 		} break;
 		default: LNOBRANCH;
@@ -165,7 +165,7 @@ void langN_litapply(FileState *fs, lTable *tab, lnodeid id) {
 }
 
 
-lValue langN_tolitval(FileState *fs, lnodeid id) {
+elf_val elf_nodetolitval(elf_FileState *fs, lnodeid id) {
 	lNode nd = fs->nodes[id];
 	switch (nd.k) {
 		case NODE_INTEGER: {
@@ -175,13 +175,13 @@ lValue langN_tolitval(FileState *fs, lnodeid id) {
 			return lang_N(nd.lit.n);
 		}
 		case NODE_TABLE: {
-			lTable *tab = langH_new(fs->R);
-			langA_varifor(nd.z) {
-				langN_litapply(fs,tab,nd.z[i]);
+			elf_tab *tab = elf_newtab(fs->R);
+			elf_forivar(nd.z) {
+				elf_nodelitapply(fs,tab,nd.z[i]);
 			}
 			return lang_H(tab);
 		}
 		default: LNOBRANCH;
 	}
-	return (lValue){TAG_NIL};
+	return (elf_val){TAG_NIL};
 }

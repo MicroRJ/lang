@@ -93,8 +93,8 @@ typedef struct ljNode {
 	ljNodeOp  op;
 	ljDataTy  ty;
 	ljnodeid x,y;
-	lValue    lv;
-	llongint  li;
+	elf_val    lv;
+	elf_int  li;
 } ljNode;
 
 
@@ -119,7 +119,7 @@ typedef struct ljValue {
 	int base;
 	int disp;
 	int index, scale;
-	llongint immediate;
+	elf_int immediate;
 	ljnodeid node;
 } ljValue;
 
@@ -136,7 +136,7 @@ ljnodeid alloc_node(ljState *lj, ljNodeOp op, ljDataTy ty, ljnodeid x, ljnodeid 
 }
 
 
-ljnodeid emit_irlongint(ljState *lj, llongint li) {
+ljnodeid emit_irlongint(ljState *lj, elf_int li) {
 	ljnodeid id = alloc_node(lj,NODE_DATA,DATA_INT64,NO_NODE,NO_NODE);
 	lj->nodes[id].li = li;
 	return id;
@@ -191,7 +191,7 @@ lglobaldecl const char* GPR_NAMES[] = {
 
 #define REG(gpr) ((ljValue) {JIT_GPR,gpr})
 #define MEM(gpr,off) ((ljValue) {JIT_MEM,gpr,off})
-#define PTR(ptr) ((ljValue) {JIT_IMM,0,0,0,0,(llongint)(ptr)})
+#define PTR(ptr) ((ljValue) {JIT_IMM,0,0,0,0,(elf_int)(ptr)})
 
 
 

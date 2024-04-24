@@ -1,50 +1,49 @@
 /*
 ** See Copyright Notice In lang.h
 ** (H) ltable.h
-** Hashing Tools && lTable lObject
+** Table
 */
 
 
+typedef struct elf_tabslot {
+	elf_val k;
+	elf_int i;
+} elf_tabslot;
 
 
-typedef struct HashSlot {
-	lValue k;
-	llongint i;
-} HashSlot;
-
-
-typedef struct lTable {
-	lObject      obj;
-	HashSlot *slots;
-	llongint    ntotal;
-	llongint    nslots;
-	int ncollisions;
+typedef struct elf_tab {
+	elf_obj obj;
+	elf_tabslot *slots;
+	elf_int ntotal;
+	elf_int nslots;
+	elf_int ncollisions;
 	/* array object */
-	lValue        *v;
-} lTable;
+	elf_val    *v;
+} elf_tab;
 
 
-lTable *langH_newclass(lRuntime *R);
-lTable *langH_new2(lRuntime *fs, llongint);
-lTable *langH_new(lRuntime *fs);
+elf_tab *elf_newtabmetatab(lRuntime *);
 
-llongint langH_take(lTable *table, lValue k);
-void langH_free(lTable *t);
-void langH_insert(lTable *table, lValue k, lValue v);
-lhashid langH_rehash(lhashid hash);
-lhashid langH_hashS(char *junk);
-lhashid langH_hashPtr(Ptr *ptr);
-lbool langH_valueeq(lValue *x, lValue *y);
-llongint langH_hashvalue(lValue v);
+void elf_deltab(elf_tab *);
+elf_tab *elf_newtablen(lRuntime *, elf_int);
+elf_tab *elf_newtab(lRuntime *);
+
+elf_int elf_tabtake(elf_tab *table, elf_val k);
+void elf_tabput(elf_tab *table, elf_val k, elf_val v);
+elf_int elf_tabhashval(elf_val v);
+elf_hashint elf_tabrehash(elf_hashint hash);
+elf_hashint elf_tabhashstr(char *junk);
+elf_hashint elf_tabhashptr(Ptr *ptr);
+elf_bool elf_tabvaleq(elf_val *x, elf_val *y);
 
 
-/* metaclass */
+/* metatable */
 int langH_add_(lRuntime *);
 int langH_idx_(lRuntime *);
 int langH_unload_(lRuntime *);
 int langH_length_(lRuntime *);
 int langH_haskey_(lRuntime *);
-int langH_insert_(lRuntime *);
+int elf_tabput_(lRuntime *);
 int langH_lookup_(lRuntime *);
 int langH_foreach_(lRuntime *);
 int langH_sort_(lRuntime *);

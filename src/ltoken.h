@@ -15,8 +15,8 @@ typedef struct ltoken {
 	unsigned int eol: 1;
 	union {
 		char *s;
-		llongint i;
-		lnumber n;
+		elf_int i;
+		elf_num n;
 	};
 } ltoken;
 
@@ -93,11 +93,11 @@ typedef enum ltokentype {
 typedef struct ltokenintel {
 	char *name;
 	char prec;
-	lhashid hash;
+	elf_hashint hash;
 } ltokenintel;
 
 
-lglobaldecl ltokenintel langX_tokenintel[] = {
+lglobaldecl ltokenintel elfX_tokenintel[] = {
 	{"none",                 -2, 0},
 	{"new",                  -1, 681154065},
 	{"this",                 -1, 3660305025},
