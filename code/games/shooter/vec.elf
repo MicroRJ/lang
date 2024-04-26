@@ -1,0 +1,82 @@
+
+PI = 3.14159
+TAU = 6.28318
+
+
+
+todeg = fun(x) ? ((iton(x)/PI)*180.)
+
+abs = fun(x,y) ? { if x < 0 ? leave -x else leave x }
+min = fun(x,y) ? { if x < y ? leave x else leave y }
+max = fun(x,y) ? { if x > y ? leave x else leave y }
+
+/* @deprecated */
+lerp = fun(x,y,z) ? (y + x * (z - y))
+unlerp = fun(x,y,z) ? ((x - y) / (z - y))
+map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
+mix = fun(x,y,z) ? (y + x * (z - y))
+
+
+
+/* todo: make these intrinsic */
+
+let vec3__ = {
+	clone = fun() ? vec3(this.x,this.y,this.z),
+	x = fun(x) ? vec3(x,this.y,this.z),
+	y = fun(y) ? vec3(this.x,y,this.z),
+	z = fun(z) ? vec3(this.x,this.y,z),
+	eq = fun(that) ? (this.x==that.x&&this.y==that.y&&this.z==this.z),
+	add = fun(that) ? vec3(this.x+that.x,this.y+that.y,this.z+that.z),
+	sub = fun(that) ? vec3(this.x-that.x,this.y-that.y,this.z-that.z),
+	mul = fun(that) ? vec3(this.x*that.x,this.y*that.y,this.z*that.z),
+	mul1 = fun(that) ? vec3(this.x*that,this.y*that,this.z*that),
+	div = fun(that) ? vec3(this.x/that.x,this.y/that.y,this.z/that.z),
+	div1 = fun(that) ? {
+		if that == 0 ? leave this:clone()
+		leave vec3(this.x/that,this.y/that,this.z/that)
+	},
+	dot = fun(that) ? (this.x*that.x + this.y*that.y + this.z*that.z),
+	len = fun() ? sqrt(this:dot(this)),
+	angle = fun() ? atan2(this.x,this.y),
+	mix = fun(that,ratio) ? {
+		leave vec3(lerp(ratio,this.x,that.x),
+					  lerp(ratio,this.y,that.y),
+					  lerp(ratio,this.z,that.z))
+	},
+	/* @deprecated */
+	lerp = fun(that,ratio) ? {
+		leave this:mix(that,ratio)
+	},
+	floor = fun() ? vec3(floor(this.x),floor(this.y),floor(this.z)),
+	norm = fun() ? this:div1(this:len()),
+	perp = fun(that) ? {
+		leave vec3(	this.y*that.z - this.z*that.y,
+						this.z*that.x - this.x*that.z,
+						this.x*that.y - this.y*that.x )
+	},
+	perp2d = fun(that) ? {
+		leave vec3(this.y,-this.x,0.)
+	}
+}
+
+/* todo: make this better */
+vec3 = fun(x,y,z) ? __of(vec3__,{"x"=x,"y"=y,"z"=z})
+vec2 = fun(x,y) ? vec3(x,y,.0)
+vec = fun(x,y) ? vec3(.0,.0,.0)
+
+
+LEFT  = vec3(-1, 0, 0)
+RIGHT = vec3( 1, 0, 0)
+UP    = vec3( 0, 1, 0)
+DOWN  = vec3( 0,-1, 0)
+// min := +PI
+// max := +PI
+rnddir2 = fun (min,max,ref) ? {
+	min ?= -PI
+	max ?= +PI
+	ref ?=  UP
+	let ang = atan2(ref.y,ref.x) + mix(min,max,rnd(0.,1000.)/1000.)
+	leave vec3(cos(ang),sin(ang),0.)
+}
+
+

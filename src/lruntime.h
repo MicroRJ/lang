@@ -53,6 +53,8 @@ typedef struct elf_CallFrame {
 	- on return, 'finally' statements produce
 	- these. */
 	ldelaylist *dl;
+
+	elf_bool logging;
 } elf_CallFrame;
 
 

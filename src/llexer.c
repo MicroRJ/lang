@@ -74,7 +74,7 @@ void elfX_error2(char *filename, char *contents, char *loc, char const *fmt, ...
 }
 
 
-void elfX_error(elf_FileState *fs, char *loc, char const *fmt, ...) {
+void elf_lineerror(elf_FileState *fs, char *loc, char const *fmt, ...) {
 	int linenum;
 	char *lineloc;
 	elfX_getlocinfo(fs->contents,loc,&linenum,&lineloc);
@@ -177,7 +177,7 @@ int elfX_escapechr(elf_FileState *file) {
 }
 
 
-ltoken elfX_yield(elf_FileState *file) {
+ltoken elf_yieldtk(elf_FileState *file) {
 
 	/* remove, not needed #todo */
 	lglobaldecl char buffer[0x100];
@@ -269,7 +269,7 @@ ltoken elfX_yield(elf_FileState *file) {
 			} while(0);
 
 			if (!cmovchr('\'')) {
-				elfX_error(file,tk.line,"invalid character constant, expected \"'\"");
+				elf_lineerror(file,tk.line,"invalid character constant, expected \"'\"");
 			}
 		} break;
 		case '"': {
@@ -282,7 +282,7 @@ ltoken elfX_yield(elf_FileState *file) {
 			buffer[length] = 0;
 
 			if (!cmovchr('"')) {
-				elfX_error(file,tk.line,"invalid string");
+				elf_lineerror(file,tk.line,"invalid string");
 			}
 			tk.type = TK_STRING;
 			tk.s = S_ncopy(lHEAP,length,buffer);
@@ -459,6 +459,6 @@ file->lasttk = file->tk;
 file->tk = file->thentk;
 file->thentk = tk;
 
-	// elfX_error(files,tk.line,"token %s",elfX_tokenintel[tk.type].name);
+	// elf_lineerror(files,tk.line,"token %s",elfX_tokenintel[tk.type].name);
 return file->lasttk;
 }

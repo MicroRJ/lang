@@ -1,13 +1,9 @@
 
-abs = fun(x,y) ? {
-	if x < 0 ? leave -x else leave x
-}
-min = fun(x,y) ? {
-	if x < y ? leave x else leave y
-}
-max = fun(x,y) ? {
-	if x > y ? leave x else leave y
-}
+
+/* todo: make intrinsic */
+abs = fun(x,y) ? { if x < 0 ? leave -x else leave x }
+min = fun(x,y) ? { if x < y ? leave x else leave y }
+max = fun(x,y) ? { if x > y ? leave x else leave y }
 
 lerp = fun(x,y,z) ? (y + x * (z - y))
 unlerp = fun(x,y,z) ? ((x - y) / (z - y))
@@ -22,6 +18,7 @@ let vec3__ = {
 	"add" = fun(that) ? vec3(this.x+that.x,this.y+that.y,this.z+that.z),
 	"sub" = fun(that) ? vec3(this.x-that.x,this.y-that.y,this.z-that.z),
 	"mul" = fun(that) ? vec3(this.x*that.x,this.y*that.y,this.z*that.z),
+	"mul1" = fun(that) ? vec3(this.x*that,this.y*that,this.z*that),
 	"div" = fun(that) ? vec3(this.x/that.x,this.y/that.y,this.z/that.z),
 	"div1" = fun(that) ? vec3(this.x/that,this.y/that,this.z/that),
 	"dot" = fun(that) ? (this.x*that.x + this.y*that.y + this.z*that.z),

@@ -1,5 +1,5 @@
 __logging(false)
-load "code/games/lgi.lang"
+load "code/games/lgi.elf"
 
 let enum {
 	FLOOR = 0,

@@ -1,0 +1,38 @@
+crittercontroller_wolf = fun(critter) ? {
+	if critter.turntimer < .0 ? {
+		critter.turntimer = critter.turnclock
+		movecritter(critter,1,vec3(rnd(-1,2),rnd(-1,2),0))
+	}
+	critter.turntimer = critter.turntimer - lgi_deltatime()
+}
+
+critterplotter_wolf = fun(xthis) ? {
+	let xyz = xthis.xyz
+	let x = xyz.x
+	let y = xyz.y
+	let z = xyz.z
+	/* todo: #langfeature something like xthis */
+	// let px,py = plot(critter.xyz).{"x","y"}
+	let pxy = plot(x,y)
+	let px = pxy.x
+	let py = pxy.y
+
+	let xanim = 64 * ((lgi_time() / .128) % 4)
+	let w = 64.
+	let h = 64.
+	let a = h / w
+	let s = 256
+	let v = s*a
+	px = px - s*.5
+	py = py - v*.2
+	// lgi_drawQuad(lgi_WHITE,px,py,256,v)
+	lgi_drawtexture(textures.wolf,px,py,s,v,xanim,64*12,64,64)
+}
+
+
+newwolf = fun(xyz) ? {
+	let xthis = newcritter("wolf",xyz)
+	xthis.controller = crittercontroller_wolf
+	xthis.plotter = critterplotter_wolf
+	leave xthis
+}

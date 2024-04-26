@@ -1,0 +1,54 @@
+
+plotstag = fun(xthis) ? {
+	let xyz = xthis.xyz
+	let pxy = plot3(xyz)
+	let px = pxy.x
+	let py = pxy.y
+	let w = 32.
+	let h = 41.
+	let a = h / w
+	let s = 128
+	px = px - s*.35
+	py = py + s*.05
+	// lgi_drawQuad(lgi_WHITE,px,py,s,s*a)
+	// xanim,8*41
+	let yanim = 41*11
+	let xanim = 32 * ((xthis.animtimer / .128) % 23)
+	let facing = xthis.facing
+	let animlabel = xthis.animlabel
+	// if xthis.transing ? {
+		// xanim = 32 * ((xthis.animtimer / .032) % 11)
+		xanim = 32 * ((xthis.animtimer / .064) % 10)
+		// animlabel = "walking"
+		yanim = 0
+		  if facing:eq(SW) ? yanim = 41*(4+0)
+		elif facing:eq(SE) ? yanim = 41*(4+1)
+		elif facing:eq(NW) ? yanim = 41*(4+2)
+		elif facing:eq(NE) ? yanim = 41*(4+3)
+		else pf("error")
+	// } else {
+	// 	animlabel = "idle"
+	// 	if facing:eq(SW) ? yanim = 41*8
+	// 	elif facing:eq(SE) ? yanim = 41*9
+	// 	elif facing:eq(NW) ? yanim = 41*10
+	// 	elif facing:eq(NE) ? yanim = 41*11
+	// 	else pf("error")
+	// }
+	if animlabel != xthis.animlabel ? {
+		xthis.animtimer = 0
+		xthis.animlabel = animlabel
+		pf("switch animation")
+	}
+
+	lgi_drawtexture(textures.stag,px,py,s,s*a,xanim,yanim,32,41)
+	xthis.animtimer = xthis.animtimer + lgi_deltatime()
+}
+
+
+
+newstag = fun(xyz) ? {
+	let xthis = newcritter("stag",xyz)
+	xthis.controller = crittercontroller_player
+	xthis.plotter = plotstag
+	leave xthis
+}

@@ -25,9 +25,9 @@ void lang_assertfn(ldebugloc ind, char const *name, elf_bool expr);
 
 
 #if defined(_DEBUG)
-	#define LASSERT(xx) LASSERTALWAYS(xx)
+	#define elf_assert(xx) LASSERTALWAYS(xx)
 #else
-	#define LASSERT(xx)
+	#define elf_assert(xx)
 #endif
 
 

@@ -195,7 +195,7 @@ int syslib_pf(lRuntime *rt) {
 
 
 lapi int syslib_sleep(lRuntime *rt) {
-	LASSERT(rt->f->x == 1);
+	elf_assert(rt->f->x == 1);
 	sys_sleep(elf_getint(rt,0));
 	return 0;
 }
@@ -208,7 +208,7 @@ lapi int syslib_clocktime(lRuntime *rt) {
 
 
 lapi int syslib_timediffs(lRuntime *rt) {
-	LASSERT(rt->f->x == 1);
+	elf_assert(rt->f->x == 1);
 	elf_int i = elf_getint(rt,0);
 	elf_putnum(rt,(sys_clocktime() - i) / (elf_num) sys_clockhz());
 	return 1;
@@ -258,7 +258,7 @@ void syslib_listdir_(lRuntime *R, elf_str *d, elf_tab *list, elf_tab *flags, elf
 
 
 lapi int syslib_listdir(lRuntime *R) {
-	LASSERT(R->frame->x == 2);
+	elf_assert(R->frame->x == 2);
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */
 	keyname = elf_pushnewstr(R,"name");

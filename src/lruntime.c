@@ -87,7 +87,7 @@ int elf_callfn(lRuntime *R, elf_obj *obj, llocalid rx, llocalid ry, int nx, int 
 		if (fn.c != lnil) {
 			nyield = fn.c(R);
 			/* ensure that the results were pushed to the stack */
-			LASSERT(nyield <= (R->top - call.locals));
+			elf_assert(nyield <= (R->top - call.locals));
 			/* todo: we only do this to not have to make
 			the user write to rx directly? */
 			/* hoist results */
@@ -119,12 +119,12 @@ int elf_loadexpr(lRuntime *R, elf_str *contents, llocalid rxy, int ny) {
 	fs.linenumber = 1;
 
 	/* kick start by lexing the first two tokens */
-	elfX_yield(&fs);
-	elfX_yield(&fs);
+	elf_yieldtk(&fs);
+	elf_yieldtk(&fs);
 
 	elf_FileFunc fn = {0};
 	elfY_beginfn(&fs,&fn,fs.tk.line);
-	lnodeid id = elfY_loadexpr(&fs);
+	lnodeid id = elf_fsloadexpr(&fs);
 	langL_yield(&fs,fs.tk.line,id);
 	elfY_closefn(&fs);
 
@@ -168,13 +168,13 @@ int elf_loadfile(lRuntime *R, elf_FileState *fs, elf_str *filename, llocalid x, 
 	fs->linenumber = 1;
 
 	/* kick start by lexing the first two tokens */
-	elfX_yield(fs);
-	elfX_yield(fs);
+	elf_yieldtk(fs);
+	elf_yieldtk(fs);
 
 
 	elf_FileFunc fn = {0};
 	elfY_beginfn(fs,&fn,fs->tk.line);
-	while (!elfX_test(fs,0)) elfY_loadstat(fs);
+	while (!elf_testtk(fs,0)) elfY_loadstat(fs);
 	elfY_closefn(fs);
 
 	/* todo: this is temporary, please remove this or make
@@ -222,7 +222,9 @@ int elf_run(lRuntime *R) {
 		lBytecode b = md->bytes[bc];
 
 #ifdef _DEBUG
-		if (R->logging) bytefpf(md,stdout,jp,b);
+		if (R->logging || call->logging) {
+			bytefpf(md,stdout,jp,b);
+		}
 		if (R->debugbreak) __debugbreak();
 #endif
 
@@ -240,11 +242,11 @@ int elf_run(lRuntime *R) {
 				dl->j = c->j;
 				c->dl = dl;
 
-				LASSERT(b.i >= 0);
+				elf_assert(b.i >= 0);
 				c->j = jp + b.i;
 			} break;
 			case BC_YIELD: {
-				LASSERT(b.x >= 0);
+				elf_assert(b.x >= 0);
 				/* check that we don't exceed number of
 				expected outputs */
 				int ny = MIN(b.z,call->ny);
@@ -301,11 +303,11 @@ int elf_run(lRuntime *R) {
 				locals[b.x].n   = md->kn[b.y];
 			} break;
 			case BC_LOADCACHED: {
-				LASSERT(b.y >= 0 && b.y < fn.ncaches);
+				elf_assert(b.y >= 0 && b.y < fn.ncaches);
 				locals[b.x] = cl->caches[b.y];
 			} break;
 			case BC_CLOSURE: {
-				LASSERT(b.y >= 0 && b.y < elf_arrlen(md->p));
+				elf_assert(b.y >= 0 && b.y < elf_arrlen(md->p));
 				elf_Proto p = md->p[b.y];
 				elf_Closure *ncl = elf_newcl(R,p);
 				for (int i = 0; i < p.ncaches; ++i) {

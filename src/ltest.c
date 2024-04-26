@@ -22,9 +22,16 @@ void sets(lRuntime *c, elf_tab *table, char const *k) {
 }
 
 
-int testlib_logging(lRuntime *c) {
-	elf_int logging = elf_getint(c,0);
-	c->logging = logging;
+int testlib_logging(lRuntime *R) {
+	elf_int logging = elf_getint(R,0);
+	R->call->caller->logging = logging;
+	return 0;
+}
+
+
+int testlib_globallogging(lRuntime *R) {
+	elf_int logging = elf_getint(R,0);
+	R->logging = logging;
 	return 0;
 }
 
@@ -148,6 +155,7 @@ void tstlib_load(lRuntime *rt) {
 	lang_addglobal(md,elf_pushnewstr(rt,"gcunpause"),lang_C(testlib_gcunpause));
 	lang_addglobal(md,elf_pushnewstr(rt,"__disasm"),lang_C(testlib_disasm));
 	lang_addglobal(md,elf_pushnewstr(rt,"__logging"),lang_C(testlib_logging));
+	lang_addglobal(md,elf_pushnewstr(rt,"__globallogging"),lang_C(testlib_globallogging));
 
 	lang_addglobal(md,elf_pushnewstr(rt,"__debugbreak"),lang_C(testlib_debugbreak));
 	lang_addglobal(md,elf_pushnewstr(rt,"absslotid"),lang_C(testlib_absslotid));

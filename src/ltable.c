@@ -165,7 +165,7 @@ elf_val langH_lookup(elf_tab *table, elf_val k) {
 
 
 elf_int elf_tabtake(elf_tab *table, elf_val k) {
-	LASSERT((k.tag == TAG_INT || k.tag == TAG_NUM) || k.s != 0);
+	elf_assert((k.tag == TAG_INT || k.tag == TAG_NUM) || k.s != 0);
 
 	langH_checkthreshold(table);
 	elf_int slot = langH_hashin(table,k);
@@ -202,7 +202,7 @@ int langH_length_(lRuntime *c) {
 
 
 int langH_haskey_(lRuntime *c) {
-	LASSERT(c->f->x == 1);
+	elf_assert(c->f->x == 1);
 	elf_tab *table = (elf_tab*) c->f->obj;
 	elf_val k = elf_getval(c,0);
 	elf_putint(c,langH_slotiskey(table,langH_hashin(table,k)));
@@ -211,7 +211,7 @@ int langH_haskey_(lRuntime *c) {
 
 
 int langH_lookup_(lRuntime *c) {
-	LASSERT(c->f->x == 1);
+	elf_assert(c->f->x == 1);
 	elf_val k = elf_getval(c,0);
 	elf_tab *table = (elf_tab*) c->f->obj;
 	elf_putval(c,langH_lookup(table,k));
@@ -227,7 +227,7 @@ int langH_collisions_(lRuntime *c) {
 
 
 int langH_add_(lRuntime *R) {
-	LASSERT(R->call->x >= 1);
+	elf_assert(R->call->x >= 1);
 	elf_tab *tab = (elf_tab *) R->call->obj;
 	langH_add(tab,elf_getval(R,0));
 	return 0;
@@ -235,7 +235,7 @@ int langH_add_(lRuntime *R) {
 
 
 int langH_idx_(lRuntime *R) {
-	LASSERT(R->call->x >= 1);
+	elf_assert(R->call->x >= 1);
 	elf_tab *tab = (elf_tab *) R->call->obj;
 	elf_int idx = elf_getint(R,0);
 	elf_putval(R,tab->v[idx]);
@@ -246,7 +246,7 @@ int langH_idx_(lRuntime *R) {
 int elf_tabput_(lRuntime *c) {
 	int n = c->f->x;
 
-	LASSERT(n >= 1 && n <= 2);
+	elf_assert(n >= 1 && n <= 2);
 
 	elf_val k = elf_getval(c,0);
 
@@ -260,7 +260,7 @@ int elf_tabput_(lRuntime *c) {
 
 
 int langH_foreach_(lRuntime *R) {
-	LASSERT(R->frame->x == 1);
+	elf_assert(R->frame->x == 1);
 	elf_tab *table = (elf_tab *) R->frame->obj;
 	elf_checkcl(R,0);
 	llocalid k = elf_stkput(R,1);
@@ -417,7 +417,7 @@ void langH_mergesort_(elf_tab *h, int level, elf_int x, elf_int z, elf_Proto *fn
 
 		int r = lang_callargs(c,fn,2,a,b);
 		elf_val vr = pop();
-		LASSERT(vr.tag == TAG_INT);
+		elf_assert(vr.tag == TAG_INT);
 
 		if (vr.i) {
 			elf_val t = h[x+i];

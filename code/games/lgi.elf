@@ -54,6 +54,7 @@ lgi_gettexturewidth = lgifn("lgilib_gettexturewidth")
 lgi_gettextureheight = lgifn("lgilib_gettextureheight")
 lgi_setsampler = lgifn("lgilib_setsampler")
 lgi_bindtexture = lgifn("lgilib_bindtexture")
+lgi_binddeftex = lgifn("lgilib_binddeftex")
 lgi_beginvertices = lgifn("lgilib_beginvertices")
 lgi_closevertices = lgifn("lgilib_closevertices")
 lgi_addnidx = lgifn("lgilib_addnidx")
@@ -116,18 +117,13 @@ lgi_drawtexture = fun(tex,x,y,xx,yy,u,v,uu,vv,color) ? {
 	lgi_closevertices()
 }
 
-
-let enum RGB = fun(r,g,b) ? {
-	let color = {}
-	color.r = r
-	color.g = g
-	color.b = b
-	color.a = 1
-	leave color
+RGB__ = {
+	"clone" = fun() ? (RGB(this.r,this.g,this.b,this.a)),
+	"a" = fun(a) ? (RGB(this.r,this.g,this.b,a))
 }
 
-
-let enum RGBU = fun(r,g,b) ? RGB(r/255.,g/255.,b/255.)
+RGB = fun(r,g,b) ? __of(RGB__,{"r"=r,"g"=g,"b"=b,"a"=1})
+RGBU = fun(r,g,b) ? RGB(r/255.,g/255.,b/255.)
 
 
 lgi_CLEAR = RGBU(0xFF, 0xFF, 0xFF, 0x00)

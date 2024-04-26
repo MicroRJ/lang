@@ -108,7 +108,7 @@ void emit86_mov(ljValue x, ljValue y) {
 		if (y.type == JIT_MEM) {
 			emit86_mov(REG(RAX),y);
 			y = REG(RAX);
-		} else LASSERT(y.type == JIT_GPR);
+		} else elf_assert(y.type == JIT_GPR);
 		DO_MOV64_MEM_REG_8DISP(x.base,x.disp,y.base);
 	} else LNOBRANCH;
 }

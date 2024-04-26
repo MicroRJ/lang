@@ -6,7 +6,7 @@
 
 
 lapi elf_Closure *elf_newcl(lRuntime *rt, elf_Proto fn) {
-	LASSERT(fn.ncaches >= 0);
+	elf_assert(fn.ncaches >= 0);
 
 	elf_int length = sizeof(elf_Closure) + sizeof(elf_val) * (fn.ncaches-1);
 

@@ -58,7 +58,7 @@ lapi int netlib_pollclient(lRuntime *R) {
 	int result = select(0,&ready,NULL,NULL,&timeout);
    if (FD_ISSET(handle,&ready)) {
       SOCKET client = accept(handle,NULL,NULL);
-      LASSERT(client != INVALID_SOCKET);
+      elf_assert(client != INVALID_SOCKET);
 		elf_putsys(R,(elf_Handle)client);
    } else elf_putnil(R);
 	return 1;
@@ -158,7 +158,7 @@ lapi int netlib_recv(lRuntime *R) {
 					/* connection closed gracefully, simply break */
 					break;
 				} else {
-					LASSERT(result > 0);
+					elf_assert(result > 0);
 					length -= result;
 					cursor += result;
 				}

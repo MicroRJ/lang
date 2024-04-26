@@ -56,6 +56,13 @@ llibfn int lgilib_initWindowed(lRuntime *rt) {
 }
 
 
+llibfn int lgilib_binddeftex(lRuntime *R) {
+	(void) R;
+	lgi_bindTexture(0,lgi.whiteTexture,lgi_True);
+	return 0;
+}
+
+
 llibfn int lgilib_loadtexture(lRuntime *R) {
 	elf_str *filename = elf_getstr(R,0);
 	lgi_Texture *texture = lgi_loadTexture(filename->c);
@@ -195,7 +202,7 @@ llibfn int lgilib_drawline(lRuntime *R) {
 
 
 llibfn int lgilib_drawQuad(lRuntime *rt) {
-	LASSERT(elf_stklen(rt) == 8);
+	elf_assert(elf_stklen(rt) == 8);
 	float r = (float) elf_getnum(rt,0);
 	float g = (float) elf_getnum(rt,1);
 	float b = (float) elf_getnum(rt,2);
@@ -211,7 +218,7 @@ llibfn int lgilib_drawQuad(lRuntime *rt) {
 
 
 llibfn int lgilib_drawQuadUV(lRuntime *R) {
-	LASSERT(elf_stklen(R) == 9);
+	elf_assert(elf_stklen(R) == 9);
 	float r = (float) elf_getnum(R,0);
 	float g = (float) elf_getnum(R,1);
 	float b = (float) elf_getnum(R,2);

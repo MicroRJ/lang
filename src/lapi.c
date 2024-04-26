@@ -11,7 +11,7 @@ lapi elf_obj *elf_getthis(lRuntime *R) {
 
 
 lapi llocalid elf_stklen(lRuntime *R) {
-	return (R->top - R->call->locals) - R->call->cl->fn.nlocals;
+	return R->top - R->call->locals;
 }
 
 
@@ -76,7 +76,7 @@ lapi elf_Handle elf_getsys(lRuntime *R, llocalid x) {
 
 
 lapi elf_str *elf_checkstr(lRuntime *R, llocalid x) {
-	LASSERT(R->call->locals[x].tag == TAG_STR);
+	elf_assert(R->call->locals[x].tag == TAG_STR);
 	return R->call->locals[x].s;
 }
 
@@ -86,7 +86,7 @@ lapi elf_int elf_getint(lRuntime *R, int x) {
 	if (v.tag == TAG_NUM) {
 		return (elf_int) v.n;
 	}
-	LASSERT(v.tag == TAG_INT);
+	elf_assert(v.tag == TAG_INT);
 	return v.i;
 }
 
@@ -188,7 +188,7 @@ elf_str *elf_pushnewstr(lRuntime *R, char const *junk) {
 
 llocalid elf_pushnewcl(lRuntime *R, elf_Proto fn) {
 	elf_Closure *cl = elf_newcl(R,fn);
-	LASSERT(elf_stklen(R) >= fn.ncaches);
+	elf_assert(elf_stklen(R) >= fn.ncaches);
 	R->top -= fn.ncaches;
 	int i;
 	for (i=0; i<fn.ncaches; ++i) {

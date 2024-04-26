@@ -36,14 +36,14 @@ void *langM_copy(void *target, void const *source, elf_int length) {
 void langM_dealloc_(Alloc *c, const void *memory, ldebugloc loca) {
 
 	Error error = c->fn(c,0,0,0,(void **)&memory,loca);
-	LASSERT(LPASSED(error));
+	elf_assert(LPASSED(error));
 }
 
 
 void *langM_alloc_(Alloc *c, elf_int length, ldebugloc loca) {
 	void *memory = 0;
 	Error error = c->fn(c,0,0,length,&memory,loca);
-	LASSERT(LPASSED(error));
+	elf_assert(LPASSED(error));
 	return memory;
 }
 
@@ -51,7 +51,7 @@ void *langM_alloc_(Alloc *c, elf_int length, ldebugloc loca) {
 void *langM_realloc_(Alloc *c, elf_int length, void *memory, ldebugloc loca) {
 
 	Error error = c->fn(c,0,0,length,&memory,loca);
-	LASSERT(LPASSED(error));
+	elf_assert(LPASSED(error));
 	return memory;
 }
 
@@ -165,7 +165,7 @@ void langM_checkmemptr(void *mem) {
 	elf_int contentssize = file->contentssize;
 	elf_int chunkcatedsize = CHUNKCATE(contentssize,CHUNKSIZE);
 	for (int i = contentssize; i < chunkcatedsize; ++i) {
-		LASSERT(((unsigned char *)mem)[i] == (FLYTRAP & 0xFF));
+		elf_assert(((unsigned char *)mem)[i] == (FLYTRAP & 0xFF));
 	}
 
 }
@@ -195,12 +195,12 @@ void *langM_debugalloc(elf_int contentssize, ldebugloc loca) {
 	#endif
 
 	elf_int chunkcatedsize = CHUNKCATE(contentssize+256,CHUNKSIZE);
-	LASSERT(chunkcatedsize >= 512);
+	elf_assert(chunkcatedsize >= 512);
 	// lang_loginfo("alloc %lli",contentssize);
 
 	elf_int totalsize = sizeof(MemBlock)+chunkcatedsize;
 
-	LASSERT(M_cursor + totalsize <= M_length);
+	elf_assert(M_cursor + totalsize <= M_length);
 
 	MemBlock *block = (MemBlock *) (M_memory + M_cursor);
 

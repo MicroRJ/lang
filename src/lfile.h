@@ -7,6 +7,7 @@
 
 #define NO_ENTITY (lentityid){-1}
 
+#define NOTANENTITY 0x01
 
 typedef struct { int x; } lentityid;
 
@@ -89,10 +90,12 @@ typedef struct elf_FileState {
 
 	lbyteid bytes;
 
+	int flags;
+
 	unsigned statbreak: 1;
 } elf_FileState;
 
 
-lnodeid elfY_loadexpr(elf_FileState *fs);
-lnodeid elfY_loadunary(elf_FileState *fs);
+lnodeid elf_fsloadexpr(elf_FileState *fs);
+lnodeid elf_fsloadunary(elf_FileState *fs);
 void elfY_loadstat(elf_FileState *fs);

@@ -59,7 +59,7 @@ void elf_remobj(lRuntime *fs, elf_int i) {
 	elf_obj **gc = fs->gc;
 	if (gc == 0) return;
 	elf_int n = elf_arrlen(gc);
-	LASSERT(i >= 0 && i < n);
+	elf_assert(i >= 0 && i < n);
 	gc[i] = gc[n-1];
 	((Array*)(gc))[-1].min --;
 }

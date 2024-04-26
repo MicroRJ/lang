@@ -2,7 +2,7 @@ __logging(false)
 
 log ?= pf
 
-load "code/games/lgi.lang"
+load "code/games/lgi.elf"
 
 if _chdir("code/games/rogue") ? {
 	pf("invalid pwd: ", pwd())
@@ -10,12 +10,14 @@ if _chdir("code/games/rogue") ? {
 }
 /* this is done at runtime, which
 is not the greatest thing */
-load "vec.lang"
+load "vec.elf"
 load "rnd.lang"
 load "font.lang"
 load "tiles.lang"
 load "world.elf"
 load "critter.elf"
+load "wolf.elf"
+load "stag.elf"
 
 issolid = fun(tile) ? {
 	let id = gettileid3(tile)
