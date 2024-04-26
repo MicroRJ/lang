@@ -20,20 +20,20 @@ typedef struct LMSG {
 
 
 
-lapi int netlib_init(lRuntime *R) {
+lapi int netlib_init(elf_Runtime *R) {
 	WSADATA data;
 	WSAStartup(MAKEWORD(2,2),&data);
 	return 0;
 }
 
 
-lapi int netlib_close(lRuntime *R) {
+lapi int netlib_close(elf_Runtime *R) {
 	WSACleanup();
 	return 0;
 }
 
 
-lapi int netlib_listen(lRuntime *R) {
+lapi int netlib_listen(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	int error = listen(handle,SOMAXCONN);
 	elf_putint(R,error!=SOCKET_ERROR);
@@ -41,7 +41,7 @@ lapi int netlib_listen(lRuntime *R) {
 }
 
 
-lapi int netlib_accept(lRuntime *R) {
+lapi int netlib_accept(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	SOCKET client = accept(handle,NULL,NULL);
 	elf_putsys(R,(elf_Handle)client);
@@ -49,7 +49,7 @@ lapi int netlib_accept(lRuntime *R) {
 }
 
 
-lapi int netlib_pollclient(lRuntime *R) {
+lapi int netlib_pollclient(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	fd_set ready;
 	FD_ZERO(&ready);
@@ -65,7 +65,7 @@ lapi int netlib_pollclient(lRuntime *R) {
 }
 
 
-lapi int netlib_tcpserver(lRuntime *R) {
+lapi int netlib_tcpserver(elf_Runtime *R) {
 	elf_String *addrnameS = elf_getstr(R,0);
 	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
@@ -88,7 +88,7 @@ lapi int netlib_tcpserver(lRuntime *R) {
 }
 
 
-lapi int netlib_tcpclient(lRuntime *R) {
+lapi int netlib_tcpclient(elf_Runtime *R) {
 	elf_String *addrnameS = elf_getstr(R,0);
 	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
@@ -111,7 +111,7 @@ lapi int netlib_tcpclient(lRuntime *R) {
 }
 
 
-lapi int netlib_send(lRuntime *R) {
+lapi int netlib_send(elf_Runtime *R) {
 	/* todo: make this a class? */
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	elf_String *payload = elf_getstr(R,1);
@@ -124,7 +124,7 @@ lapi int netlib_send(lRuntime *R) {
 }
 
 
-lapi int netlib_ioctl(lRuntime *R) {
+lapi int netlib_ioctl(elf_Runtime *R) {
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	long mode = 1;
 	int error = ioctlsocket(socket,FIONBIO,&mode);
@@ -133,7 +133,7 @@ lapi int netlib_ioctl(lRuntime *R) {
 }
 
 
-lapi int netlib_recv(lRuntime *R) {
+lapi int netlib_recv(elf_Runtime *R) {
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	LMSG message = {0};
 	if (recv(socket,(char*)&message,sizeof(message),0) != -1) {
@@ -170,7 +170,7 @@ lapi int netlib_recv(lRuntime *R) {
 }
 
 
-lapi void netlib_load(lRuntime *R) {
+lapi void netlib_load(elf_Runtime *R) {
 	elf_Module *md = R->md;
 	lang_addglobal(md,elf_pushnewstr(R,"listen"),lang_C(netlib_listen));
 	lang_addglobal(md,elf_pushnewstr(R,"accept"),lang_C(netlib_accept));

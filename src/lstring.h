@@ -16,15 +16,15 @@ typedef struct elf_String {
 } elf_String;
 
 
-elf_String *elf_newstrlen(lRuntime *fs, elf_int length);
-elf_String *elf_newstr(lRuntime *fs, char const *contents);
-elf_tab *elf_newstrmetatab(lRuntime *R);
+elf_String *elf_newstrlen(elf_Runtime *fs, elf_int length);
+elf_String *elf_newstr(elf_Runtime *fs, char const *contents);
+elf_Table *elf_newstrmetatab(elf_Runtime *R);
 
 
-int langS_length_(lRuntime *c);
-int langS_match_(lRuntime *c);
-int langS_append_(lRuntime *R);
-int langS_hash_(lRuntime *c);
+int langS_length_(elf_Runtime *c);
+int langS_match_(elf_Runtime *c);
+int langS_append_(elf_Runtime *R);
+int langS_hash_(elf_Runtime *c);
 
 
 elf_bool S_match(char *p, char *s);

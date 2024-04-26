@@ -7,7 +7,7 @@
 
 
 
-int testlib___of(lRuntime *R) {
+int testlib___of(elf_Runtime *R) {
 	elf_getobj(R,1)->metatable = elf_gettab(R,0);
 	elf_putval(R,elf_getval(R,1));
 	return 1;
@@ -17,26 +17,26 @@ int testlib___of(lRuntime *R) {
 
 
 
-void sets(lRuntime *c, elf_tab *table, char const *k) {
+void sets(elf_Runtime *c, elf_Table *table, char const *k) {
 	elf_tabput(table,lang_S(elf_newstr(c,k)),* -- c->v);
 }
 
 
-int testlib_logging(lRuntime *R) {
+int testlib_logging(elf_Runtime *R) {
 	elf_int logging = elf_getint(R,0);
 	R->call->caller->logging = logging;
 	return 0;
 }
 
 
-int testlib_globallogging(lRuntime *R) {
+int testlib_globallogging(elf_Runtime *R) {
 	elf_int logging = elf_getint(R,0);
 	R->logging = logging;
 	return 0;
 }
 
 
-int testlib_debugbreak(lRuntime *R) {
+int testlib_debugbreak(elf_Runtime *R) {
 	R->debugbreak = ltrue;
 	return 0;
 }
@@ -57,7 +57,7 @@ void strcatf(char *buffer, char *fmt, ...) {
 }
 
 
-int testlib_disasm(lRuntime *c) {
+int testlib_disasm(elf_Runtime *c) {
 	elf_Module *md = c->md;
 	elf_Closure *cl = elf_getcls(c,0);
 	elf_Proto p = cl->fn;
@@ -83,38 +83,38 @@ int testlib_disasm(lRuntime *c) {
 }
 
 
-int testlib_absslot(lRuntime *c) {
+int testlib_absslot(elf_Runtime *c) {
 	llocalid slot = elf_getint(c,0);
 	elf_putval(c,c->s[slot]);
 	return 1;
 }
 
 
-int testlib_absslotid(lRuntime *c) {
+int testlib_absslotid(elf_Runtime *c) {
 	elf_putint(c,c->v-c->s);
 	return 1;
 }
 
 
-int testlib_pc(lRuntime *c) {
+int testlib_pc(elf_Runtime *c) {
 	elf_putint(c,c->f->j);
 	return 1;
 }
 
 
-int testlib_gcpause(lRuntime *c) {
+int testlib_gcpause(elf_Runtime *c) {
 	langGC_pause(c);
 	return 0;
 }
 
 
-int testlib_gcunpause(lRuntime *c) {
+int testlib_gcunpause(elf_Runtime *c) {
 	langGC_unpause(c);
 	return 0;
 }
 
 
-int testlib_gc(lRuntime *c) {
+int testlib_gc(elf_Runtime *c) {
 	elf_collect(c);
 	return 0;
 }
@@ -130,7 +130,7 @@ int _gidof(elf_Module *fs, elf_Object *j) {
 }
 
 
-int _gtable(lRuntime *c) {
+int _gtable(elf_Runtime *c) {
 	elf_puttab(c,c->md->g);
 	return 1;
 }
@@ -145,7 +145,7 @@ char *gccolor2s(GCColor c) {
 }
 
 
-void tstlib_load(lRuntime *rt) {
+void tstlib_load(elf_Runtime *rt) {
 	elf_Module *md = rt->md;
 	/* todo: ugly */
 	lang_addglobal(md,elf_pushnewstr(rt,"__of"),lang_C(testlib___of));

@@ -6,12 +6,12 @@
 
 
 #if 0
-elf_tab *createthread(lRuntime *R) {
+elf_Table *createthread(elf_Runtime *R) {
 }
-DWORD WINAPI syslib_threadproxyproc_win32(lRuntime *R) {
+DWORD WINAPI syslib_threadproxyproc_win32(elf_Runtime *R) {
 	return 1;
 }
-int syslib_thread(lRuntime *R) {
+int syslib_thread(elf_Runtime *R) {
 	elf_Closure *fn = elf_getcls(R,0);
 	HANDLE thread = CreateThread(NULL,0,syslib_threadproxyproc_win32,R,CREATE_SUSPENDED,NULL);
 	return 1;
@@ -19,7 +19,7 @@ int syslib_thread(lRuntime *R) {
 #endif
 
 
-int syslib_iton(lRuntime *R) {
+int syslib_iton(elf_Runtime *R) {
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_INT) {
 		elf_putnum(R,(elf_num)v.i);
@@ -28,7 +28,7 @@ int syslib_iton(lRuntime *R) {
 }
 
 
-int syslib_ntoi(lRuntime *R) {
+int syslib_ntoi(elf_Runtime *R) {
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_NUM) {
 		elf_putint(R,(elf_int)v.n);
@@ -37,7 +37,7 @@ int syslib_ntoi(lRuntime *R) {
 }
 
 
-int syslib_loadexpr(lRuntime *R) {
+int syslib_loadexpr(elf_Runtime *R) {
 	elf_String *contents = elf_getstr(R,0);
 	elf_loadexpr(R,contents,-1,R->call->y);
 	/* no need to do hoisting */
@@ -45,7 +45,7 @@ int syslib_loadexpr(lRuntime *R) {
 }
 
 
-int syslib_libfn(lRuntime *rt) {
+int syslib_libfn(elf_Runtime *rt) {
 	elf_Handle lib = elf_getsys(rt,0);
 	elf_String *name = elf_getstr(rt,1);
 	lBinding fn = (lBinding) sys_libfn(lib,name->c);
@@ -58,7 +58,7 @@ int syslib_libfn(lRuntime *rt) {
 }
 
 
-int syslib_loadlib(lRuntime *rt) {
+int syslib_loadlib(elf_Runtime *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_Handle lib = sys_loadlib(name->c);
 	if (lib != INVALID_HANDLE_VALUE) {
@@ -70,7 +70,7 @@ int syslib_loadlib(lRuntime *rt) {
 }
 
 
-int syslib_exec(lRuntime *R) {
+int syslib_exec(elf_Runtime *R) {
 	elf_String *cmd = elf_getstr(R,0);
 	STARTUPINFO si = {sizeof(si)};
 	PROCESS_INFORMATION pi = {0};
@@ -82,7 +82,7 @@ int syslib_exec(lRuntime *R) {
 }
 
 
-int syslib_freadall(lRuntime *R) {
+int syslib_freadall(elf_Runtime *R) {
 	FILE *file = (FILE*) elf_getsys(R,0);
 	if (file != 0) {
 		fseek(file,0,SEEK_END);
@@ -96,7 +96,7 @@ int syslib_freadall(lRuntime *R) {
 }
 
 
-int syslib_ftemp(lRuntime *R) {
+int syslib_ftemp(elf_Runtime *R) {
 	FILE *file = {0};
 	tmpfile_s(&file);
 	elf_putsys(R,(elf_Handle)file);
@@ -104,7 +104,7 @@ int syslib_ftemp(lRuntime *R) {
 }
 
 
-int syslib_workdir(lRuntime *rt) {
+int syslib_workdir(elf_Runtime *rt) {
 	elf_logerror("this function is deprecated");
 
 	char buf[MAX_PATH];
@@ -118,7 +118,7 @@ int syslib_workdir(lRuntime *rt) {
 }
 
 
-int syslib_pwd(lRuntime *rt) {
+int syslib_pwd(elf_Runtime *rt) {
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
 	elf_pushnewstr(rt,buf);
@@ -126,7 +126,7 @@ int syslib_pwd(lRuntime *rt) {
 }
 
 
-int syslib_setpwd(lRuntime *rt) {
+int syslib_setpwd(elf_Runtime *rt) {
 	elf_String *s = elf_getstr(rt,0);
 	sys_setpwd(s->c);
 	return 0;
@@ -143,7 +143,7 @@ int syslib_fpfv_(FILE *file, elf_val v, elf_bool quotes) {
 		case TAG_BID: return fprintf(file,"C()");
 		case TAG_TAB: {
 			int wrote = 0;
-			elf_tab *t = v.t;
+			elf_Table *t = v.t;
 			wrote += fprintf(file,"{");
 			elf_arrfori(t->v) {
 				if (i != 0) wrote += fprintf(file,", ");
@@ -164,7 +164,7 @@ int syslib_fpfv_(FILE *file, elf_val v, elf_bool quotes) {
 }
 
 
-int syslib_fpf(lRuntime *rt) {
+int syslib_fpf(elf_Runtime *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	int wrote = 0;
 	for (int i = 1; i < rt->f->x; i ++) {
@@ -175,7 +175,7 @@ int syslib_fpf(lRuntime *rt) {
 }
 
 
-int syslib_lpf(lRuntime *rt) {
+int syslib_lpf(elf_Runtime *rt) {
 	for (int i = 0; i < rt->f->x; i ++) {
 		if (i != 0) fprintf(stdout,"\n");
 		syslib_fpfv_(stdout,elf_getval(rt,i),lfalse);
@@ -185,7 +185,7 @@ int syslib_lpf(lRuntime *rt) {
 }
 
 
-int syslib_pf(lRuntime *rt) {
+int syslib_pf(elf_Runtime *rt) {
 	for (int i = 0; i < rt->f->x; i ++) {
 		syslib_fpfv_(stdout,elf_getval(rt,i),lfalse);
 	}
@@ -194,20 +194,20 @@ int syslib_pf(lRuntime *rt) {
 }
 
 
-lapi int syslib_sleep(lRuntime *rt) {
+lapi int syslib_sleep(elf_Runtime *rt) {
 	elf_assert(rt->f->x == 1);
 	sys_sleep(elf_getint(rt,0));
 	return 0;
 }
 
 
-lapi int syslib_clocktime(lRuntime *rt) {
+lapi int syslib_clocktime(elf_Runtime *rt) {
 	elf_putint(rt,sys_clocktime());
 	return 1;
 }
 
 
-lapi int syslib_timediffs(lRuntime *rt) {
+lapi int syslib_timediffs(elf_Runtime *rt) {
 	elf_assert(rt->f->x == 1);
 	elf_int i = elf_getint(rt,0);
 	elf_putnum(rt,(sys_clocktime() - i) / (elf_num) sys_clockhz());
@@ -224,7 +224,7 @@ elf_bool isvirtual(char const *fn) {
 elf_globaldecl elf_String *keyname;
 elf_globaldecl elf_String *keypath;
 elf_globaldecl elf_String *keyisdir;
-void syslib_listdir_(lRuntime *R, elf_String *d, elf_tab *list, elf_tab *flags, elf_Closure *cl) {
+void syslib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *flags, elf_Closure *cl) {
 	elf_Module *md = R->md;
 
 	char *dir = S_tpf("%s\\*",d->c);
@@ -240,7 +240,7 @@ void syslib_listdir_(lRuntime *R, elf_String *d, elf_tab *list, elf_tab *flags, 
 		elf_String *path = elf_newstr(R,S_tpf("%s\\%s",d->string,f.cFileName));
 
 		llocalid base = elf_putcl(R,cl);
-		elf_tab *file = elf_pushnewtab(R);
+		elf_Table *file = elf_pushnewtab(R);
 		elf_puttab(R,flags);
 		elf_tabput(file,lang_S(keyname),lang_S(name));
 		elf_tabput(file,lang_S(keypath),lang_S(path));
@@ -257,7 +257,7 @@ void syslib_listdir_(lRuntime *R, elf_String *d, elf_tab *list, elf_tab *flags, 
 }
 
 
-lapi int syslib_listdir(lRuntime *R) {
+lapi int syslib_listdir(elf_Runtime *R) {
 	elf_assert(R->frame->x == 2);
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */
@@ -266,16 +266,16 @@ lapi int syslib_listdir(lRuntime *R) {
 	keyisdir = elf_pushnewstr(R,"isdir");
 	elf_Closure *cl = elf_getcls(R,1);
 	elf_String *dir = elf_getstr(R,0);
-	elf_tab *flags = elf_pushnewtab(R);
+	elf_Table *flags = elf_pushnewtab(R);
 	/* push list last to serve as return value */
-	elf_tab *list = elf_pushnewtab(R);
+	elf_Table *list = elf_pushnewtab(R);
 	syslib_listdir_(R,dir,list,flags,cl);
 	return 1;
 }
 
 
 /* todo: can we do this from code */
-lapi void syslib_load(lRuntime *rt) {
+lapi void syslib_load(elf_Runtime *rt) {
 	elf_Module *md = rt->md;
 
 	lang_addglobal(md,elf_pushnewstr(rt,"ntoi"),lang_C(syslib_ntoi));

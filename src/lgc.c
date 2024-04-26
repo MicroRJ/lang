@@ -16,15 +16,15 @@ most of the spikes occur */
 #define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(4)
 
 
-void elf_collect(lRuntime *fs);
+void elf_collect(elf_Runtime *fs);
 
 
-void langGC_pause(lRuntime *fs) {
+void langGC_pause(elf_Runtime *fs) {
 	fs->gcflags = ltrue;
 }
 
 
-void langGC_unpause(lRuntime *fs) {
+void langGC_unpause(elf_Runtime *fs) {
 	fs->gcflags = lfalse;
 }
 
@@ -39,7 +39,7 @@ void langGC_markwhite(elf_Object *obj) {
 }
 
 
-void *elf_newobj(lRuntime *R, ObjectType type, elf_int tell) {
+void *elf_newobj(elf_Runtime *R, ObjectType type, elf_int tell) {
 	/* this is temporary! */
 	if (R != 0) {
 		R->gcmemory += tell;
@@ -75,7 +75,7 @@ void *elf_newobj(lRuntime *R, ObjectType type, elf_int tell) {
 }
 
 
-void elf_remobj(lRuntime *fs, elf_int i) {
+void elf_remobj(elf_Runtime *fs, elf_int i) {
 	elf_Object **gc = fs->gc;
 	if (gc == 0) return;
 	elf_int n = elf_arrlen(gc);
@@ -85,18 +85,18 @@ void elf_remobj(lRuntime *fs, elf_int i) {
 }
 
 
-void elf_delobj(lRuntime *R, elf_Object *obj) {
+void elf_delobj(elf_Runtime *R, elf_Object *obj) {
 	if (obj != lnil) {
 		R->gcmemory -= obj->tell;
 		if (obj->type == OBJ_TAB) {
-			elf_deltab((elf_tab*)obj);
+			elf_deltab((elf_Table*)obj);
 		}
 		elf_delmem(lHEAP,obj);
 	}
 }
 
 elf_bool elf_markval(elf_val *v);
-elf_int elf_marktab(elf_tab *table);
+elf_int elf_marktab(elf_Table *table);
 
 
 elf_int elf_markcl(elf_Closure *cl) {
@@ -108,7 +108,7 @@ elf_int elf_markcl(elf_Closure *cl) {
 }
 
 
-elf_int elf_marktab(elf_tab *table) {
+elf_int elf_marktab(elf_Table *table) {
 	if (table->ntotal > 1024) {
 		elf_logdebug("marked high count table: %lli/%lli",
 		table->nslots,table->ntotal);
@@ -131,7 +131,7 @@ elf_bool elf_markobj(elf_Object *obj) {
 		return 1 + elf_markcl((elf_Closure*)obj);
 	}
 	if (obj->type == OBJ_TAB) {
-		return 1 + elf_marktab((elf_tab*)obj);
+		return 1 + elf_marktab((elf_Table*)obj);
 	}
 	return 1;
 }
@@ -142,7 +142,7 @@ elf_bool elf_markval(elf_val *v) {
 }
 
 
-elf_int elf_markall(lRuntime *R) {
+elf_int elf_markall(elf_Runtime *R) {
 	elf_int num = elf_marktab(R->M->g);
 	for (elf_val *val = R->stk; val < R->top; ++ val) {
 		num += elf_markval(val);
@@ -151,8 +151,8 @@ elf_int elf_markall(lRuntime *R) {
 }
 
 
-void elf_collect(lRuntime *R) {
-	elf_int time_ = lang_clocktime();
+void elf_collect(elf_Runtime *R) {
+	elf_int time_ = elf_clocktime();
 
 	elf_int num = elf_markall(R);
 	elf_int ngc = elf_arrlen(R->gc);
@@ -188,5 +188,5 @@ void elf_collect(lRuntime *R) {
 	}
 
 	elf_logdebug("	(%f) => leaked: %lli, %lli, %lli"
-	, lang_timediffs(time_),tbf,nwo,num);
+	, elf_timediffs(time_),tbf,nwo,num);
 }

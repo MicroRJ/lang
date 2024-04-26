@@ -149,7 +149,7 @@ lnodeid elf_nodebuiltincall(elf_FileState *fs, llineid line, ltokentype k, lnode
 elf_val elf_nodetolitval(elf_FileState *fs, lnodeid id);
 
 
-void elf_nodelitapply(elf_FileState *fs, elf_tab *tab, lnodeid id) {
+void elf_nodelitapply(elf_FileState *fs, elf_Table *tab, lnodeid id) {
 	lNode v = fs->nodes[id];
 	switch (v.k) {
 		case NODE_LOAD: {
@@ -178,7 +178,7 @@ elf_val elf_nodetolitval(elf_FileState *fs, lnodeid id) {
 			return lang_N(nd.lit.n);
 		}
 		case NODE_TABLE: {
-			elf_tab *tab = elf_newtab(fs->R);
+			elf_Table *tab = elf_newtab(fs->R);
 			elf_arrfori(nd.z) {
 				elf_nodelitapply(fs,tab,nd.z[i]);
 			}

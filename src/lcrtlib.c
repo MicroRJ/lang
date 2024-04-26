@@ -13,79 +13,79 @@
 
 
 
-int crtlib_floor(lRuntime *R) {
+int crtlib_floor(elf_Runtime *R) {
 	elf_putnum(R,floor(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_sqrt(lRuntime *R) {
+int crtlib_sqrt(elf_Runtime *R) {
 	elf_putnum(R,sqrt(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_sin(lRuntime *R) {
+int crtlib_sin(elf_Runtime *R) {
 	elf_putnum(R,sin(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_cos(lRuntime *R) {
+int crtlib_cos(elf_Runtime *R) {
 	elf_putnum(R,cos(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_tan(lRuntime *R) {
+int crtlib_tan(elf_Runtime *R) {
 	elf_putnum(R,tan(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_atan2(lRuntime *R) {
+int crtlib_atan2(elf_Runtime *R) {
 	elf_putnum(R,atan2(elf_getnum(R,0),elf_getnum(R,1)));
 	return 1;
 }
 
 
-int crtlib_abort(lRuntime *rt) {
+int crtlib_abort(elf_Runtime *rt) {
 	if(1) abort();
 	return 0;
 }
 
 
-int crtlib_exit(lRuntime *rt) {
+int crtlib_exit(elf_Runtime *rt) {
 	if(1) exit(elf_getint(rt,0));
 	return 0;
 }
 
 
-int crtlib__getch(lRuntime *rt) {
+int crtlib__getch(elf_Runtime *rt) {
 	elf_putint(rt,_getch());
 	return 1;
 }
 
 
-int crtlib__getpid(lRuntime *rt) {
+int crtlib__getpid(elf_Runtime *rt) {
 	elf_putint(rt,_getpid());
 	return 1;
 }
 
 
-int crtlib_time(lRuntime *rt) {
+int crtlib_time(elf_Runtime *rt) {
 	elf_putint(rt,time(0));
 	return 1;
 }
 
 
-int crtlib_clock(lRuntime *rt) {
+int crtlib_clock(elf_Runtime *rt) {
 	elf_putint(rt,clock());
 	return 1;
 }
 
 
-int crtlib__strdate(lRuntime *rt) {
+int crtlib__strdate(elf_Runtime *rt) {
 	char buf[128];
 	_strdate_s(buf,sizeof(buf));
 	elf_pushnewstr(rt,buf);
@@ -93,7 +93,7 @@ int crtlib__strdate(lRuntime *rt) {
 }
 
 
-int crtlib__strtime(lRuntime *rt) {
+int crtlib__strtime(elf_Runtime *rt) {
 	char buf[128];
 	_strtime_s(buf,sizeof(buf));
 	elf_pushnewstr(rt,buf);
@@ -101,7 +101,7 @@ int crtlib__strtime(lRuntime *rt) {
 }
 
 
-int crtlib_fopen(lRuntime *c) {
+int crtlib_fopen(elf_Runtime *c) {
 	elf_String *name = elf_getstr(c,0);
 	elf_String *flags = elf_getstr(c,1);
 	FILE *file = lnil;
@@ -111,14 +111,14 @@ int crtlib_fopen(lRuntime *c) {
 }
 
 
-int crtlib_fclose(lRuntime *c) {
+int crtlib_fclose(elf_Runtime *c) {
 	elf_Handle file = elf_getsys(c,0);
 	fclose(file);
 	return 0;
 }
 
 
-int crtlib_fsize(lRuntime *c) {
+int crtlib_fsize(elf_Runtime *c) {
 	elf_Handle file = elf_getsys(c,0);
 	fseek(file,0,SEEK_END);
 	elf_putint(c,ftell(file));
@@ -126,21 +126,21 @@ int crtlib_fsize(lRuntime *c) {
 }
 
 
-int crtlib__unlink(lRuntime *rt) {
+int crtlib__unlink(elf_Runtime *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_putint(rt,_unlink(name->c));
 	return 1;
 }
 
 
-int crtlib__unlock_file(lRuntime *rt) {
+int crtlib__unlock_file(elf_Runtime *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	_unlock_file(file);
 	return 0;
 }
 
 
-int crtlib__write(lRuntime *rt) {
+int crtlib__write(elf_Runtime *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	elf_String *buf = elf_getstr(rt,1);
 	elf_putint(rt,_write((elf_int)file,buf->c,buf->length));
@@ -148,35 +148,35 @@ int crtlib__write(lRuntime *rt) {
 }
 
 
-int crtlib__close(lRuntime *rt) {
+int crtlib__close(elf_Runtime *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	elf_putint(rt,_close((int)(elf_int)file));
 	return 1;
 }
 
 
-int crtlib__commit(lRuntime *rt) {
+int crtlib__commit(elf_Runtime *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	elf_putint(rt,_commit((int)(elf_int)file));
 	return 1;
 }
 
 
-int crtlib__chdir(lRuntime *rt) {
+int crtlib__chdir(elf_Runtime *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_putint(rt,_chdir(name->c));
 	return 1;
 }
 
 
-int crtlib__chdrive(lRuntime *rt) {
+int crtlib__chdrive(elf_Runtime *rt) {
 	elf_int letter = elf_getint(rt,0);
 	elf_putint(rt,_chdrive(letter));
 	return 1;
 }
 
 
-int crtlib__chmode(lRuntime *rt) {
+int crtlib__chmode(elf_Runtime *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_int mode = elf_getint(rt,1);
 	elf_putint(rt,_chmod(name->c,mode));
@@ -184,21 +184,21 @@ int crtlib__chmode(lRuntime *rt) {
 }
 
 
-int crtlib__execl(lRuntime *rt) {
+int crtlib__execl(elf_Runtime *rt) {
 	elf_String *cl = elf_getstr(rt,0);
 	elf_putint(rt,_execl(cl->c,0,0));
 	return 1;
 }
 
 
-int crtlib_system(lRuntime *rt) {
+int crtlib_system(elf_Runtime *rt) {
 	elf_String *cl = elf_getstr(rt,0);
 	elf_putint(rt,system(cl->c));
 	return 1;
 }
 
 
-lapi void crtlib_load(lRuntime *rt) {
+lapi void crtlib_load(elf_Runtime *rt) {
 	elf_Module *md = rt->md;
 
 	lang_addglobal(md,elf_pushnewstr(rt,"floor"),lang_C(crtlib_floor));

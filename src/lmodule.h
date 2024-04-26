@@ -32,7 +32,7 @@ typedef struct elf_File {
 **
 */
 typedef struct elf_Module {
-	elf_tab *g;
+	elf_Table *g;
 
 	elf_Proto *p;
 	elf_num *kn;

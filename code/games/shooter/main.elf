@@ -132,29 +132,75 @@ fxaddquad = fun(x0,y0,x1,y1) ? {
 	lgi_vertex2d(x1,y0,u1,v1)
 	lgi_closevertices()
 }
-Bullets = {}
+Particles = {}
 fire = fun(entity) ? {
 	let firerate = entity.firerate
 	let lastfire = entity.lastfire
 	if timediffs(lastfire) > (1./(firerate/60.)) ? {
 		entity.lastfire = clocktime()
-		Bullets:add({
+		Particles:add({
 			"from" = entity,
 			"pos" = entity.xyz:clone(),
-			"dir" = entity.facing:clone()
+			"vel" = entity.facing:mul1(3000),
 		})
+	}
+}
+/* entities */
+playercontroller = fun(entity) ? {
+	let move = vec3(0,0,0)
+	if lgi_iskeydown('W') ? move = move:add(UP)
+	if lgi_iskeydown('A') ? move = move:add(LEFT)
+	if lgi_iskeydown('S') ? move = move:add(DOWN)
+	if lgi_iskeydown('D') ? move = move:add(RIGHT)
+	/* todo: */
+	entity.xyz = entity.xyz:add(move:norm():mul1(2))
+}
+enemycontroller = fun(entity) ? {
+	let pos = entity.xyz
+	let diftoplayer = player.xyz:sub(pos)
+	let distoplayer = diftoplayer:len()
+	let facing = diftoplayer:norm()
+	let target = diftoplayer:sub(facing:mul(64.))
+	if timediffs(entity.lastimpulse) > .5 ? {
+		entity.lastimpulse = clocktime()
+		let imp = rnddir2(-PI,+PI,target:norm())
+		entity.vel = entity.vel:add(imp:mul1(10))
+	}
+	entity.xyz = pos:add(entity.vel)
+	entity.vel = entity.vel:mul1(.9)
+	entity.tofacing = facing:clone()
+	/* only fire if we are facing the player, and we can see it */
+	entity.firing = ntoi(distoplayer < 512)
+}
+bosscontroller = fun(entity) ? {
+	let diftoplayer = player.xyz:sub(pos)
+	let distoplayer = diftoplayer:len()
+	let facing = diftoplayer:norm()
+	entity.facing = facing
+	if timediffs(entity.ulttimer) > 4.5 ? {
+		entity.ulttimer = clocktime()
+		for i in 0..8 ? {
+			Particles:add({
+				"from" = entity,
+				"pos" = entity.xyz:clone(),
+				"vel" = rnddir2(-PI*.25,+PI*.25,facing):mul1(500),
+			})
+		}
 	}
 }
 newentity = fun(pos,fr) ? {
 	fr ?= 50
 	/* firerate rps, rounds per minute */
 	leave ({
+		controller = enemycontroller,
 		xyz = pos,
 		vel = vec(),
 		facing = UP,
+		tofacing = UP,
 		firing = false,
 		firerate = fr,
-		lastfire = 0.,
+		lastfire = 0,
+		ulttimer = 0,
 		health = 100,
 		muscleflashduration = .032,
 		lastimpulse = clocktime(),
@@ -162,10 +208,12 @@ newentity = fun(pos,fr) ? {
 }
 
 player = newentity(vec3(0,0,1),500)
+boss = newentity(vec3(0,0,1),500)
+boss.controller = bosscontroller
+player.controller = playercontroller
 
-Entities = {player}
-
-for i in 1..3 ? {
+Entities = {player,boss}
+for i in 2..2+2 ? {
 	Entities[i] = newentity(vec3(rnd(-128,128),rnd(-128,128),1))
 }
 
@@ -179,6 +227,9 @@ plotentity = fun(entity) ? {
 		fire(entity)
 		firing = timediffs(entity.lastfire) < muscleflashduration
 	}
+
+	/* todo: we need something fancier for this */
+	entity.facing = entity.facing:mix(entity.tofacing,.1):norm()
 
 	let facing = entity.facing
 	let ybasis = facing
@@ -199,26 +250,8 @@ plotentity = fun(entity) ? {
 
 	canvas.color = lgi_WHITE;
 }
-
-enemycontroller = fun(entity) ? {
-	let pos = entity.xyz
-	let diftoplayer = player.xyz:sub(pos)
-	let distoplayer = diftoplayer:len()
-	let facing = diftoplayer:norm()
-	let target = diftoplayer:sub(facing:mul(64.))
-	if timediffs(entity.lastimpulse) > .5 ? {
-		entity.lastimpulse = clocktime()
-		let imp = rnddir2(-PI,+PI,target:norm())
-		entity.vel = entity.vel:add(imp:mul1(10))
-	}
-	entity.xyz = pos:add(entity.vel)
-	entity.vel = entity.vel:mul1(.9)
-	entity.facing = facing
-	/* only fire if we are facing the player, and we can see it */
-	entity.firing = ntoi(distoplayer < 512)
-}
-
 plotgame = fun() ? {
+	let delta = lgi_deltatime()
 	canvas.xbasis = RIGHT
 	canvas.ybasis = UP
 	fxsettex(textures.background,0,0,64,64)
@@ -229,15 +262,14 @@ plotgame = fun() ? {
 		}
 	}
 
-	for i in Bullets:length() ? {
-		let bullet = Bullets:idx(i)
+	for i in Particles:length() ? {
+		let bullet = Particles:idx(i)
 		if bullet != nil ? {
-			if bullet.pos == nil ? pf("error: bullet.pos")
-			if bullet.dir == nil ? pf("error: bullet.dir")
-			let bulpos = bullet.pos:add(bullet.dir:mul1(20))
+			let bulpos = bullet.pos:add(bullet.vel:mul1(delta))
+			bullet.vel = bullet.vel:mul1(0.999)
 			bullet.pos = bulpos
 			if bulpos:sub(bullet.from.xyz):len() > 1024 ? {
-				Bullets:xrem(i) i = i - 1
+				Particles:xrem(i) i = i - 1
 			} else for j in Entities:length() ? {
 				/* todo: make this faster */
 				let entity = Entities[j]
@@ -252,7 +284,7 @@ plotgame = fun() ? {
 							let imp = dif:norm():mul1(10)
 							entity.vel = entity.vel:add(imp)
 							// Entities[j] = nil
-							// Bullets[i] = nil
+							Particles:xrem(i) i = i - 1
 						}
 					}
 				}
@@ -263,13 +295,13 @@ plotgame = fun() ? {
 	for i in Entities:length() ? {
 		let entity = Entities[i]
 		if entity != nil ? {
-			if entity != player ? enemycontroller(entity)
+			entity.controller(entity)
 			plotentity(entity)
 		}
 	}
 	fxsettex(textures.player,8*16,4*16,9*16,5*16)
-	for i in Bullets:length() ? {
-		let bullet = Bullets:idx(i)
+	for i in Particles:length() ? {
+		let bullet = Particles:idx(i)
 		if bullet != nil ? {
 			canvas.xyz = bullet.pos:clone()
 			fxaddquad(-16,-16,+16,+16)
@@ -303,12 +335,6 @@ do {
 		camera.targetxyz = camera.targetxyz:add(diff:mul1(.5))
 	}
 
-	let move = vec3(0,0,0)
-	if lgi_iskeydown('W') ? move = move:add(UP)
-	if lgi_iskeydown('A') ? move = move:add(LEFT)
-	if lgi_iskeydown('S') ? move = move:add(DOWN)
-	if lgi_iskeydown('D') ? move = move:add(RIGHT)
-	player.xyz = player.xyz:add(move:norm():mul1(2))
 
 	camera.xyz = camera.xyz:lerp(camera.targetxyz,.1)
 	camera.xyz.z = 1

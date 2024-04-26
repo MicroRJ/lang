@@ -25,7 +25,7 @@ typedef void *Ptr;
 typedef void *elf_Handle;
 
 
-typedef int (* lBinding)(lRuntime *);
+typedef int (* lBinding)(elf_Runtime *);
 // typedef int (* lJITFunc)(int);
 
 /*

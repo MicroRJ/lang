@@ -5,16 +5,16 @@
 */
 
 
-lapi elf_Object *elf_getthis(lRuntime *R);
+lapi elf_Object *elf_getthis(elf_Runtime *R);
 
-lapi elf_val elf_getval(lRuntime *R, llocalid x);
-lapi elf_int elf_getint(lRuntime *R, llocalid x);
-lapi elf_num elf_getnum(lRuntime *R, llocalid x);
-lapi elf_String *elf_getstr(lRuntime *R, llocalid x);
-lapi elf_Object *elf_getobj(lRuntime *R, llocalid x);
-lapi elf_tab *elf_gettab(lRuntime *R, llocalid x);
-lapi elf_Handle elf_getsys(lRuntime *R, llocalid x);
-lapi elf_Closure *elf_getcls(lRuntime *R, llocalid x);
+lapi elf_val elf_getval(elf_Runtime *R, llocalid x);
+lapi elf_int elf_getint(elf_Runtime *R, llocalid x);
+lapi elf_num elf_getnum(elf_Runtime *R, llocalid x);
+lapi elf_String *elf_getstr(elf_Runtime *R, llocalid x);
+lapi elf_Object *elf_getobj(elf_Runtime *R, llocalid x);
+lapi elf_Table *elf_gettab(elf_Runtime *R, llocalid x);
+lapi elf_Handle elf_getsys(elf_Runtime *R, llocalid x);
+lapi elf_Closure *elf_getcls(elf_Runtime *R, llocalid x);
 
 
 /*
@@ -27,14 +27,14 @@ lapi elf_Closure *elf_getcls(lRuntime *R, llocalid x);
 ** in which case you call the function and
 ** pass in arguments.
 */
-int elf_loadexpr(lRuntime *, elf_String *contents, llocalid x, llocalid y);
+int elf_loadexpr(elf_Runtime *, elf_String *contents, llocalid x, llocalid y);
 
 
 /*
 ** Loads a file and calls its function,
 ** returns the number of results.
 */
-int elf_loadfile(lRuntime *, elf_FileState *fs, elf_String *filename, llocalid rx, int ny);
+int elf_loadfile(elf_Runtime *, elf_FileState *fs, elf_String *filename, llocalid rx, int ny);
 
 
 /*
@@ -52,38 +52,38 @@ int elf_loadfile(lRuntime *, elf_FileState *fs, elf_String *filename, llocalid r
 ** the results are written to.
 ** ry can be equal to rx.
 */
-lapi int elf_callfn(lRuntime *, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny);
+lapi int elf_callfn(elf_Runtime *, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny);
 
 
 /*
 ** Performs a root call, where rx and ry are the same
 ** and obj is nil.
 */
-lapi int elf_rootcall(lRuntime *, llocalid rx, int nx, int ny);
+lapi int elf_rootcall(elf_Runtime *, llocalid rx, int nx, int ny);
 
 
-lapi int elf_run(lRuntime *);
+lapi int elf_run(elf_Runtime *);
 
 
-lapi void elf_checkcl(lRuntime *c, llocalid x);
-lapi elf_String *elf_checkstr(lRuntime *c, llocalid x);
+lapi void elf_checkcl(elf_Runtime *c, llocalid x);
+lapi elf_String *elf_checkstr(elf_Runtime *c, llocalid x);
 
 
-lapi llocalid elf_stkput(lRuntime *R, int n);
-lapi llocalid elf_stklen(lRuntime *c);
+lapi llocalid elf_stkput(elf_Runtime *R, int n);
+lapi llocalid elf_stklen(elf_Runtime *c);
 
-lapi llocalid elf_putval(lRuntime *, elf_val v);
-lapi void elf_putnil(lRuntime *);
-lapi void elf_putint(lRuntime *, elf_int i);
-lapi void elf_putnum(lRuntime *, elf_num n);
-lapi void elf_putbinding(lRuntime *, lBinding c);
-lapi void elf_putsys(lRuntime *c, elf_Handle h);
-lapi void elf_puttab(lRuntime *, elf_tab *t);
-lapi llocalid elf_putcl(lRuntime *, elf_Closure *f);
-lapi void elf_putstr(lRuntime *, elf_String *s);
+lapi llocalid elf_putval(elf_Runtime *, elf_val v);
+lapi void elf_putnil(elf_Runtime *);
+lapi void elf_putint(elf_Runtime *, elf_int i);
+lapi void elf_putnum(elf_Runtime *, elf_num n);
+lapi void elf_putbinding(elf_Runtime *, lBinding c);
+lapi void elf_putsys(elf_Runtime *c, elf_Handle h);
+lapi void elf_puttab(elf_Runtime *, elf_Table *t);
+lapi llocalid elf_putcl(elf_Runtime *, elf_Closure *f);
+lapi void elf_putstr(elf_Runtime *, elf_String *s);
 
 
-lapi elf_tab *elf_pushnewtab(lRuntime *);
-lapi elf_String *elf_pushnewstr(lRuntime *, char const *c);
-lapi llocalid elf_pushnewcl(lRuntime *, elf_Proto fn);
+lapi elf_Table *elf_pushnewtab(elf_Runtime *);
+lapi elf_String *elf_pushnewstr(elf_Runtime *, char const *c);
+lapi llocalid elf_pushnewcl(elf_Runtime *, elf_Proto fn);
 

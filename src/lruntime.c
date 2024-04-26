@@ -27,7 +27,7 @@ int fndfile(elf_Module *md, llineid line) {
 }
 
 
-void elf_throw(lRuntime *R, lbyteid id, char *error) {
+void elf_throw(elf_Runtime *R, lbyteid id, char *error) {
 	elf_Module *md = R->md;
 	if (id == NO_BYTE) id = R->j;
 	llineid line = md->lines[id];
@@ -39,7 +39,7 @@ void elf_throw(lRuntime *R, lbyteid id, char *error) {
 }
 
 
-int langR_typecheck(lRuntime *R, lbyteid id, llocalid loc, lvaluetag x, lvaluetag y) {
+int langR_typecheck(elf_Runtime *R, lbyteid id, llocalid loc, lvaluetag x, lvaluetag y) {
 	if (x != y) {
 		elf_throw(R,id,S_tpf("$%i, expected %s, instead got %s",loc,tag2s[x],tag2s[y]));
 	}
@@ -47,12 +47,12 @@ int langR_typecheck(lRuntime *R, lbyteid id, llocalid loc, lvaluetag x, lvalueta
 }
 
 
-int elf_rootcall(lRuntime *R, llocalid rxy, int nx, int ny) {
+int elf_rootcall(elf_Runtime *R, llocalid rxy, int nx, int ny) {
 	return elf_callfn(R,lnil,rxy,rxy,nx,ny);
 }
 
 
-int elf_callfn(lRuntime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
+int elf_callfn(elf_Runtime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
 	elf_CallFrame *caller = R->call;
 	elf_val fn = caller->locals[rx];
 	elf_val *locals = caller->locals + rx + 1;
@@ -106,7 +106,7 @@ int elf_callfn(lRuntime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, i
 }
 
 
-int elf_loadexpr(lRuntime *R, elf_String *contents, llocalid rxy, int ny) {
+int elf_loadexpr(elf_Runtime *R, elf_String *contents, llocalid rxy, int ny) {
 	elf_Module *M = R->M;
 	elf_FileState fs = {0};
 	fs.R = R;
@@ -149,7 +149,7 @@ int elf_loadexpr(lRuntime *R, elf_String *contents, llocalid rxy, int ny) {
 }
 
 
-int elf_loadfile(lRuntime *R, elf_FileState *fs, elf_String *filename, llocalid x, int y) {
+int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocalid x, int y) {
 
 	if (filename == lnil) filename = elf_checkstr(R,x);
 
@@ -211,7 +211,7 @@ one are skipped?
 For instance, table:add(table:length()), here if
 table if nil or not even a table, you have to skip
 the call instruction and its arguments. */
-int elf_run(lRuntime *R) {
+int elf_run(elf_Runtime *R) {
 	/* todo: these names are deprecated */
 	elf_CallFrame *c = R->f;
 	elf_CallFrame *frame = R->frame;
@@ -328,7 +328,7 @@ int elf_run(lRuntime *R) {
 				we modify the value, because gc could
 				trigger and actually attempt to collect
 				this value */
-				elf_tab *tab = elf_newtab(R);
+				elf_Table *tab = elf_newtab(R);
 				locals[b.x].tag = TAG_TAB;
 				locals[b.x].t   = tab;
 			} break;

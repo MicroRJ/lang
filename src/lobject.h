@@ -27,7 +27,7 @@ typedef struct elf_Object {
 	ObjectType type;
 	GCColor gccolor;
 	elf_int tell;
-	elf_tab *metatable;
+	elf_Table *metatable;
 #if defined(_DEBUG)
 	int tailtrap;
 #endif
@@ -65,7 +65,7 @@ typedef struct elf_val {
 		elf_num   n;
 		lBinding   c;
 		elf_Object   *j,*x_obj;
-		elf_tab    *t,*x_tab;
+		elf_Table    *t,*x_tab;
 		elf_String   *s;
 		elf_Closure  *f;
 	};
@@ -90,7 +90,7 @@ typedef struct elf_Closure {
 } elf_Closure;
 
 
-lapi elf_val lang_T(elf_tab *t);
+lapi elf_val lang_T(elf_Table *t);
 lapi elf_val lang_C(lBinding c);
 lapi elf_val lang_S(elf_String *s);
 lapi elf_val lang_F(elf_Closure *f);
@@ -132,7 +132,7 @@ int tisnil(elf_val x) {
 
 
 
-lapi elf_val lang_T(elf_tab *t) {
+lapi elf_val lang_T(elf_Table *t) {
 	elf_val v = (elf_val){TAG_TAB};
 	v.t = t;
 	return v;

@@ -9,45 +9,45 @@
 
 
 
-llibfn int lgilib_wasButtonDown(lRuntime *R) {
+elf_libfundecl int lgilib_wasButtonDown(elf_Runtime *R) {
 	elf_putint(R,lgi_wasButtonDown((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-llibfn int lgilib_isButtonDown(lRuntime *R) {
+elf_libfundecl int lgilib_isButtonDown(elf_Runtime *R) {
 	elf_putint(R,lgi_isButtonDown((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-llibfn int lgilib_isButtonReleased(lRuntime *R) {
+elf_libfundecl int lgilib_isButtonReleased(elf_Runtime *R) {
 	elf_putint(R,lgi_isButtonReleased((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-llibfn int lgilib_isButtonPressed(lRuntime *R) {
+elf_libfundecl int lgilib_isButtonPressed(elf_Runtime *R) {
 	elf_putint(R,lgi_isButtonPressed((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-llibfn int lgilib_time(lRuntime *rt) {
+elf_libfundecl int lgilib_time(elf_Runtime *rt) {
 	elf_num time = lgi.Time.totalSeconds;
 	elf_putnum(rt,time);
 	return 1;
 }
 
 
-llibfn int lgilib_deltatime(lRuntime *rt) {
+elf_libfundecl int lgilib_deltatime(elf_Runtime *rt) {
 	elf_num time = lgi.Time.deltaSeconds;
 	elf_putnum(rt,time);
 	return 1;
 }
 
 
-llibfn int lgilib_initWindowed(lRuntime *rt) {
+elf_libfundecl int lgilib_initWindowed(elf_Runtime *rt) {
 	int windowWidth = (int) elf_getint(rt,0);
 	int windowHeight = (int) elf_getint(rt,1);
 	elf_String *name = elf_getstr(rt,2);
@@ -56,14 +56,14 @@ llibfn int lgilib_initWindowed(lRuntime *rt) {
 }
 
 
-llibfn int lgilib_binddeftex(lRuntime *R) {
+elf_libfundecl int lgilib_binddeftex(elf_Runtime *R) {
 	(void) R;
 	lgi_bindTexture(0,lgi.whiteTexture,lgi_True);
 	return 0;
 }
 
 
-llibfn int lgilib_loadtexture(lRuntime *R) {
+elf_libfundecl int lgilib_loadtexture(elf_Runtime *R) {
 	elf_String *filename = elf_getstr(R,0);
 	lgi_Texture *texture = lgi_loadTexture(filename->c);
 	elf_putsys(R,(elf_Handle)texture);
@@ -71,21 +71,21 @@ llibfn int lgilib_loadtexture(lRuntime *R) {
 }
 
 
-llibfn int lgilib_gettexturewidth(lRuntime *R) {
+elf_libfundecl int lgilib_gettexturewidth(elf_Runtime *R) {
 	lgi_Texture *texture = (lgi_Texture *) elf_getsys(R,0);
 	elf_putint(R,texture->size_x);
 	return 1;
 }
 
 
-llibfn int lgilib_gettextureheight(lRuntime *R) {
+elf_libfundecl int lgilib_gettextureheight(elf_Runtime *R) {
 	lgi_Texture *texture = (lgi_Texture *) elf_getsys(R,0);
 	elf_putint(R,texture->size_y);
 	return 1;
 }
 
 
-llibfn int lgilib_bindtexture(lRuntime *R) {
+elf_libfundecl int lgilib_bindtexture(elf_Runtime *R) {
 	// lgi_bindProgram(lgi.defaultProgram);
 	lgi_Texture *tex = (lgi_Texture *) elf_getsys(R,0);
 	lgi_bindTexture(0,tex,lgi_True);
@@ -93,7 +93,7 @@ llibfn int lgilib_bindtexture(lRuntime *R) {
 }
 
 
-llibfn int lgilib_beginvertices(lRuntime *R) {
+elf_libfundecl int lgilib_beginvertices(elf_Runtime *R) {
 	int ni = (int) elf_getint(R,0);
 	int nv = (int) elf_getint(R,1);
 	lgi_beginVertexArray(ni,nv);
@@ -101,14 +101,14 @@ llibfn int lgilib_beginvertices(lRuntime *R) {
 }
 
 
-llibfn int lgilib_closevertices(lRuntime *R) {
+elf_libfundecl int lgilib_closevertices(elf_Runtime *R) {
 	(void) R;
 	lgi_endVertexArray();
 	return 0;
 }
 
 
-llibfn int lgilib_addnidx(lRuntime *R) {
+elf_libfundecl int lgilib_addnidx(elf_Runtime *R) {
 	int num = R->call->x;
 	lgi_ASSERT(lgi.State.index_tally + num < lgi_DEFAULT_INDEX_BUFFER_LENGTH);
 	for(int i=0; i<num; i+=1) {
@@ -121,7 +121,7 @@ llibfn int lgilib_addnidx(lRuntime *R) {
 }
 
 
-llibfn int lgilib_attrrgba(lRuntime *R) {
+elf_libfundecl int lgilib_attrrgba(elf_Runtime *R) {
 	lgi.State.attr.r = (float) elf_getnum(R,0);
 	lgi.State.attr.g = (float) elf_getnum(R,1);
 	lgi.State.attr.b = (float) elf_getnum(R,2);
@@ -130,7 +130,7 @@ llibfn int lgilib_attrrgba(lRuntime *R) {
 }
 
 
-llibfn int lgilib_attrxyzw(lRuntime *R) {
+elf_libfundecl int lgilib_attrxyzw(elf_Runtime *R) {
 	lgi.State.attr.x = (float) elf_getnum(R,0);
 	lgi.State.attr.y = (float) elf_getnum(R,1);
 	lgi.State.attr.z = (float) elf_getnum(R,2);
@@ -139,14 +139,14 @@ llibfn int lgilib_attrxyzw(lRuntime *R) {
 }
 
 
-llibfn int lgilib_attruv(lRuntime *R) {
+elf_libfundecl int lgilib_attruv(elf_Runtime *R) {
 	lgi.State.attr.u = (float) elf_getnum(R,0);
 	lgi.State.attr.v = (float) elf_getnum(R,1);
 	return 0;
 }
 
 
-llibfn int lgilib_attrxyuv(lRuntime *R) {
+elf_libfundecl int lgilib_attrxyuv(elf_Runtime *R) {
 	lgi.State.attr.x = (float) elf_getnum(R,0);
 	lgi.State.attr.y = (float) elf_getnum(R,1);
 	lgi.State.attr.u = (float) elf_getnum(R,2);
@@ -155,7 +155,7 @@ llibfn int lgilib_attrxyuv(lRuntime *R) {
 }
 
 
-llibfn int lgilib_pushvertex(lRuntime *R) {
+elf_libfundecl int lgilib_pushvertex(elf_Runtime *R) {
 	(void) R;
 	lgi_Vertex vertex = lgi.State.attr;
 	lgi.State.vertex_array[
@@ -165,7 +165,7 @@ llibfn int lgilib_pushvertex(lRuntime *R) {
 }
 
 
-llibfn int lgilib_setsampler(lRuntime *R) {
+elf_libfundecl int lgilib_setsampler(elf_Runtime *R) {
 	lgi_Texture *tex = (lgi_Texture *) elf_getsys(R,0);
 	elf_String *sampler = elf_getstr(R,1);
 	if (S_eq(sampler->c,"linear"))  {
@@ -178,14 +178,14 @@ llibfn int lgilib_setsampler(lRuntime *R) {
 }
 
 
-llibfn int lgilib_tick(lRuntime *rt) {
+elf_libfundecl int lgilib_tick(elf_Runtime *rt) {
 	int r = lgi_tick();
 	elf_putint(rt,r);
 	return 1;
 }
 
 
-llibfn int lgilib_drawline(lRuntime *R) {
+elf_libfundecl int lgilib_drawline(elf_Runtime *R) {
 	float r = (float) elf_getnum(R,0);
 	float g = (float) elf_getnum(R,1);
 	float b = (float) elf_getnum(R,2);
@@ -201,7 +201,7 @@ llibfn int lgilib_drawline(lRuntime *R) {
 }
 
 
-llibfn int lgilib_drawQuad(lRuntime *rt) {
+elf_libfundecl int lgilib_drawQuad(elf_Runtime *rt) {
 	elf_assert(elf_stklen(rt) == 8);
 	float r = (float) elf_getnum(rt,0);
 	float g = (float) elf_getnum(rt,1);
@@ -217,7 +217,7 @@ llibfn int lgilib_drawQuad(lRuntime *rt) {
 }
 
 
-llibfn int lgilib_drawQuadUV(lRuntime *R) {
+elf_libfundecl int lgilib_drawQuadUV(elf_Runtime *R) {
 	elf_assert(elf_stklen(R) == 9);
 	float r = (float) elf_getnum(R,0);
 	float g = (float) elf_getnum(R,1);
@@ -233,49 +233,49 @@ llibfn int lgilib_drawQuadUV(lRuntime *R) {
 }
 
 
-llibfn int lgilib_clearBackground(lRuntime *rt) {
+elf_libfundecl int lgilib_clearBackground(elf_Runtime *rt) {
 	(void) rt;
 	lgi_clearBackground(lgi_BLACK);
 	return 0;
 }
 
 
-llibfn int lgilib_testKey(lRuntime *R) {
+elf_libfundecl int lgilib_testKey(elf_Runtime *R) {
 	int key = (int) elf_getint(R,0);
 	elf_putint(R,lgi_testKey(key));
 	return 1;
 }
 
-llibfn int lgilib_iskeydown(lRuntime *R) {
+elf_libfundecl int lgilib_iskeydown(elf_Runtime *R) {
 	int key = (int) elf_getint(R,0);
 	elf_putint(R,GetKeyState(key)>>15);
 	return 1;
 }
 
-llibfn int lgilib_isshiftdown(lRuntime *R) {
+elf_libfundecl int lgilib_isshiftdown(elf_Runtime *R) {
 	elf_putint(R,lgi.Input.Keyboard.is_shft);
 	return 1;
 }
 
-llibfn int lgilib_getcursorx(lRuntime *rt) {
+elf_libfundecl int lgilib_getcursorx(elf_Runtime *rt) {
 	elf_putint(rt,lgi.Input.Mice.xcursor);
 	return 1;
 }
 
 
-llibfn int lgilib_getcursory(lRuntime *rt) {
+elf_libfundecl int lgilib_getcursory(elf_Runtime *rt) {
 	elf_putint(rt,lgi.Input.Mice.ycursor);
 	return 1;
 }
 
 
-llibfn int lgilib_getSizeX(lRuntime *rt) {
+elf_libfundecl int lgilib_getSizeX(elf_Runtime *rt) {
 	elf_putint(rt,lgi.Window.size_x);
 	return 1;
 }
 
 
-llibfn int lgilib_getSizeY(lRuntime *rt) {
+elf_libfundecl int lgilib_getSizeY(elf_Runtime *rt) {
 	elf_putint(rt,lgi.Window.size_y);
 	return 1;
 }

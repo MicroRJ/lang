@@ -119,8 +119,8 @@ ALLOCFN(langM_deftlocalallocfn) {
 		}
 
 		// TODO:
-		lthreaddecl char memory[0x10000];
-		lthreaddecl char *cursor = 0;
+		elf_threaddecl char memory[0x10000];
+		elf_threaddecl char *cursor = 0;
 		if (cursor == 0) cursor = memory;
 
 		if (newSize > sizeof(memory)) {

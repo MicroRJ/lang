@@ -14,7 +14,7 @@ int main(int n, char **c) {
 	elf_inimem();
 
 	elf_Module M = {0};
-	lRuntime R = {&M};
+	elf_Runtime R = {&M};
 	R.logging = lfalse;
 	R.stklen = 4096;
 	R.stk = R.top = elf_newmemzro(lHEAP,sizeof(elf_val)*R.stklen);

@@ -1,10 +1,12 @@
 /*
 ** See Copyright Notice Below.
 ** elf.h
-** The elf-λ language.
+** The λ elf language.
 */
-#ifndef _elf_lang_
-#define _elf_lang_
+
+#ifndef _elf_
+#define _elf_
+
 
 #pragma warning(push)
 #pragma warning(disable:4100)
@@ -54,9 +56,10 @@
 
 
 /* todo: porting */
+
 #define elf_globaldecl static
-#define lthreaddecl static __declspec(thread)
-#define llibfn __declspec(dllexport)
+#define elf_threaddecl static __declspec(thread)
+#define elf_libfundecl __declspec(dllexport)
 
 
 #define MEGABYTES(x) ((x)*1024llu*1024llu)
@@ -68,9 +71,9 @@
 #define lnil ("nil",(Ptr)(0))
 
 
-typedef struct lRuntime lRuntime;
+typedef struct elf_Runtime elf_Runtime;
 typedef struct elf_FileState elf_FileState;
-typedef struct elf_tab elf_tab;
+typedef struct elf_Table elf_Table;
 typedef struct elf_String elf_String;
 typedef struct elf_Object elf_Object;
 typedef struct elf_Closure elf_Closure;
@@ -89,7 +92,7 @@ typedef struct elf_Closure elf_Closure;
 #include <src/lmodule.h>
 #include <src/lruntime.h>
 
-void elf_tabmfld(lRuntime *R, elf_tab *obj, char *name, lBinding b);
+void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b);
 
 #include <src/lstring.h>
 #include <src/larray.h>
@@ -110,8 +113,8 @@ void elf_tabmfld(lRuntime *R, elf_tab *obj, char *name, lBinding b);
 #endif
 /* otherwise user is prob on a calculator */
 
-elf_int lang_clocktime();
-elf_num lang_timediffs(elf_int begin);
+elf_int elf_clocktime();
+elf_num elf_timediffs(elf_int begin);
 
 
 #include <src/lsys.c>
@@ -136,17 +139,17 @@ elf_num lang_timediffs(elf_int begin);
 #include <src/lapi.c>
 
 
-void elf_tabmfld(lRuntime *R, elf_tab *obj, char *name, lBinding b) {
+void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b) {
 	elf_tabput(obj,lang_S(elf_newstr(R,name)),lang_C(b));
 }
 
 
-elf_int lang_clocktime() {
+elf_int elf_clocktime() {
 	return sys_clocktime();
 }
 
 
-elf_num lang_timediffs(elf_int begin) {
+elf_num elf_timediffs(elf_int begin) {
 	/* todo: clockhz can be cached */
 	return (sys_clocktime() - begin) / (elf_num) sys_clockhz();
 }

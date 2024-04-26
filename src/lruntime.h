@@ -1,7 +1,7 @@
 /*
 ** See Copyright Notice In elf.h
 ** lruntime.h
-** lRuntime Structures
+** elf_Runtime Structures
 */
 
 
@@ -59,7 +59,7 @@ typedef struct elf_CallFrame {
 
 
 typedef struct lThread {
-	union { lRuntime *R, *rt; };
+	union { elf_Runtime *R, *rt; };
 	union { elf_Module  *M, *md; };
 	union { elf_CallFrame *call; };
 	union { elf_val *stk;      };
@@ -68,15 +68,15 @@ typedef struct lThread {
 	lbyteid  curbyte;
 } lThread;
 
-typedef struct lRuntime {
+typedef struct elf_Runtime {
 	union { elf_Module *M, *md; };
 	union { elf_val *stk,*s; };
 	llocalid stklen;
 	union { elf_val *top,*v; };
 	union { elf_CallFrame *call,*frame,*f; };
 	elf_bool debugbreak;
-	elf_tab *metatable_str;
-	elf_tab *metatable_tab;
+	elf_Table *metatable_str;
+	elf_Table *metatable_tab;
 	/* current byte */
 	elf_int j;
 	elf_bool logging;
@@ -84,6 +84,6 @@ typedef struct lRuntime {
 	elf_bool     gcflags;
 	elf_int      gcmemory;
 	elf_int      gcthreshold;
-} lRuntime;
+} elf_Runtime;
 
 
