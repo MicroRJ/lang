@@ -1,11 +1,11 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lapi.c
 ** Main user API
 */
 
 
-lapi elf_obj *elf_getthis(lRuntime *R) {
+lapi elf_Object *elf_getthis(lRuntime *R) {
 	return R->call->obj;
 }
 
@@ -20,7 +20,7 @@ lapi elf_val elf_getval(lRuntime *R, llocalid x) {
 }
 
 
-lapi elf_str *elf_getstr(lRuntime *R, llocalid x) {
+lapi elf_String *elf_getstr(lRuntime *R, llocalid x) {
 	elf_val v = R->call->locals[x];
 	if (v.tag != TAG_NIL && v.tag != TAG_STR) {
 		elf_throw(R,NO_BYTE,S_tpf("expected string at local %i",x));
@@ -30,7 +30,7 @@ lapi elf_str *elf_getstr(lRuntime *R, llocalid x) {
 }
 
 
-lapi elf_obj *elf_getobj(lRuntime *R, llocalid x) {
+lapi elf_Object *elf_getobj(lRuntime *R, llocalid x) {
 	elf_val v = R->call->locals[x];
 	if (v.tag != TAG_NIL && !elf_tagisobj(v.tag)) {
 		elf_throw(R,NO_BYTE,S_tpf("expected object at local %i",x));
@@ -75,7 +75,7 @@ lapi elf_Handle elf_getsys(lRuntime *R, llocalid x) {
 }
 
 
-lapi elf_str *elf_checkstr(lRuntime *R, llocalid x) {
+lapi elf_String *elf_checkstr(lRuntime *R, llocalid x) {
 	elf_assert(R->call->locals[x].tag == TAG_STR);
 	return R->call->locals[x].s;
 }
@@ -144,7 +144,7 @@ void elf_putsys(lRuntime *R, elf_Handle h) {
 }
 
 
-void elf_putstr(lRuntime *R, elf_str *s) {
+void elf_putstr(lRuntime *R, elf_String *s) {
 	R->top->tag = TAG_STR;
 	R->top->s = s;
 	++ R->top;
@@ -179,8 +179,8 @@ elf_tab *elf_pushnewtab(lRuntime *R) {
 }
 
 
-elf_str *elf_pushnewstr(lRuntime *R, char const *junk) {
-	elf_str *s = elf_newstr(R,junk);
+elf_String *elf_pushnewstr(lRuntime *R, char const *junk) {
+	elf_String *s = elf_newstr(R,junk);
 	elf_putstr(R,s);
 	return s;
 }

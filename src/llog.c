@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** llog.c
 ** Simple Logging Tools
 */
@@ -17,7 +17,7 @@ char *S_filename(char *s) {
 }
 
 
-lapi void lang_log_(int type, ldebugloc source, const char *fmt, ...) {
+lapi void elf_log_(int type, ldebugloc source, const char *fmt, ...) {
 	static const char *toString[] = {
 		"FATAL", "ERROR", "WARNING", "INFO", "DEBUG"
 	};

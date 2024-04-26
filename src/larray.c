@@ -1,7 +1,7 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** larray.c
-** Array elf_obj and Array Tools
+** Array elf_Object and Array Tools
 */
 
 #if 0

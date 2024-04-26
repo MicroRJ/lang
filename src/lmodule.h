@@ -1,7 +1,7 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lmodule.h
-** elf_obj/lBytecode elf_Module
+** elf_Object/lBytecode elf_Module
 */
 
 
@@ -45,8 +45,8 @@ typedef struct elf_Module {
 } elf_Module;
 
 
-lglobalid lang_addsymbol(elf_Module *md, elf_str *name);
-lglobalid lang_addglobal(elf_Module *md, elf_str *name, elf_val v);
+lglobalid lang_addsymbol(elf_Module *md, elf_String *name);
+lglobalid lang_addglobal(elf_Module *md, elf_String *name, elf_val v);
 lglobalid lang_addproto(elf_Module *md, elf_Proto p);
 
 /*

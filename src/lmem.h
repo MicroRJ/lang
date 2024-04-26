@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lmem.h
 ** Memory Tools
 */
@@ -14,7 +14,6 @@ typedef struct Alloc Alloc;
 #define CHUNKCATE(x,y) ((x+y-1)/y*y)
 
 
-#define GIGABYTES(x) ((x)*1024llu*1024llu*1024llu)
 
 
 #define ALLOCFN(NAME) Error NAME (Alloc *allocator, int flags, elf_int oldSize, elf_int newSize, void **oldAndNewMemory, ldebugloc loca)

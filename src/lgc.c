@@ -1,62 +1,82 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lgc.c
 ** Garbage Collector
 */
 
-// #define L_GC_THRESHOLD (elf_int) (8192)
-#define L_GC_THRESHOLD (elf_int) (512)
+
+/* we have to factor in additional heuristics
+for this, sometimes memory usage isn't what
+boggles the GC, instead is the sheer quantity
+of objects, so that's something we have to
+take into account, and most of the time you
+make small allocations tightly, so that's where
+most of the spikes occur */
+#define L_GC_THRESHOLD_MIN (elf_int) MEGABYTES(2)
+#define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(4)
+
 
 void elf_collect(lRuntime *fs);
 
 
 void langGC_pause(lRuntime *fs) {
-	fs->isgcpaused = ltrue;
+	fs->gcflags = ltrue;
 }
 
 
 void langGC_unpause(lRuntime *fs) {
-	fs->isgcpaused = lfalse;
+	fs->gcflags = lfalse;
 }
 
 
-void langGC_markpink(elf_obj *obj) {
+void langGC_markpink(elf_Object *obj) {
 	obj->gccolor = GC_PINK;
 }
 
 
-void langGC_markwhite(elf_obj *obj) {
+void langGC_markwhite(elf_Object *obj) {
 	obj->gccolor = GC_WHITE;
 }
 
 
-void *elf_newobj(lRuntime *rt, ObjectType type, elf_int length) {
-#if 1
-	if (rt != 0) {
-		if (!rt->isgcpaused) {
-			if (rt->gcthreshold <= 0) {
-				rt->gcthreshold = L_GC_THRESHOLD;
-			}
-			if (elf_arrlen(rt->gc) >= rt->gcthreshold) {
-				elf_collect(rt);
-				rt->gcthreshold *= 2;
-			}
+void *elf_newobj(lRuntime *R, ObjectType type, elf_int tell) {
+	/* this is temporary! */
+	if (R != 0) {
+		R->gcmemory += tell;
+		if (!R->gcflags) {
+	if (R->gcthreshold <= 0) {
+		R->gcthreshold = L_GC_THRESHOLD_MIN;
+	}
+	if (R->gcmemory >= R->gcthreshold) {
+		R->gcthreshold *= 2;
+		if (R->gcthreshold > L_GC_THRESHOLD_MAX) {
+			R->gcthreshold = L_GC_THRESHOLD_MAX;
+		}
+		elf_collect(R);
+	}
 		}
 	}
-#endif
 
-	elf_obj *obj = elf_newmemzro(lHEAP,length);
+	elf_Object *obj = elf_newmemzro(lHEAP,tell);
 	obj->type = type;
-
-	if (rt != 0) {
-		langA_varadd(rt->gc,obj);
+	obj->tell = tell;
+	LDODEBUG(
+		obj->headtrap = FLYTRAP;
+		obj->tailtrap = FLYTRAP;
+	);
+	if (R != 0) {
+		elf_arradd(R->gc,obj);
+		// LDODEBUG(elf_arrfori(R->gc) {
+		// 	if (R->gc[i]->headtrap != FLYTRAP) LNOBRANCH;
+		// 	if (R->gc[i]->tailtrap != FLYTRAP) LNOBRANCH;
+		// });
 	}
 	return obj;
 }
 
 
 void elf_remobj(lRuntime *fs, elf_int i) {
-	elf_obj **gc = fs->gc;
+	elf_Object **gc = fs->gc;
 	if (gc == 0) return;
 	elf_int n = elf_arrlen(gc);
 	elf_assert(i >= 0 && i < n);
@@ -65,17 +85,15 @@ void elf_remobj(lRuntime *fs, elf_int i) {
 }
 
 
-void elf_delobj(elf_obj *obj) {
-	if (obj->type == OBJ_TAB) {
-		elf_deltab((elf_tab*)obj);
-	} else elf_delmem(lHEAP,obj);
+void elf_delobj(lRuntime *R, elf_Object *obj) {
+	if (obj != lnil) {
+		R->gcmemory -= obj->tell;
+		if (obj->type == OBJ_TAB) {
+			elf_deltab((elf_tab*)obj);
+		}
+		elf_delmem(lHEAP,obj);
+	}
 }
-
-
-void elf_delval(elf_val v) {
-	if (elf_tagisobj(v.tag)) elf_delobj(v.j);
-}
-
 
 elf_bool elf_markval(elf_val *v);
 elf_int elf_marktab(elf_tab *table);
@@ -92,29 +110,22 @@ elf_int elf_markcl(elf_Closure *cl) {
 
 elf_int elf_marktab(elf_tab *table) {
 	if (table->ntotal > 1024) {
-		lang_logdebug("marked high count table: %lli/%lli",
+		elf_logdebug("marked high count table: %lli/%lli",
 		table->nslots,table->ntotal);
 	}
 	elf_int n = 0, k;
 	for (k=0; k<table->ntotal; ++k) {
 		n += elf_markval(&table->slots[k].k);
 	}
-	elf_forivar(table->v) {
+	elf_arrfori(table->v) {
 		n += elf_markval(&table->v[i]);
 	}
 	return n;
 }
 
 
-elf_bool elf_markobj(elf_obj *obj) {
-	if (obj == lnil) return 0;
-	/* Red and green objects are not collectable,
-	and thus cannot be marked black or white,
-	only white objects can be marked black,
-	if not white, return whether it is already black */
-	if (obj->gccolor != GC_WHITE) {
-		return obj->gccolor == GC_BLACK;
-	}
+elf_bool elf_markobj(elf_Object *obj) {
+	if (obj == lnil || obj->gccolor != GC_WHITE) return 0;
 	obj->gccolor = GC_BLACK;
 	if (obj->type == OBJ_CLOSURE) {
 		return 1 + elf_markcl((elf_Closure*)obj);
@@ -127,19 +138,13 @@ elf_bool elf_markobj(elf_obj *obj) {
 
 
 elf_bool elf_markval(elf_val *v) {
-	if (!elf_tagisobj(v->tag)) {
-	 	return 0;
-	} else {
-		return elf_markobj(v->x_obj);
-	}
+	return elf_tagisobj(v->tag) ? elf_markobj(v->x_obj) : lfalse;
 }
 
 
 elf_int elf_markall(lRuntime *R) {
-	elf_int num;
-	elf_val *val;
-	num = elf_marktab(R->md->g);
-	for (val = R->stk; val < R->top; ++ val) {
+	elf_int num = elf_marktab(R->M->g);
+	for (elf_val *val = R->stk; val < R->top; ++ val) {
 		num += elf_markval(val);
 	}
 	return num;
@@ -147,17 +152,26 @@ elf_int elf_markall(lRuntime *R) {
 
 
 void elf_collect(lRuntime *R) {
+	elf_int time_ = lang_clocktime();
+
 	elf_int num = elf_markall(R);
 	elf_int ngc = elf_arrlen(R->gc);
 	elf_int tbf = ngc-num;
-	lang_logdebug("marked: %lli/%lli -> %lli ~(%%%.1f)",num,ngc
-	, num, (elf_num)(tbf)/(elf_num)(ngc) * 100.);
 	elf_int nwo = 0;
+	elf_logdebug("tbf: %lli/%lli -> %lli",tbf,ngc,num);
 
-	elf_forivar(R->gc) {
-		elf_obj *it = R->gc[i];
+	for (int i = 0; i < elf_arrlen(R->gc); i ++) {
+		elf_Object *it = R->gc[i];
+		LDODEBUG(
+			if (it->headtrap != FLYTRAP) LNOBRANCH;
+			if (it->tailtrap != FLYTRAP) LNOBRANCH;
+		);
+
 		if (it == lnil) continue;
-		if (it->gccolor == GC_RED) __debugbreak();
+		if (it->gccolor == GC_RED) {
+			elf_logerror("internal error: gc failed");
+			__debugbreak();
+		}
 		if (it->gccolor == GC_BLACK) {
 			num --;
 			it->gccolor = GC_WHITE;
@@ -165,10 +179,14 @@ void elf_collect(lRuntime *R) {
 		if (it->gccolor == GC_WHITE) {
 			it->gccolor = GC_RED;
 			tbf --;
-			elf_delobj(it);
+			/* todo: instead of doing it this way, remove
+			objects in large ranges */
+			elf_delobj(R,it);
 			elf_remobj(R,i);
+			-- i;
 		} else nwo ++;
 	}
 
-	lang_logdebug("	=> leaked: %lli, %lli, %lli",tbf,nwo,num);
+	elf_logdebug("	(%f) => leaked: %lli, %lli, %lli"
+	, lang_timediffs(time_),tbf,nwo,num);
 }

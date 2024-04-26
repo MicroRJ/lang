@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** llog.h
 ** Simple Logging Tools
 */
@@ -13,11 +13,11 @@ enum {
 	LOG_DEBUG,
 };
 
-lapi void lang_log_(int type, ldebugloc loc, char const *fmt, ...);
+lapi void elf_log_(int type, ldebugloc loc, char const *fmt, ...);
 
-#define lang_log(TYPE,FORMAT,...) (LCHECKPRINTF(FORMAT,__VA_ARGS__),lang_log_(TYPE,LHERE,FORMAT,__VA_ARGS__))
-#define lang_loginfo(yyy,...) lang_log(LOG_INFO,yyy,__VA_ARGS__)
-#define lang_logdebug(yyy,...) lang_log(LOG_DEBUG,yyy,__VA_ARGS__)
-#define lang_logwarning(yyy,...) lang_log(LOG_WARNING,yyy,__VA_ARGS__)
-#define lang_logerror(yyy,...) lang_log(LOG_ERROR,yyy,__VA_ARGS__)
-#define lang_logfatal(yyy,...) lang_log(LOG_FATAL,yyy,__VA_ARGS__)
+#define elf_log(TYPE,FORMAT,...) (LCHECKPRINTF(FORMAT,__VA_ARGS__),elf_log_(TYPE,LHERE,FORMAT,__VA_ARGS__))
+#define elf_loginfo(yyy,...) elf_log(LOG_INFO,yyy,__VA_ARGS__)
+#define elf_logdebug(yyy,...) elf_log(LOG_DEBUG,yyy,__VA_ARGS__)
+#define elf_logwarning(yyy,...) elf_log(LOG_WARNING,yyy,__VA_ARGS__)
+#define elf_logerror(yyy,...) elf_log(LOG_ERROR,yyy,__VA_ARGS__)
+#define elf_logfatal(yyy,...) elf_log(LOG_FATAL,yyy,__VA_ARGS__)

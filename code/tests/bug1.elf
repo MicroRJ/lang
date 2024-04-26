@@ -1,0 +1,24 @@
+// STATUS [FIXED]:
+// GC would trigger when a new object
+// was created, however, I was careless
+// and I was modifying the value of
+// where the object resided before the
+// object was created, making the gc
+// think that the object was a different
+// type.
+// ; locals[b.x].tag = TAG_TAB;
+// ; locals[b.x].t   = elf_newtab(R);
+// So when the gc would check local at b.x
+// it would think that it was a table, when
+// it wasn't.
+// The fix is just to create the object,
+// then modify the value.
+__gc()
+for i in 0..422 ? {let thing={}}
+__logging(true)
+for i in 0..1024 ? {
+	let thing = {}
+	pf("i: ", i, " = ", thing)
+}
+pf("here")
+leave (false)

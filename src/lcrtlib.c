@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lcrtlib.c
 ** CRT Library
 */
@@ -102,8 +102,8 @@ int crtlib__strtime(lRuntime *rt) {
 
 
 int crtlib_fopen(lRuntime *c) {
-	elf_str *name = elf_getstr(c,0);
-	elf_str *flags = elf_getstr(c,1);
+	elf_String *name = elf_getstr(c,0);
+	elf_String *flags = elf_getstr(c,1);
 	FILE *file = lnil;
 	fopen_s(&file,name->c,flags->c);
 	elf_putsys(c,(elf_Handle) file);
@@ -127,7 +127,7 @@ int crtlib_fsize(lRuntime *c) {
 
 
 int crtlib__unlink(lRuntime *rt) {
-	elf_str *name = elf_getstr(rt,0);
+	elf_String *name = elf_getstr(rt,0);
 	elf_putint(rt,_unlink(name->c));
 	return 1;
 }
@@ -142,7 +142,7 @@ int crtlib__unlock_file(lRuntime *rt) {
 
 int crtlib__write(lRuntime *rt) {
 	elf_Handle file = elf_getsys(rt,0);
-	elf_str *buf = elf_getstr(rt,1);
+	elf_String *buf = elf_getstr(rt,1);
 	elf_putint(rt,_write((elf_int)file,buf->c,buf->length));
 	return 1;
 }
@@ -163,7 +163,7 @@ int crtlib__commit(lRuntime *rt) {
 
 
 int crtlib__chdir(lRuntime *rt) {
-	elf_str *name = elf_getstr(rt,0);
+	elf_String *name = elf_getstr(rt,0);
 	elf_putint(rt,_chdir(name->c));
 	return 1;
 }
@@ -177,7 +177,7 @@ int crtlib__chdrive(lRuntime *rt) {
 
 
 int crtlib__chmode(lRuntime *rt) {
-	elf_str *name = elf_getstr(rt,0);
+	elf_String *name = elf_getstr(rt,0);
 	elf_int mode = elf_getint(rt,1);
 	elf_putint(rt,_chmod(name->c,mode));
 	return 1;
@@ -185,14 +185,14 @@ int crtlib__chmode(lRuntime *rt) {
 
 
 int crtlib__execl(lRuntime *rt) {
-	elf_str *cl = elf_getstr(rt,0);
+	elf_String *cl = elf_getstr(rt,0);
 	elf_putint(rt,_execl(cl->c,0,0));
 	return 1;
 }
 
 
 int crtlib_system(lRuntime *rt) {
-	elf_str *cl = elf_getstr(rt,0);
+	elf_String *cl = elf_getstr(rt,0);
 	elf_putint(rt,system(cl->c));
 	return 1;
 }

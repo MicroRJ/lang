@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** (Y) lnode.c
 ** IR?...
 */
@@ -44,16 +44,19 @@ lnodeid elf_nodeload(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
 
 lnodeid elf_nodetypeguard(elf_FileState *fs, llineid line, lnodeid x, lnodety y) {
 	lnodeid id = elf_nodebinary(fs,line,NODE_TYPEGUARD,y,x,y);
-	/* todo: please, figure out how to solve this */
-	if (fs->nodes[x].k == NODE_LOCAL) {
-		fs->nodes[id].r = fs->nodes[x].r;
-	}
+	/* todo: could we do this better! maybe we have
+	a specific function that checks for these sort
+	of nodes, like groups or typeguards,
+	additionally, it can be an extra safety layer? */
+	fs->nodes[id].r = fs->nodes[x].r;
 	return id;
 }
 
 
 lnodeid elf_nodegroup(elf_FileState *fs, llineid line, lnodeid x) {
-	return elf_nodeunary(fs,line,NODE_GROUP,fs->nodes[x].t,x);
+	lnodeid id = elf_nodeunary(fs,line,NODE_GROUP,fs->nodes[x].t,x);
+	fs->nodes[id].r = fs->nodes[x].r;
+	return id;
 }
 
 
@@ -176,7 +179,7 @@ elf_val elf_nodetolitval(elf_FileState *fs, lnodeid id) {
 		}
 		case NODE_TABLE: {
 			elf_tab *tab = elf_newtab(fs->R);
-			elf_forivar(nd.z) {
+			elf_arrfori(nd.z) {
 				elf_nodelitapply(fs,tab,nd.z[i]);
 			}
 			return lang_H(tab);

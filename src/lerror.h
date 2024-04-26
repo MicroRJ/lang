@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lerror.h
 ** Error Codes
 */
@@ -21,7 +21,7 @@ typedef enum Error {
 } Error;
 
 
-lglobaldecl char const *lErrorNames[] = {
+elf_globaldecl char const *lErrorNames[] = {
 	"No Error",
 
 #define ERROR_XITEM(NAME,DESC) DESC,

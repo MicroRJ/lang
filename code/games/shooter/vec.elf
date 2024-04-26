@@ -2,8 +2,6 @@
 PI = 3.14159
 TAU = 6.28318
 
-
-
 todeg = fun(x) ? ((iton(x)/PI)*180.)
 
 abs = fun(x,y) ? { if x < 0 ? leave -x else leave x }
@@ -14,7 +12,10 @@ max = fun(x,y) ? { if x > y ? leave x else leave y }
 lerp = fun(x,y,z) ? (y + x * (z - y))
 unlerp = fun(x,y,z) ? ((x - y) / (z - y))
 map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
+
 mix = fun(x,y,z) ? (y + x * (z - y))
+unmix = fun(x,y,z) ? ((x - y) / (z - y))
+remix = fun(x,y,z,w,v) ? mix(unmix(x,y,z),w,v)
 
 
 

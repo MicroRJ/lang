@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lruntime.c
 ** Runtime
 */
@@ -52,7 +52,7 @@ int elf_rootcall(lRuntime *R, llocalid rxy, int nx, int ny) {
 }
 
 
-int elf_callfn(lRuntime *R, elf_obj *obj, llocalid rx, llocalid ry, int nx, int ny) {
+int elf_callfn(lRuntime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
 	elf_CallFrame *caller = R->call;
 	elf_val fn = caller->locals[rx];
 	elf_val *locals = caller->locals + rx + 1;
@@ -106,7 +106,7 @@ int elf_callfn(lRuntime *R, elf_obj *obj, llocalid rx, llocalid ry, int nx, int 
 }
 
 
-int elf_loadexpr(lRuntime *R, elf_str *contents, llocalid rxy, int ny) {
+int elf_loadexpr(lRuntime *R, elf_String *contents, llocalid rxy, int ny) {
 	elf_Module *M = R->M;
 	elf_FileState fs = {0};
 	fs.R = R;
@@ -135,7 +135,7 @@ int elf_loadexpr(lRuntime *R, elf_str *contents, llocalid rxy, int ny) {
 	fl.nbytes = M->nbytes - fn.bytes;
 	fl.lines = contents->c;
 	fl.nlines = strlen(contents->c);
-	langA_varadd(M->files,fl);
+	elf_arradd(M->files,fl);
 
 	elf_Proto p = {0};
 	p.nlocals = fn.nlocals;
@@ -149,7 +149,7 @@ int elf_loadexpr(lRuntime *R, elf_str *contents, llocalid rxy, int ny) {
 }
 
 
-int elf_loadfile(lRuntime *R, elf_FileState *fs, elf_str *filename, llocalid x, int y) {
+int elf_loadfile(lRuntime *R, elf_FileState *fs, elf_String *filename, llocalid x, int y) {
 
 	if (filename == lnil) filename = elf_checkstr(R,x);
 
@@ -186,7 +186,7 @@ int elf_loadfile(lRuntime *R, elf_FileState *fs, elf_str *filename, llocalid x, 
 	fl.lines = contents;
 	fl.nlines = strlen(contents);
 	fl.pathondisk = filename->c;
-	langA_varadd(M->files,fl);
+	elf_arradd(M->files,fl);
 
 	elf_Proto p = {0};
 	p.nlocals = fn.nlocals;
@@ -204,6 +204,13 @@ int elf_loadfile(lRuntime *R, elf_FileState *fs, elf_str *filename, llocalid x, 
 }
 
 
+/* todo: Can we add a failsafe system that attempts
+to recover from failed instructions?
+So any instructions that depend on a previous
+one are skipped?
+For instance, table:add(table:length()), here if
+table if nil or not even a table, you have to skip
+the call instruction and its arguments. */
 int elf_run(lRuntime *R) {
 	/* todo: these names are deprecated */
 	elf_CallFrame *c = R->f;
@@ -317,8 +324,13 @@ int elf_run(lRuntime *R) {
 				locals[b.x].f   = ncl;
 			} break;
 			case BC_TABLE: {
+				/* ensure the object is created before
+				we modify the value, because gc could
+				trigger and actually attempt to collect
+				this value */
+				elf_tab *tab = elf_newtab(R);
 				locals[b.x].tag = TAG_TAB;
-				locals[b.x].t   = elf_newtab(R);
+				locals[b.x].t   = tab;
 			} break;
 			case BC_TYPEGUARD: {
 				langR_typecheck(R,bc,b.x,b.y,locals[b.x].tag);
@@ -330,7 +342,7 @@ int elf_run(lRuntime *R) {
 					locals[b.x].i   = locals[b.y].s->c[locals[b.z].i];
 				} else
 				if (locals[b.y].tag == TAG_TAB) {
-					locals[b.x] = langH_lookup(locals[b.y].t,locals[b.z]);
+					locals[b.x] = elf_tablookup(locals[b.y].t,locals[b.z]);
 				} else locals[b.x] = (elf_val){TAG_NIL};
 			} break;
 			case BC_SETINDEX: case BC_SETFIELD: {
@@ -356,7 +368,7 @@ int elf_run(lRuntime *R) {
 			case BC_METAFIELD: {
 				elf_val *yy = &locals[b.y];
 				if (elf_tagisobj(yy->tag)) {
-					locals[b.x] = langH_lookup(yy->j->metatable,locals[b.z]);
+					locals[b.x] = elf_tablookup(yy->j->metatable,locals[b.z]);
 				} else {
 					locals[b.x] = (elf_val){TAG_NIL};
 					elf_throw(R,bc,S_tpf("'%s': not an object", tag2s[yy->tag]));

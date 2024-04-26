@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** (H) ltable.h
 ** Table
 */
@@ -12,13 +12,13 @@ typedef struct elf_tabslot {
 
 
 typedef struct elf_tab {
-	elf_obj obj;
+	elf_Object obj;
 	elf_tabslot *slots;
 	elf_int ntotal;
 	elf_int nslots;
 	elf_int ncollisions;
 	/* array object */
-	elf_val    *v;
+	union {elf_val *v,*array;};
 } elf_tab;
 
 
@@ -38,13 +38,15 @@ elf_bool elf_tabvaleq(elf_val *x, elf_val *y);
 
 
 /* metatable */
-int langH_add_(lRuntime *);
-int langH_idx_(lRuntime *);
-int langH_unload_(lRuntime *);
-int langH_length_(lRuntime *);
-int langH_haskey_(lRuntime *);
+int elf_tabadd_(lRuntime *);
+int elf_tabidx_(lRuntime *);
+int elf_tabxrem_(lRuntime *);
+int elf_tabtally_(lRuntime *);
+int elf_tablength_(lRuntime *);
+int elf_tabunload_(lRuntime *);
+int elf_tabhaskey_(lRuntime *);
 int elf_tabput_(lRuntime *);
-int langH_lookup_(lRuntime *);
-int langH_foreach_(lRuntime *);
-int langH_sort_(lRuntime *);
-int langH_collisions_(lRuntime *);
+int elf_tablookup_(lRuntime *);
+int elf_tabforeach_(lRuntime *);
+int elf_tabsort_(lRuntime *);
+int elf_tabcollisions_(lRuntime *);

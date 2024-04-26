@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lsyslib.c
 ** System Library
 */
@@ -38,7 +38,7 @@ int syslib_ntoi(lRuntime *R) {
 
 
 int syslib_loadexpr(lRuntime *R) {
-	elf_str *contents = elf_getstr(R,0);
+	elf_String *contents = elf_getstr(R,0);
 	elf_loadexpr(R,contents,-1,R->call->y);
 	/* no need to do hoisting */
 	return 0;
@@ -47,7 +47,7 @@ int syslib_loadexpr(lRuntime *R) {
 
 int syslib_libfn(lRuntime *rt) {
 	elf_Handle lib = elf_getsys(rt,0);
-	elf_str *name = elf_getstr(rt,1);
+	elf_String *name = elf_getstr(rt,1);
 	lBinding fn = (lBinding) sys_libfn(lib,name->c);
 	if (fn != lnil) {
 		elf_putbinding(rt,fn);
@@ -59,7 +59,7 @@ int syslib_libfn(lRuntime *rt) {
 
 
 int syslib_loadlib(lRuntime *rt) {
-	elf_str *name = elf_getstr(rt,0);
+	elf_String *name = elf_getstr(rt,0);
 	elf_Handle lib = sys_loadlib(name->c);
 	if (lib != INVALID_HANDLE_VALUE) {
 		elf_putsys(rt,lib);
@@ -71,7 +71,7 @@ int syslib_loadlib(lRuntime *rt) {
 
 
 int syslib_exec(lRuntime *R) {
-	elf_str *cmd = elf_getstr(R,0);
+	elf_String *cmd = elf_getstr(R,0);
 	STARTUPINFO si = {sizeof(si)};
 	PROCESS_INFORMATION pi = {0};
 	int result = CreateProcess(NULL,cmd->c,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi);
@@ -88,7 +88,7 @@ int syslib_freadall(lRuntime *R) {
 		fseek(file,0,SEEK_END);
 		long size = ftell(file);
 		fseek(file,0,SEEK_SET);
-		elf_str *buf = elf_newstrlen(R,size);
+		elf_String *buf = elf_newstrlen(R,size);
 		fread(buf->c,1,size,file);
 		elf_putstr(R,buf);
 	} else elf_putnil(R);
@@ -105,13 +105,13 @@ int syslib_ftemp(lRuntime *R) {
 
 
 int syslib_workdir(lRuntime *rt) {
-	lang_logerror("this function is deprecated");
+	elf_logerror("this function is deprecated");
 
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
 	elf_pushnewstr(rt,buf);
 	if (rt->f->x == 1) {
-		elf_str *s = elf_getstr(rt,0);
+		elf_String *s = elf_getstr(rt,0);
 		sys_setpwd(s->c);
 	}
 	return 1;
@@ -127,7 +127,7 @@ int syslib_pwd(lRuntime *rt) {
 
 
 int syslib_setpwd(lRuntime *rt) {
-	elf_str *s = elf_getstr(rt,0);
+	elf_String *s = elf_getstr(rt,0);
 	sys_setpwd(s->c);
 	return 0;
 }
@@ -145,7 +145,7 @@ int syslib_fpfv_(FILE *file, elf_val v, elf_bool quotes) {
 			int wrote = 0;
 			elf_tab *t = v.t;
 			wrote += fprintf(file,"{");
-			elf_forivar(t->v) {
+			elf_arrfori(t->v) {
 				if (i != 0) wrote += fprintf(file,", ");
 				wrote += syslib_fpfv_(file,t->v[i],ltrue);
 			}
@@ -221,10 +221,10 @@ elf_bool isvirtual(char const *fn) {
 }
 
 
-lglobaldecl elf_str *keyname;
-lglobaldecl elf_str *keypath;
-lglobaldecl elf_str *keyisdir;
-void syslib_listdir_(lRuntime *R, elf_str *d, elf_tab *list, elf_tab *flags, elf_Closure *cl) {
+elf_globaldecl elf_String *keyname;
+elf_globaldecl elf_String *keypath;
+elf_globaldecl elf_String *keyisdir;
+void syslib_listdir_(lRuntime *R, elf_String *d, elf_tab *list, elf_tab *flags, elf_Closure *cl) {
 	elf_Module *md = R->md;
 
 	char *dir = S_tpf("%s\\*",d->c);
@@ -236,8 +236,8 @@ void syslib_listdir_(lRuntime *R, elf_str *d, elf_tab *list, elf_tab *flags, elf
 
 		int isdir = 0 != (f.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 
-		elf_str *name = elf_newstr(R,f.cFileName);
-		elf_str *path = elf_newstr(R,S_tpf("%s\\%s",d->string,f.cFileName));
+		elf_String *name = elf_newstr(R,f.cFileName);
+		elf_String *path = elf_newstr(R,S_tpf("%s\\%s",d->string,f.cFileName));
 
 		llocalid base = elf_putcl(R,cl);
 		elf_tab *file = elf_pushnewtab(R);
@@ -265,7 +265,7 @@ lapi int syslib_listdir(lRuntime *R) {
 	keypath = elf_pushnewstr(R,"path");
 	keyisdir = elf_pushnewstr(R,"isdir");
 	elf_Closure *cl = elf_getcls(R,1);
-	elf_str *dir = elf_getstr(R,0);
+	elf_String *dir = elf_getstr(R,0);
 	elf_tab *flags = elf_pushnewtab(R);
 	/* push list last to serve as return value */
 	elf_tab *list = elf_pushnewtab(R);

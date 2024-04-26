@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** ljitlib.c
 ** JIT Experiments Addon Library
 */

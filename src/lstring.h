@@ -1,23 +1,23 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lstring.h
-** String elf_obj and String Tools
+** String elf_Object and String Tools
 */
 
 
-typedef struct elf_str {
-	elf_obj  obj;
+typedef struct elf_String {
+	elf_Object  obj;
 	elf_hashint   hash;
 	int     length;
 	union {
 		char   string[1];
 		char   c[1];
 	};
-} elf_str;
+} elf_String;
 
 
-elf_str *elf_newstrlen(lRuntime *fs, elf_int length);
-elf_str *elf_newstr(lRuntime *fs, char const *contents);
+elf_String *elf_newstrlen(lRuntime *fs, elf_int length);
+elf_String *elf_newstr(lRuntime *fs, char const *contents);
 elf_tab *elf_newstrmetatab(lRuntime *R);
 
 

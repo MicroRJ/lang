@@ -1,21 +1,23 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** (H) ltable.c
-** elf_tab elf_obj && Hash Tools
+** elf_tab elf_Object && Hash Tools
 */
 
 
 elf_tab *elf_newtabmetatab(lRuntime *R) {
 	elf_tab *tab = elf_pushnewtab(R);
-	elf_tabmfld(R,tab,"length",langH_length_);
-	elf_tabmfld(R,tab,"haskey",langH_haskey_);
+	elf_tabmfld(R,tab,"length",elf_tablength_);
+	elf_tabmfld(R,tab,"tally",elf_tabtally_);
+	elf_tabmfld(R,tab,"haskey",elf_tabhaskey_);
 	elf_tabmfld(R,tab,"hashin",elf_tabput_);
-	elf_tabmfld(R,tab,"lookup",langH_lookup_);
-	elf_tabmfld(R,tab,"iter",langH_foreach_);
-	elf_tabmfld(R,tab,"collisions",langH_collisions_);
-	elf_tabmfld(R,tab,"unload",langH_unload_);
-	elf_tabmfld(R,tab,"add",langH_add_);
-	elf_tabmfld(R,tab,"idx",langH_idx_);
+	elf_tabmfld(R,tab,"lookup",elf_tablookup_);
+	elf_tabmfld(R,tab,"iter",elf_tabforeach_);
+	elf_tabmfld(R,tab,"collisions",elf_tabcollisions_);
+	elf_tabmfld(R,tab,"unload",elf_tabunload_);
+	elf_tabmfld(R,tab,"add",elf_tabadd_);
+	elf_tabmfld(R,tab,"idx",elf_tabidx_);
+	elf_tabmfld(R,tab,"xrem",elf_tabxrem_);
 	return tab;
 }
 
@@ -38,7 +40,7 @@ elf_tab *elf_newtab(lRuntime *R) {
 
 void elf_deltab(elf_tab *tab) {
 	elf_delmem(lHEAP,tab->slots);
-	elf_delvar(tab->v);
+	elf_delvar(tab->array);
 }
 
 
@@ -56,7 +58,7 @@ void elf_deltab(elf_tab *tab) {
 ** result to modify the slot and value as desired.
 **
 */
-elf_int langH_hashin(elf_tab *table, elf_val k) {
+elf_int elf_tabhashin(elf_tab *table, elf_val k) {
 	/* this particular function uses double hashing,
 	which should allow us to get more resolution out
 	of the hash value, the first hash computes the
@@ -84,28 +86,28 @@ elf_int langH_hashin(elf_tab *table, elf_val k) {
 }
 
 
-elf_int langH_slot2index(elf_tab *table, elf_int slot) {
+elf_int elf_tabslot2index(elf_tab *table, elf_int slot) {
 	return table->slots[slot].i;
 }
 
 
-elf_val langH_slot2value(elf_tab *table, elf_int slot) {
+elf_val elf_tabslot2value(elf_tab *table, elf_int slot) {
 	return table->v[table->slots[slot].i];
 }
 
 
-elf_bool langH_slotiskey(elf_tab *table, elf_int slot) {
+elf_bool elf_tabslotiskey(elf_tab *table, elf_int slot) {
 	return slot >= 0 && table->slots[slot].k.tag != TAG_NIL;
 }
 
 
-void langH_slotsetkeyval(elf_tab *table, elf_int slot, elf_val k, elf_int i) {
+void elf_tabslotsetkeyval(elf_tab *table, elf_int slot, elf_val k, elf_int i) {
 	table->slots[slot].k = k;
 	table->slots[slot].i = i;
 }
 
 
-void langH_checkthreshold(elf_tab *table) {
+void elf_tabcheckthreshold(elf_tab *table) {
 	if (table->ntotal * 3 < table->nslots * 4) {
 		// LDODEBUG( table->ncollisions = 0 );
 
@@ -121,7 +123,7 @@ void langH_checkthreshold(elf_tab *table) {
 			elf_tabslot slot = table->slots[i];
 			if (slot.k.tag == TAG_NIL) continue;
 
-			elf_int newslot = langH_hashin(&newtable,slot.k);
+			elf_int newslot = elf_tabhashin(&newtable,slot.k);
 
 			if (newslot == -1) LNOBRANCH;
 
@@ -137,12 +139,12 @@ void langH_checkthreshold(elf_tab *table) {
 
 
 void elf_tabput(elf_tab *table, elf_val k, elf_val v) {
-	langH_checkthreshold(table);
-	elf_int slot = langH_hashin(table,k);
+	elf_tabcheckthreshold(table);
+	elf_int slot = elf_tabhashin(table,k);
 	/* todo: instead return an error here */
 	if (slot == -1) LNOBRANCH;
 	elf_tabslot *entry = table->slots + slot;
-	if (!langH_slotiskey(table,slot)) {
+	if (!elf_tabslotiskey(table,slot)) {
 		elf_int i = langA_variadd(table->v,1);
 		table->v[i] = v;
 
@@ -155,10 +157,10 @@ void elf_tabput(elf_tab *table, elf_val k, elf_val v) {
 }
 
 
-elf_val langH_lookup(elf_tab *table, elf_val k) {
-	elf_int slot = langH_hashin(table,k);
-	if (langH_slotiskey(table,slot)) {
-		return langH_slot2value(table,slot);
+elf_val elf_tablookup(elf_tab *table, elf_val k) {
+	elf_int slot = elf_tabhashin(table,k);
+	if (elf_tabslotiskey(table,slot)) {
+		return elf_tabslot2value(table,slot);
 	}
 	return (elf_val){TAG_NIL,0};
 }
@@ -167,10 +169,10 @@ elf_val langH_lookup(elf_tab *table, elf_val k) {
 elf_int elf_tabtake(elf_tab *table, elf_val k) {
 	elf_assert((k.tag == TAG_INT || k.tag == TAG_NUM) || k.s != 0);
 
-	langH_checkthreshold(table);
-	elf_int slot = langH_hashin(table,k);
+	elf_tabcheckthreshold(table);
+	elf_int slot = elf_tabhashin(table,k);
 	if (slot == -1) LNOBRANCH;
-	if (!langH_slotiskey(table,slot)) {
+	if (!elf_tabslotiskey(table,slot)) {
 		elf_int i = langA_variadd(table->v,1);
 		table->v[i] = (elf_val){TAG_NIL};
 
@@ -178,67 +180,87 @@ elf_int elf_tabtake(elf_tab *table, elf_val k) {
 		table->slots[slot].i = i;
 		table->nslots ++;
 	}
-	return langH_slot2index(table,slot);
+	return elf_tabslot2index(table,slot);
 }
 
 
-elf_int langH_iadd(elf_tab *table, elf_val v) {
+elf_int elf_tabiadd(elf_tab *table, elf_val v) {
 	return langA_variadd(table->v,1);
 }
 
 
-void langH_add(elf_tab *table, elf_val v) {
-	langA_varadd(table->v,v);
+void elf_tabadd(elf_tab *table, elf_val v) {
+	elf_arradd(table->v,v);
 }
 
 
-/*
-** Meta Methods:
-*/
-int langH_length_(lRuntime *c) {
-	elf_putint(c,elf_arrlen(((elf_tab*)c->f->obj)->v));
+/* metatable */
+
+
+int elf_tablength_(lRuntime *R) {
+	elf_tab *tab = (elf_tab*) elf_getthis(R);
+	elf_putint(R,elf_arrlen(tab->v));
 	return 1;
 }
 
 
-int langH_haskey_(lRuntime *c) {
+int elf_tabtally_(lRuntime *R) {
+	elf_tab *tab = (elf_tab*) elf_getthis(R);
+	elf_putint(R,elf_arrlen(tab->v));
+	return 1;
+}
+
+
+int elf_tabhaskey_(lRuntime *c) {
 	elf_assert(c->f->x == 1);
-	elf_tab *table = (elf_tab*) c->f->obj;
+	elf_tab *table = (elf_tab*) elf_getthis(c);
 	elf_val k = elf_getval(c,0);
-	elf_putint(c,langH_slotiskey(table,langH_hashin(table,k)));
+	elf_putint(c,elf_tabslotiskey(table,elf_tabhashin(table,k)));
 	return 1;
 }
 
 
-int langH_lookup_(lRuntime *c) {
+int elf_tablookup_(lRuntime *c) {
 	elf_assert(c->f->x == 1);
 	elf_val k = elf_getval(c,0);
 	elf_tab *table = (elf_tab*) c->f->obj;
-	elf_putval(c,langH_lookup(table,k));
+	elf_putval(c,elf_tablookup(table,k));
 	return 1;
 }
 
 
-int langH_collisions_(lRuntime *c) {
+int elf_tabcollisions_(lRuntime *c) {
 	elf_tab *table = (elf_tab*) c->f->obj;
 	elf_putint(c,table->ncollisions);
 	return 1;
 }
 
 
-int langH_add_(lRuntime *R) {
+int elf_tabadd_(lRuntime *R) {
 	elf_assert(R->call->x >= 1);
 	elf_tab *tab = (elf_tab *) R->call->obj;
-	langH_add(tab,elf_getval(R,0));
+	elf_tabadd(tab,elf_getval(R,0));
 	return 0;
 }
 
 
-int langH_idx_(lRuntime *R) {
+int elf_tabidx_(lRuntime *R) {
 	elf_assert(R->call->x >= 1);
-	elf_tab *tab = (elf_tab *) R->call->obj;
+	elf_tab *tab = (elf_tab *)elf_getthis(R);
 	elf_int idx = elf_getint(R,0);
 	elf_putval(R,tab->v[idx]);
+	return 1;
+}
+
+
+int elf_tabxrem_(lRuntime *R) {
+	elf_assert(R->call->x >= 1);
+	elf_tab *tab = (elf_tab *)elf_getthis(R);
+	elf_int idx = elf_getint(R,0);
+	elf_int min = elf_arrdecmin(tab->array);
+	if (idx != min) {
+		tab->array[idx] = tab->array[min];
+	}
 	return 1;
 }
 
@@ -259,7 +281,7 @@ int elf_tabput_(lRuntime *c) {
 }
 
 
-int langH_foreach_(lRuntime *R) {
+int elf_tabforeach_(lRuntime *R) {
 	elf_assert(R->frame->x == 1);
 	elf_tab *table = (elf_tab *) R->frame->obj;
 	elf_checkcl(R,0);
@@ -304,7 +326,7 @@ void elf_tabunload(FILE *io, elf_tab *tab, int level) {
 }
 
 
-int langH_unload_(lRuntime *R) {
+int elf_tabunload_(lRuntime *R) {
 	elf_Handle io = elf_getsys(R,0);
 	elf_tabunload(io,(elf_tab*)elf_getthis(R),0);
 	return 0;
@@ -388,13 +410,13 @@ elf_int elf_tabhashval(elf_val v) {
 
 
 #if 0
-void langH_mergesort_(elf_tab *h, int level, elf_int x, elf_int z, elf_Proto *fn) {
+void elf_tabmergesort_(elf_tab *h, int level, elf_int x, elf_int z, elf_Proto *fn) {
 
 	if (z-x <= 1) return;
 
 	int y = x + (z-x)/2;
-	langH_mergesort_(h,level+1,x,y,fn);
-	langH_mergesort_(h,level+1,y,z,fn);
+	elf_tabmergesort_(h,level+1,x,y,fn);
+	elf_tabmergesort_(h,level+1,y,z,fn);
 
 	elf_val *v = table->v;
 	elf_tabslot *s = table->slots;
@@ -426,7 +448,7 @@ void langH_mergesort_(elf_tab *h, int level, elf_int x, elf_int z, elf_Proto *fn
 		}
 	}
 }
-int langH_sort_(lRuntime *c) {
+int elf_tabsort_(lRuntime *c) {
 
 }
 

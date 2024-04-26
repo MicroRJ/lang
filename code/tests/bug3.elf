@@ -1,0 +1,14 @@
+// [STATUS:FIXED]
+// Bug: given the language specs,
+// a() should evaluate each time
+// the check is made, however it
+// doesn't.
+// Solution:
+// Simply fix the jump so that it
+// returns to where the condition
+// is reevaluated completely.
+a = fun() ? { pf("a") leave 24 }
+for i in 0..a() ? {
+	pf(i)
+}
+leave (false)

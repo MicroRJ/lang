@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** llexer.c
 ** Lexical Analyzer
 */
@@ -180,7 +180,7 @@ int elfX_escapechr(elf_FileState *file) {
 ltoken elf_yieldtk(elf_FileState *file) {
 
 	/* remove, not needed #todo */
-	lglobaldecl char buffer[0x100];
+	elf_globaldecl char buffer[0x100];
 
 	retry:
 
@@ -254,12 +254,12 @@ ltoken elf_yieldtk(elf_FileState *file) {
 						} while (isdigit(thischr()));
 					}
 					tk.n = i + n / p;
-					// lang_loginfo("[%lli] = num(%f)",tk.value,n);
+					// elf_loginfo("[%lli] = num(%f)",tk.value,n);
 					goto leave;
 				}
 			}
 			tk.i = i;
-			// lang_loginfo("[%lli] = int(%lli)",tk.value,integer);
+			// elf_loginfo("[%lli] = int(%lli)",tk.value,integer);
 		} break;
 		case '\'': {
 			movechr();
@@ -287,7 +287,7 @@ ltoken elf_yieldtk(elf_FileState *file) {
 			tk.type = TK_STRING;
 			tk.s = S_ncopy(lHEAP,length,buffer);
 			// tk.string = S_ncopy(lHEAP,length,buffer);
-			// lang_loginfo("string %s",tk.string);
+			// elf_loginfo("string %s",tk.string);
 		} break;
 		case '.': {
 			movechr();
@@ -304,7 +304,7 @@ ltoken elf_yieldtk(elf_FileState *file) {
 					p *= 10;
 				} while (isdigit(thischr()));
 				tk.n = n / p;
-				// lang_loginfo("[%lli] = num(%f)",tk.value,n);
+				// elf_loginfo("[%lli] = num(%f)",tk.value,n);
 			}
 		} break;
 		case '#': {

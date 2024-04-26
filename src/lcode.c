@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** (L) lcode.c
 ** Bytecode Generator (node -> bytecode)
 */
@@ -43,8 +43,8 @@ lbyteid langL_addbyte(elf_FileState *fs, llineid line, lBytecode byte) {
 	elf_Module *md = fs->md;
 	if (0) bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
 
-	langA_varadd(md->lines,line);
-	langA_varadd(md->bytes,byte);
+	elf_arradd(md->lines,line);
+	elf_arradd(md->bytes,byte);
 	return md->nbytes ++;
 }
 
@@ -101,14 +101,14 @@ void langL_tieloosej(elf_FileState *fs, lbyteid i) {
 
 
 void langL_tieloosejs(elf_FileState *fs, lbyteid *js) {
-	elf_forivar(js) {
+	elf_arrfori(js) {
 		langL_tieloosej(fs,js[i]);
 	}
 }
 
 
 void langL_tieloosejsto(elf_FileState *fs, lbyteid *js, lbyteid j) {
-	elf_forivar(js) {
+	elf_arrfori(js) {
 		langL_tieloosejto(fs,js[i],j);
 	}
 }
@@ -177,10 +177,10 @@ lbyteid langL_branchif(elf_FileState *fs, ljlist *js, elf_bool z, llocalid x, ln
 
 			if (z != 0) {
 				j = elf_emitbytexy(fs,v.line,BC_JNZ,NO_JUMP,x);
-				langA_varadd(js->t,j);
+				elf_arradd(js->t,j);
 			} else {
 				j = elf_emitbytexy(fs,v.line,BC_JZ,NO_JUMP,x);
-				langA_varadd(js->f,j);
+				elf_arradd(js->f,j);
 			}
 		} break;
 	}
@@ -242,7 +242,7 @@ void langL_yield(elf_FileState *fs, llineid line, lnodeid id) {
 
 		if (fs->fn->nyield < n) fs->fn->nyield = n;
 		lbyteid j = elf_emitbytexyz(fs,line,BC_YIELD,NO_JUMP,x,n);
-		langA_varadd(fs->fn->yj,j);
+		elf_arradd(fs->fn->yj,j);
 
 		/* if there are no results then simply leave directly */
 	} else langL_byte(fs,line,BC_LEAVE,0);
@@ -398,7 +398,7 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 			if (y == 0) goto leave;
 			elf_assert(v.line != 0);
 			elf_emitbytexy(fs,line,BC_TABLE,x,0);
-			elf_forivar(v.z) langL_emit(fs,line,v.z[i]);
+			elf_arrfori(v.z) langL_emit(fs,line,v.z[i]);
 		} break;
 		case NODE_FIELD: case NODE_INDEX: {
 			if (y == 0) goto leave;
@@ -409,7 +409,7 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 		case NODE_CLOSURE: {
 			if (y == 0) goto leave;
 			llocalid xx = x;
-			elf_forivar(v.z) {
+			elf_arrfori(v.z) {
 				if (i != 0) xx = langL_localalloc(fs,1);
 				if ((xx - x) != i) LNOBRANCH;
 				langL_localload(fs,line,ltrue,xx++,1,v.z[i]);
@@ -434,7 +434,7 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 		case NODE_BUILTIN: {
 			llocalid xx = x;
 			int n = elf_arrlen(v.z);
-			elf_forivar(v.z) {
+			elf_arrfori(v.z) {
 				langL_localloadin(fs,NO_LINE,xx ++,v.z[i]);
 			}
 			if (v.x == TK_STKLEN) {
@@ -484,7 +484,7 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 				langL_localloadin(fs,line,tail ++,xx.x);
 			}
 			langL_localloadin(fs,line,tail ++,v.x);
-			elf_forivar(v.z) {
+			elf_arrfori(v.z) {
 				langL_localloadin(fs,line,tail ++,v.z[i]);
 			}
 			int n = elf_arrlen(v.z);
@@ -633,7 +633,7 @@ void langL_beginif(elf_FileState *fs, llineid line, Select *s, lnodeid x, int z)
 void langL_addelse(elf_FileState *fs, llineid line, Select *s) {
 	elf_assert(s->jz != 0);
 	int j = langL_jump(fs,line,-1);
-	langA_varadd(s->j,j);
+	elf_arradd(s->j,j);
 
 	langL_tieloosejs(fs,s->jz);
 	elf_delvar(s->jz);
@@ -720,11 +720,12 @@ void langL_beginrangedloop(elf_FileState *fs, llineid line, Loop *loop, lnodeid 
 	elf_assert(x != NO_NODE);
 	loop->x = x;
 	loop->r = langL_localize(fs,line,x);
-
 	langL_localload(fs,line,ltrue,loop->r,1,lo);
 
-	lnodeid c = elf_nodeilessthan(fs,line,loop->x,hi);
 	loop->e = langL_getlabel(fs);
+
+	langL_localize(fs,line,hi);
+	lnodeid c = elf_nodeilessthan(fs,line,loop->x,hi);
 
 	ljlist js = {lnil};
 	loop->f = langL_jumpiffalse(fs,&js,NO_SLOT,c);

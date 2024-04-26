@@ -1,10 +1,10 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lgilib.c
 ** LGI Library Bindings For Lang.
 */
 
-#include <lang.h>
+#include <elf.h>
 #include <lgi/lgi.h>
 
 
@@ -50,7 +50,7 @@ llibfn int lgilib_deltatime(lRuntime *rt) {
 llibfn int lgilib_initWindowed(lRuntime *rt) {
 	int windowWidth = (int) elf_getint(rt,0);
 	int windowHeight = (int) elf_getint(rt,1);
-	elf_str *name = elf_getstr(rt,2);
+	elf_String *name = elf_getstr(rt,2);
 	lgi_initWindowed(windowWidth,windowHeight,name->c);
 	return 0;
 }
@@ -64,7 +64,7 @@ llibfn int lgilib_binddeftex(lRuntime *R) {
 
 
 llibfn int lgilib_loadtexture(lRuntime *R) {
-	elf_str *filename = elf_getstr(R,0);
+	elf_String *filename = elf_getstr(R,0);
 	lgi_Texture *texture = lgi_loadTexture(filename->c);
 	elf_putsys(R,(elf_Handle)texture);
 	return 1;
@@ -167,7 +167,7 @@ llibfn int lgilib_pushvertex(lRuntime *R) {
 
 llibfn int lgilib_setsampler(lRuntime *R) {
 	lgi_Texture *tex = (lgi_Texture *) elf_getsys(R,0);
-	elf_str *sampler = elf_getstr(R,1);
+	elf_String *sampler = elf_getstr(R,1);
 	if (S_eq(sampler->c,"linear"))  {
 		tex->d3d11.sampler = lgi.LINEAR_SAMPLER;
 	} else

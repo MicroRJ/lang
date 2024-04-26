@@ -1,17 +1,17 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lapi.h
 ** Main user API
 */
 
 
-lapi elf_obj *elf_getthis(lRuntime *R);
+lapi elf_Object *elf_getthis(lRuntime *R);
 
 lapi elf_val elf_getval(lRuntime *R, llocalid x);
 lapi elf_int elf_getint(lRuntime *R, llocalid x);
 lapi elf_num elf_getnum(lRuntime *R, llocalid x);
-lapi elf_str *elf_getstr(lRuntime *R, llocalid x);
-lapi elf_obj *elf_getobj(lRuntime *R, llocalid x);
+lapi elf_String *elf_getstr(lRuntime *R, llocalid x);
+lapi elf_Object *elf_getobj(lRuntime *R, llocalid x);
 lapi elf_tab *elf_gettab(lRuntime *R, llocalid x);
 lapi elf_Handle elf_getsys(lRuntime *R, llocalid x);
 lapi elf_Closure *elf_getcls(lRuntime *R, llocalid x);
@@ -27,14 +27,14 @@ lapi elf_Closure *elf_getcls(lRuntime *R, llocalid x);
 ** in which case you call the function and
 ** pass in arguments.
 */
-int elf_loadexpr(lRuntime *, elf_str *contents, llocalid x, llocalid y);
+int elf_loadexpr(lRuntime *, elf_String *contents, llocalid x, llocalid y);
 
 
 /*
 ** Loads a file and calls its function,
 ** returns the number of results.
 */
-int elf_loadfile(lRuntime *, elf_FileState *fs, elf_str *filename, llocalid rx, int ny);
+int elf_loadfile(lRuntime *, elf_FileState *fs, elf_String *filename, llocalid rx, int ny);
 
 
 /*
@@ -52,7 +52,7 @@ int elf_loadfile(lRuntime *, elf_FileState *fs, elf_str *filename, llocalid rx, 
 ** the results are written to.
 ** ry can be equal to rx.
 */
-lapi int elf_callfn(lRuntime *, elf_obj *obj, llocalid rx, llocalid ry, int nx, int ny);
+lapi int elf_callfn(lRuntime *, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny);
 
 
 /*
@@ -66,7 +66,7 @@ lapi int elf_run(lRuntime *);
 
 
 lapi void elf_checkcl(lRuntime *c, llocalid x);
-lapi elf_str *elf_checkstr(lRuntime *c, llocalid x);
+lapi elf_String *elf_checkstr(lRuntime *c, llocalid x);
 
 
 lapi llocalid elf_stkput(lRuntime *R, int n);
@@ -80,10 +80,10 @@ lapi void elf_putbinding(lRuntime *, lBinding c);
 lapi void elf_putsys(lRuntime *c, elf_Handle h);
 lapi void elf_puttab(lRuntime *, elf_tab *t);
 lapi llocalid elf_putcl(lRuntime *, elf_Closure *f);
-lapi void elf_putstr(lRuntime *, elf_str *s);
+lapi void elf_putstr(lRuntime *, elf_String *s);
 
 
 lapi elf_tab *elf_pushnewtab(lRuntime *);
-lapi elf_str *elf_pushnewstr(lRuntime *, char const *c);
+lapi elf_String *elf_pushnewstr(lRuntime *, char const *c);
 lapi llocalid elf_pushnewcl(lRuntime *, elf_Proto fn);
 

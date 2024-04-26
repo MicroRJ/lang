@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lnetlib.c
 ** Very Simple Sockets Lib
 */
@@ -66,8 +66,8 @@ lapi int netlib_pollclient(lRuntime *R) {
 
 
 lapi int netlib_tcpserver(lRuntime *R) {
-	elf_str *addrnameS = elf_getstr(R,0);
-	elf_str *addrportS = elf_getstr(R,1);
+	elf_String *addrnameS = elf_getstr(R,0);
+	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
 	char *addrport = addrportS ? addrportS->c : 0;
 	ADDRINFOA idealaddr = {0};
@@ -89,8 +89,8 @@ lapi int netlib_tcpserver(lRuntime *R) {
 
 
 lapi int netlib_tcpclient(lRuntime *R) {
-	elf_str *addrnameS = elf_getstr(R,0);
-	elf_str *addrportS = elf_getstr(R,1);
+	elf_String *addrnameS = elf_getstr(R,0);
+	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
 	char *addrport = addrportS ? addrportS->c : 0;
 	ADDRINFOA idealaddr = {0};
@@ -114,7 +114,7 @@ lapi int netlib_tcpclient(lRuntime *R) {
 lapi int netlib_send(lRuntime *R) {
 	/* todo: make this a class? */
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
-	elf_str *payload = elf_getstr(R,1);
+	elf_String *payload = elf_getstr(R,1);
 	LMSG message = { payload->length };
 	elf_int sent = 0;
 	sent += send(socket,(char*)&message,sizeof(message),0);
@@ -139,7 +139,7 @@ lapi int netlib_recv(lRuntime *R) {
 	if (recv(socket,(char*)&message,sizeof(message),0) != -1) {
 		if (message.length != 0) {
 			elf_int length = message.length;
-			elf_str *obj = elf_newstrlen(R,length);
+			elf_String *obj = elf_newstrlen(R,length);
 			elf_putstr(R,obj);
 			char *cursor = obj->c;
 			do {
@@ -151,7 +151,7 @@ lapi int netlib_recv(lRuntime *R) {
 					} else {
 						char erbuf[0x100];
 						sys_geterrormsg(error,erbuf,sizeof(erbuf));
-						lang_logerror("netlib sys error '%i': %s",error,erbuf);
+						elf_logerror("netlib sys error '%i': %s",error,erbuf);
 						break;
 					}
 				} else if (result == 0) {

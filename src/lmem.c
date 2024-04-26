@@ -1,13 +1,13 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lmem.c
 ** Memory Tools
 */
 
 
 /* todo: can we do this some other way? */
-lglobaldecl Alloc langM_tlocalalloc = {"default-temp-allocator",langM_deftlocalallocfn};
-lglobaldecl Alloc langM_globalalloc = {"default-heap-allocator",langM_defglobalallocfn};
+elf_globaldecl Alloc langM_tlocalalloc = {"default-temp-allocator",langM_deftlocalallocfn};
+elf_globaldecl Alloc langM_globalalloc = {"default-heap-allocator",langM_defglobalallocfn};
 
 
 
@@ -149,7 +149,7 @@ void langM_checkmemptr(void *mem) {
 	for (then = M_free; then != 0; then = then->then) {
 		if (then == file) {
 			ldebugloc loca = file->freeloca;
-			lang_logerror("%s %s(), %i: memory file was already freed here"
+			elf_logerror("%s %s(), %i: memory file was already freed here"
 			, loca.fileName,loca.func,loca.lineNumber);
 			break;
 		}
@@ -157,7 +157,7 @@ void langM_checkmemptr(void *mem) {
 
 	if (file->headtrap != FLYTRAP || file->foottrap != FLYTRAP) {
 		ldebugloc loca = file->loca;
-		lang_logerror("%s %s(), %i: invalid file, %x, %x"
+		elf_logerror("%s %s(), %i: invalid file, %x, %x"
 		, loca.fileName,loca.func,loca.lineNumber
 		, file->headtrap, file->foottrap);
 	}
@@ -196,7 +196,7 @@ void *langM_debugalloc(elf_int contentssize, ldebugloc loca) {
 
 	elf_int chunkcatedsize = CHUNKCATE(contentssize+256,CHUNKSIZE);
 	elf_assert(chunkcatedsize >= 512);
-	// lang_loginfo("alloc %lli",contentssize);
+	// elf_loginfo("alloc %lli",contentssize);
 
 	elf_int totalsize = sizeof(MemBlock)+chunkcatedsize;
 
@@ -230,7 +230,7 @@ void *langM_debugrealloc(void *mem, elf_int contentssize, ldebugloc loca) {
 	void *newmem = langM_debugalloc(contentssize,loca);
 	memcpy(newmem,mem,file->contentssize);
 
-	// lang_loginfo("realloc: %lli -> %lli",file->size,contentssize);
+	// elf_loginfo("realloc: %lli -> %lli",file->size,contentssize);
 
 	return newmem;
 }

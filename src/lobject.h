@@ -1,21 +1,12 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lobject.h
 ** Objects And Values
 */
 
 
-typedef struct elf_str elf_str;
-typedef struct elf_obj elf_obj;
-typedef struct elf_Closure elf_Closure;
-typedef struct elf_val elf_val;
-
-
 typedef enum GCColor {
-	GC_WHITE = 0,
-	GC_BLACK = 1,
-	GC_PINK  = 2,
-	GC_RED   = 3,
+	GC_WHITE = 0, GC_BLACK, GC_PINK, GC_RED,
 } GCColor;
 
 
@@ -29,23 +20,23 @@ typedef enum ObjectType {
 } ObjectType;
 
 
-typedef struct MetaFunc {
-	char    *name;
-	lBinding    c;
-} MetaFunc;
-
-
-typedef struct elf_obj {
+typedef struct elf_Object {
+#if defined(_DEBUG)
+	int headtrap;
+#endif
 	ObjectType type;
 	GCColor gccolor;
+	elf_int tell;
 	elf_tab *metatable;
-} elf_obj;
-
+#if defined(_DEBUG)
+	int tailtrap;
+#endif
+} elf_Object;
 
 /* first object tag must be OBJECT, all other
 objects come after it */
 #define TAGLIST(_) \
-_(NIL) _(SYS) \
+_(NIL) _(GCD) _(SYS) \
 _(INT) _(NUM) _(BID) \
 _(OBJ) _(CLS) _(STR) _(TAB) /* end */
 
@@ -58,7 +49,7 @@ typedef enum lvaluetag {
 
 
 #define TAGENUM(NAME) XSTRINGIFY(NAME),
-lglobaldecl char const *tag2s[] = {
+elf_globaldecl char const *tag2s[] = {
 	TAGLIST(TAGENUM)
 };
 #undef TAGENUM
@@ -73,16 +64,16 @@ typedef struct elf_val {
 		elf_int     i;
 		elf_num   n;
 		lBinding   c;
-		elf_obj   *j,*x_obj;
+		elf_Object   *j,*x_obj;
 		elf_tab    *t,*x_tab;
-		elf_str   *s;
+		elf_String   *s;
 		elf_Closure  *f;
 	};
 } elf_val;
 
 
 typedef struct elf_Closure {
-	elf_obj obj;
+	elf_Object obj;
    /* I guess one of the things we could do
    if we ever get to having multi-byte encoding,
    is encode the entire prototype in the
@@ -101,7 +92,7 @@ typedef struct elf_Closure {
 
 lapi elf_val lang_T(elf_tab *t);
 lapi elf_val lang_C(lBinding c);
-lapi elf_val lang_S(elf_str *s);
+lapi elf_val lang_S(elf_String *s);
 lapi elf_val lang_F(elf_Closure *f);
 lapi elf_val lang_I(elf_int i);
 lapi elf_val lang_N(elf_num n);
@@ -162,7 +153,7 @@ lapi elf_val lang_H(elf_Handle h) {
 }
 
 
-lapi elf_val lang_S(elf_str *s) {
+lapi elf_val lang_S(elf_String *s) {
 	elf_val v = (elf_val){TAG_STR};
 	v.s = s;
 	return v;

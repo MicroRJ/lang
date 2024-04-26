@@ -1,5 +1,4 @@
 
-
 log ?= pf
 load "code/games/lgi.elf"
 if _chdir("code/games/shooter") ? {
@@ -27,7 +26,7 @@ camera = {
 }
 
 
-lgi_initWindowed(720,512, "rogue")
+lgi_initWindowed(1024,720, "shooter")
 
 loadassets = fun() ? {
 	let time_ = clocktime()
@@ -48,14 +47,12 @@ plot3 = fun(xyz) ? plot(xyz.x,xyz.y,xyz.z)
 plot = fun(x,y,z) ? {
 	let xx = iton(x - camera.xyz.x)
 	let yy = iton(y - camera.xyz.y)
-	let zz = iton(z - camera.xyz.z)
-	if zz == 0. ? zz = 1.
+	let zz = 1. ; iton(z - camera.xyz.z)
+	; if zz == 0. ? zz = 1.
 	let wx = (xx / zz) + lgi_getSizeX()*.5
 	let wy = (yy / zz) + lgi_getSizeY()*.5
 	leave vec3(wx,wy,0)
 }
-
-
 unplot = fun (xyz) ? {
 	let cxyz = camera.xyz
 	let cx = cxyz.x
@@ -65,60 +62,16 @@ unplot = fun (xyz) ? {
 	let wy = (xyz.y-lgi_getSizeY()*.5)// * (xyz.z + cz)
 	leave vec3(wx,wy,wz)
 }
-
-
 plotline = fun(x0,y0,x1,y1) ? {
 	let xy0 = plot(x0,y0,0)
 	let xy1 = plot(x1,y1,0)
 	lgi_drawline(lgi_YELLOW,1,xy0.x,xy0.y,xy1.x,xy1.y)
 }
-
-
 plotline3 = fun(color,x0,y0,z0,x1,y1,z1) ? {
 	let p0 = plot(x0,y0,z0)
 	let p1 = plot(x1,y1,z1)
 	lgi_drawline(color,1,p0.x,p0.y,p1.x,p1.y)
 }
-
-
-plotgrid = fun() ? {
-	let color = lgi_WHITE:a(.5)
-	// let width = lgi_getSizeX()
-	// let height = lgi_getSizeY()
-	// let ngridy = height / 32
-	// let xoffset = camera.xyz.x
-	// let yoffset = camera.xyz.y
-	// for i in ngridy+1 ? {
-	// 	let x = - xoffset;
-	// 	let y = - (ntoi(yoffset / 32) * 32) + i * 32;
-	// 	// drawline(x,y,width+x,y,1,color);
-	// 	lgi_drawline(color,1,x,y,width+x,y)
-	// }
-		// int ngridx = lgi.Window.size_x / 32;
-		// for (int i=0; i<ngridx+1; i+=1) {
-		// 	int y = - yoffset;
-		// 	int x = - ((int)(xoffset / 32) * 32) + i * 32;
-		// 	drawline(x,y,x,lgi.Window.size_y+y,1,color);
-		// }
-	// for z in 0..8 ? {
-	// 	plotline3(color,0,0,z,8,0,z)
-	// 	plotline3(color,0,0,z,0,8,z)
-	// }
-	// for z in 0..1 ? {
-	// 	for i in 0..8 ? {
-	// 		plotline3(color,0,i,z,8,i,z)
-	// 		plotline3(color,i,0,z,i,8,z)
-	// 	}
-	// }
-	// color = lgi_RED
-	// color.a = .1
-	// for y in 0..8 ? {
-	// 	for x in 0..8 ? {
-	// 		plotline3(color,x,y,0,x,y,8)
-	// 	}
-	// }
-}
-
 plottileoutline = fun(xyz) ? {
 	let x = xyz.x
 	let y = xyz.y
@@ -127,11 +80,6 @@ plottileoutline = fun(xyz) ? {
 	plotline3(lgi_BLUE,x+0,y+0,z,x+0,y+1,z)
 	plotline3(lgi_BLUE,x+1,y+1,z,x+1,y+0,z)
 	plotline3(lgi_BLUE,x+0,y+1,z,x+1,y+1,z)
-}
-rotbyangle = fun(point,angle) ? {
-	leave vec3(
-	point.x*cos(angle) - point.y*sin(angle),
-	point.y*cos(angle) - point.x*sin(angle), 0.)
 }
 transform = fun(x,y,p) ? {
 	leave vec3(p.x * x.x + p.y * x.y,
@@ -155,12 +103,14 @@ lgi_vertex2d = fun(x,y,u,v) ? {
 }
 fxsettex = fun(tex,u0,v0,u1,v1) ? {
 	canvas.texture = tex
-	let width = lgi_gettexturewidth(tex)
-	let height = lgi_gettextureheight(tex)
-	canvas.u0 = iton(u0) / width
-	canvas.v0 = iton(v0) / height
-	canvas.u1 = iton(u1) / width
-	canvas.v1 = iton(v1) / height
+	if tex != nil ? {
+		let width = lgi_gettexturewidth(tex)
+		let height = lgi_gettextureheight(tex)
+		canvas.u0 = iton(u0) / width
+		canvas.v0 = iton(v0) / height
+		canvas.u1 = iton(u1) / width
+		canvas.v1 = iton(v1) / height
+	}
 }
 fxaddquad = fun(x0,y0,x1,y1) ? {
 	let texture = canvas.texture
@@ -188,37 +138,37 @@ fire = fun(entity) ? {
 	let lastfire = entity.lastfire
 	if timediffs(lastfire) > (1./(firerate/60.)) ? {
 		entity.lastfire = clocktime()
-		Bullets[Bullets:length()] = ({
+		Bullets:add({
 			"from" = entity,
-			"pos" = entity.xyz,
-			"dir" = entity.facing
+			"pos" = entity.xyz:clone(),
+			"dir" = entity.facing:clone()
 		})
 	}
 }
-player = {
-	"xyz" = vec3(0,0,1),
-	"facing" = UP,
-	"firing" = false,
-	/* in rps, rounds per minute */
-	"firerate" = 500,
-	"lastfire" = 0.,
-	"muscleflashduration" = .032,
+newentity = fun(pos,fr) ? {
+	fr ?= 50
+	/* firerate rps, rounds per minute */
+	leave ({
+		xyz = pos,
+		vel = vec(),
+		facing = UP,
+		firing = false,
+		firerate = fr,
+		lastfire = 0.,
+		health = 100,
+		muscleflashduration = .032,
+		lastimpulse = clocktime(),
+	})
 }
+
+player = newentity(vec3(0,0,1),500)
+
 Entities = {player}
-for i in 1..2 ? {
-	Entities[i] = {
-		"xyz" = vec3(rnd(-128,128),rnd(-128,128),1),
-		"facing" = UP,
-		"targetfacing" = UP,
-		"firing" = false,
-		/* in rpm, rounds per minute */
-		"firerate" = 50,
-		"lastfire" = 0.,
-		/* rps, rotations per second */
-		"turnrate" = 1.,
-		"muscleflashduration" = .032,
-	}
+
+for i in 1..3 ? {
+	Entities[i] = newentity(vec3(rnd(-128,128),rnd(-128,128),1))
 }
+
 plotentity = fun(entity) ? {
 	let firerate = entity.firerate
 	/* todo instead maybe we can use sine or something
@@ -226,7 +176,6 @@ plotentity = fun(entity) ? {
 	let firing = entity.firing
 	if firing == true ? {
 		let muscleflashduration = entity.muscleflashduration
-		// firing = (ntoi(lgi_time()*(firerate/60.)) % 2) == 0
 		fire(entity)
 		firing = timediffs(entity.lastfire) < muscleflashduration
 	}
@@ -236,33 +185,72 @@ plotentity = fun(entity) ? {
 	let xbasis = ybasis:perp2d()
 	canvas.xbasis = xbasis
 	canvas.ybasis = ybasis:clone()
-	canvas.xyz = entity.xyz
+	canvas.xyz = entity.xyz:clone()
 	fxsettex(textures.player,48*firing,0,48+48*firing,48)
 	fxaddquad(-64,-64,+64,+64)
-}
-plotgame = fun() ? {
-	plotgrid()
 
+	canvas.xbasis = UP
+	canvas.ybasis = RIGHT
+	canvas.color = lgi_RED;
+	fxsettex(nil,0,0,0,0)
+	fxaddquad(-16,-4,+16,+4)
+	canvas.color = lgi_GREEN;
+	fxaddquad(-16,-4,remix(iton(entity.health),0.,100.,-16.,16.),+4)
+
+	canvas.color = lgi_WHITE;
+}
+
+enemycontroller = fun(entity) ? {
+	let pos = entity.xyz
+	let diftoplayer = player.xyz:sub(pos)
+	let distoplayer = diftoplayer:len()
+	let facing = diftoplayer:norm()
+	let target = diftoplayer:sub(facing:mul(64.))
+	if timediffs(entity.lastimpulse) > .5 ? {
+		entity.lastimpulse = clocktime()
+		let imp = rnddir2(-PI,+PI,target:norm())
+		entity.vel = entity.vel:add(imp:mul1(10))
+	}
+	entity.xyz = pos:add(entity.vel)
+	entity.vel = entity.vel:mul1(.9)
+	entity.facing = facing
+	/* only fire if we are facing the player, and we can see it */
+	entity.firing = ntoi(distoplayer < 512)
+}
+
+plotgame = fun() ? {
 	canvas.xbasis = RIGHT
 	canvas.ybasis = UP
-	canvas.xyz = vec3(0,0,0)
 	fxsettex(textures.background,0,0,64,64)
-	fxaddquad(-64,-64,+64,+64)
+	for y in 0..4 ? {
+		for x in 0..4 ? {
+			canvas.xyz = vec2(128.*x,128.*y)
+			fxaddquad(-64,-64,+64,+64)
+		}
+	}
 
 	for i in Bullets:length() ? {
-		let bullet = Bullets[i]
+		let bullet = Bullets:idx(i)
 		if bullet != nil ? {
+			if bullet.pos == nil ? pf("error: bullet.pos")
+			if bullet.dir == nil ? pf("error: bullet.dir")
 			let bulpos = bullet.pos:add(bullet.dir:mul1(20))
 			bullet.pos = bulpos
 			if bulpos:sub(bullet.from.xyz):len() > 1024 ? {
-				Bullets[i] = nil
-			} else /* todo: */
-			for j in Entities:length() ? {
+				Bullets:xrem(i) i = i - 1
+			} else for j in Entities:length() ? {
+				/* todo: make this faster */
 				let entity = Entities[j]
 				if entity != nil ? {
 					if bullet.from != entity ? {
 						let entpos = entity.xyz
-						if bulpos:sub(entpos):len() < 32 ? {
+						let dif = bulpos:sub(entpos)
+						if dif:len() < 32 ? {
+							if entity.health > 1 ? {
+								entity.health = entity.health - 1
+							}
+							let imp = dif:norm():mul1(10)
+							entity.vel = entity.vel:add(imp)
 							// Entities[j] = nil
 							// Bullets[i] = nil
 						}
@@ -275,26 +263,15 @@ plotgame = fun() ? {
 	for i in Entities:length() ? {
 		let entity = Entities[i]
 		if entity != nil ? {
-			if entity != player ? {
-				let diff = player.xyz:sub(entity.xyz)
-				let dist = diff:len()
-				let facing = diff:norm()
-				entity.facing = facing
-				if dist < 512 ? {
-					fire(entity)
-				} elif dist > 64 ? {
-					//facing:mul1(.5)
-					entity.xyz = entity.xyz:add(rnddir2(-PI,+PI,facing):mul1(.5))
-				}
-			}
+			if entity != player ? enemycontroller(entity)
 			plotentity(entity)
 		}
 	}
 	fxsettex(textures.player,8*16,4*16,9*16,5*16)
 	for i in Bullets:length() ? {
-		let bullet = Bullets[i]
+		let bullet = Bullets:idx(i)
 		if bullet != nil ? {
-			canvas.xyz = bullet.pos
+			canvas.xyz = bullet.pos:clone()
 			fxaddquad(-16,-16,+16,+16)
 		}
 	}
@@ -311,7 +288,6 @@ shake = fun (mag) ? {
 	removes this redundancy */
 	camera.targetxyz = camera.targetxyz:add(jitter)
 }
-
 
 do {
 	let width = lgi_getSizeX()
@@ -334,11 +310,10 @@ do {
 	if lgi_iskeydown('D') ? move = move:add(RIGHT)
 	player.xyz = player.xyz:add(move:norm():mul1(2))
 
-
 	camera.xyz = camera.xyz:lerp(camera.targetxyz,.1)
 	camera.xyz.z = 1
 
-	if lgi_isbuttondown(0) ? {
+	if (lgi_isbuttondown(0) || lgi_iskeydown(' ')) ? {
 		player.firing = true
 		shake(50.)
 	} else player.firing = false
@@ -348,7 +323,7 @@ do {
 	plotgame()
 
 	// let temp = ftemp()
-	// fpf(temp,"fps: ",1./lgi_deltatime(), ", num: ", World:length(), ", ", critters:length())
+	// fpf(temp,"fps: ",1./lgi_deltatime())
 	// let fps = freadall(temp)
 	// fclose(temp)
 	// plottext(0,0,fps)

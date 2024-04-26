@@ -1,22 +1,22 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lmodule.c
-** elf_obj/lBytecode elf_Module
+** elf_Object/lBytecode elf_Module
 */
 
 
 /* todo: ensure that we don't have to replace symbols */
-lglobalid lang_addsymbol(elf_Module *md, elf_str *name) {
+lglobalid lang_addsymbol(elf_Module *md, elf_String *name) {
 	if (name == 0) {
 		return langA_variadd(md->g->v,1);
 	}
 	lglobalid id = elf_tabtake(md->g,lang_S(name));
-	// lang_logdebug("global '%s' -> %i",name->c,id);
+	// elf_logdebug("global '%s' -> %i",name->c,id);
 	return id;
 }
 
 
-lglobalid lang_addglobal(elf_Module *md, elf_str *name, elf_val v) {
+lglobalid lang_addglobal(elf_Module *md, elf_String *name, elf_val v) {
 	lglobalid i = lang_addsymbol(md,name);
 	md->g->v[i] = v;
 	return i;
@@ -78,7 +78,7 @@ void lang_dumpmodule(elf_Module *md, elf_Handle file) {
 #if 0
 	fprintf(file,"elf_Module:\n");
 	fprintf(file,"Globals:\n");
-	elf_forivar(md->g->v) {
+	elf_arrfori(md->g->v) {
 		fprintf(file,"%04llX: ", i);
 		syslib_fpfv_(file,md->g->v[i],ltrue);
 		fprintf(file,"\n");
@@ -87,7 +87,7 @@ void lang_dumpmodule(elf_Module *md, elf_Handle file) {
 	fprintf(file,"-- BYTECODE --\n");
 	fprintf(file,"- INSTR: %i\n",md->nbytes);
 	fprintf(file,"- PID: %i\n",sys_getmypid());
-	elf_forivar(md->files) {
+	elf_arrfori(md->files) {
 		elf_File ff = md->files[i];
 		fprintf(file,"- FILE (%s):\n",ff.name);
 		fprintf(file,"INDEX INSTRUCTION\n");
@@ -101,7 +101,7 @@ void lang_dumpmodule(elf_Module *md, elf_Handle file) {
 		}
 	}
 #if 0
-	elf_forivar(md->p) {
+	elf_arrfori(md->p) {
 		elf_Proto p = md->p[i];
 		fprintf(file,"FUNC: [%i] %i,%i (%i:%i):\n",(int)i,p.bytes,p.nbytes,p.x,p.nlocals);
 		for (lbyteid j = 0; j < p.nbytes; ++j) {

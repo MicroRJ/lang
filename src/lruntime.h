@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lruntime.h
 ** lRuntime Structures
 */
@@ -23,7 +23,7 @@ typedef struct elf_CallFrame {
 	/* the closure this call frame belongs to */
 	elf_Closure *cl;
 	/* the object for meta fields, meta calls and the likes */
-	elf_obj *obj;
+	elf_Object *obj;
 	/* pointer to base stack address, the callee should
 	yield starting at base[-1], should have base[-1..y)
 	registers to write to. */
@@ -79,10 +79,11 @@ typedef struct lRuntime {
 	elf_tab *metatable_tab;
 	/* current byte */
 	elf_int j;
-	elf_obj **gc;
-	elf_int gcthreshold;
-	elf_bool isgcpaused;
 	elf_bool logging;
+	elf_Object **gc;
+	elf_bool     gcflags;
+	elf_int      gcmemory;
+	elf_int      gcthreshold;
 } lRuntime;
 
 

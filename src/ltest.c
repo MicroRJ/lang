@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** ltest.c
 ** Test Tools
 */
@@ -120,8 +120,8 @@ int testlib_gc(lRuntime *c) {
 }
 
 
-int _gidof(elf_Module *fs, elf_obj *j) {
-	elf_forivar(fs->g->v) {
+int _gidof(elf_Module *fs, elf_Object *j) {
+	elf_arrfori(fs->g->v) {
 		if (fs->g->v[i].j == j) {
 			return i;
 		}
@@ -150,9 +150,9 @@ void tstlib_load(lRuntime *rt) {
 	/* todo: ugly */
 	lang_addglobal(md,elf_pushnewstr(rt,"__of"),lang_C(testlib___of));
 
-	lang_addglobal(md,elf_pushnewstr(rt,"gc"),lang_C(testlib_gc));
-	lang_addglobal(md,elf_pushnewstr(rt,"gcpause"),lang_C(testlib_gcpause));
-	lang_addglobal(md,elf_pushnewstr(rt,"gcunpause"),lang_C(testlib_gcunpause));
+	lang_addglobal(md,elf_pushnewstr(rt,"__gc"),lang_C(testlib_gc));
+	lang_addglobal(md,elf_pushnewstr(rt,"__gcpause"),lang_C(testlib_gcpause));
+	lang_addglobal(md,elf_pushnewstr(rt,"__gcunpause"),lang_C(testlib_gcunpause));
 	lang_addglobal(md,elf_pushnewstr(rt,"__disasm"),lang_C(testlib_disasm));
 	lang_addglobal(md,elf_pushnewstr(rt,"__logging"),lang_C(testlib_logging));
 	lang_addglobal(md,elf_pushnewstr(rt,"__globallogging"),lang_C(testlib_globallogging));

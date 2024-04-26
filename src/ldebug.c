@@ -1,11 +1,11 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** ldebug.c
 ** Debug Tools
 */
 
 
-lglobaldecl int (*lang_globalassertionhook)(ldebugloc);
+elf_globaldecl int (*lang_globalassertionhook)(ldebugloc);
 
 
 void lang_setasserthook(int (*hook)(ldebugloc)) {

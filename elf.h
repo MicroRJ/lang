@@ -1,10 +1,10 @@
 /*
 ** See Copyright Notice Below.
-** lang.h
+** elf.h
 ** The elf-λ language.
 */
-#ifndef _lang_
-#define _lang_
+#ifndef _elf_lang_
+#define _elf_lang_
 
 #pragma warning(push)
 #pragma warning(disable:4100)
@@ -54,9 +54,13 @@
 
 
 /* todo: porting */
-#define lglobaldecl static
+#define elf_globaldecl static
 #define lthreaddecl static __declspec(thread)
 #define llibfn __declspec(dllexport)
+
+
+#define MEGABYTES(x) ((x)*1024llu*1024llu)
+#define GIGABYTES(x) ((x)*1024llu*1024llu*1024llu)
 
 
 #define lfalse ("false",(elf_bool)(0))
@@ -67,8 +71,8 @@
 typedef struct lRuntime lRuntime;
 typedef struct elf_FileState elf_FileState;
 typedef struct elf_tab elf_tab;
-typedef struct elf_str elf_str;
-typedef struct elf_obj elf_obj;
+typedef struct elf_String elf_String;
+typedef struct elf_Object elf_Object;
 typedef struct elf_Closure elf_Closure;
 
 
@@ -105,6 +109,9 @@ void elf_tabmfld(lRuntime *R, elf_tab *obj, char *name, lBinding b);
 #include <Windowsx.h>
 #endif
 /* otherwise user is prob on a calculator */
+
+elf_int lang_clocktime();
+elf_num lang_timediffs(elf_int begin);
 
 
 #include <src/lsys.c>

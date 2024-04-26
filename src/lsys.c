@@ -1,5 +1,5 @@
 /*
-** See Copyright Notice In lang.h
+** See Copyright Notice In elf.h
 ** lsys.c
 ** System Tools
 */
@@ -152,9 +152,9 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 #endif
 	leave:
 	// if LPASSED(error) {
-	// 	lang_loginfo("'%s': file loaded",name);
+	// 	elf_loginfo("'%s': file loaded",name);
 	// } else {
-	// 	lang_loginfo("'%s': failed to load file, %s",name,ERNAME(error));
+	// 	elf_loginfo("'%s': failed to load file, %s",name,ERNAME(error));
 	// }
 	return error;
 
