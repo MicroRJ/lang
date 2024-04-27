@@ -14,7 +14,7 @@ int main(int n, char **c) {
 	elf_inimem();
 
 	elf_Module M = {0};
-	elf_Runtime R = {&M};
+	elf_Runtime R = {{&M}};
 	R.logging = lfalse;
 	R.stklen = 4096;
 	R.stk = R.top = elf_newmemzro(lHEAP,sizeof(elf_val)*R.stklen);
@@ -43,10 +43,12 @@ int main(int n, char **c) {
 	elf_FileState fs = {0};
 	elf_loadfile(&R,&fs,filename,0,0);
 
+	#if defined(_MSC_VER)
 	FILE *file;
 	fopen_s(&file,S_tpf("%s.module.ignore",filename->c),"wb");
 	if (file != lnil) lang_dumpmodule(&M,file);
 	fclose(file);
+	#endif
 
 	printf("exited\n");
 	return 0;

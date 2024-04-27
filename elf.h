@@ -21,6 +21,11 @@
 #elif defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-braces"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wnon-literal-null-conversion"
+#pragma GCC diagnostic ignored "-Wparentheses-equality"
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+#pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 
@@ -79,6 +84,11 @@
 
 #define MEGABYTES(x) ((x)*1024llu*1024llu)
 #define GIGABYTES(x) ((x)*1024llu*1024llu*1024llu)
+
+/* todo: */
+#if !defined(_WIN32)
+	#define MAX_PATH 0xff
+#endif
 
 
 #define lfalse ("false",(elf_bool)(0))

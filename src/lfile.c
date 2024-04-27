@@ -299,8 +299,8 @@ lnodeop tktonode(ltokentype tk) {
 		case TK_LEFT_SHIFT:         return NODE_BITSHL;
 		case TK_RIGHT_SHIFT:        return NODE_BITSHR;
 		case TK_BIT_XOR:            return NODE_BITXOR;
+		default: 						 return NODE_NONE;
 	}
-	return NODE_NONE;
 }
 
 

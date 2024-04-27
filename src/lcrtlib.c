@@ -6,11 +6,13 @@
 
 
 #include <time.h>
+
+#if defined(_WIN32)
 #include <conio.h>
 #include <process.h>
 #include <io.h>
 #include <direct.h>
-
+#endif
 
 
 int crtlib_floor(elf_Runtime *R) {
@@ -60,6 +62,8 @@ int crtlib_exit(elf_Runtime *rt) {
 	return 0;
 }
 
+
+#if defined(_MSC_VER)
 
 int crtlib__getch(elf_Runtime *rt) {
 	elf_putint(rt,_getch());
@@ -196,7 +200,27 @@ int crtlib_system(elf_Runtime *rt) {
 	elf_putint(rt,system(cl->c));
 	return 1;
 }
-
+#else
+int crtlib__getch(elf_Runtime *R) { return 0; }
+int crtlib__getpid(elf_Runtime *R) { return 0; }
+int crtlib_time(elf_Runtime *R) { return 0; }
+int crtlib_clock(elf_Runtime *R) { return 0; }
+int crtlib__strdate(elf_Runtime *R) { return 0; }
+int crtlib__strtime(elf_Runtime *R) { return 0; }
+int crtlib_fopen(elf_Runtime *R) { return 0; }
+int crtlib_fclose(elf_Runtime *R) { return 0; }
+int crtlib_fsize(elf_Runtime *R) { return 0; }
+int crtlib__unlink(elf_Runtime *R) { return 0; }
+int crtlib__unlock_file(elf_Runtime *R) { return 0; }
+int crtlib__write(elf_Runtime *R) { return 0; }
+int crtlib__close(elf_Runtime *R) { return 0; }
+int crtlib__commit(elf_Runtime *R) { return 0; }
+int crtlib__chdir(elf_Runtime *R) { return 0; }
+int crtlib__chdrive(elf_Runtime *R) { return 0; }
+int crtlib__chmode(elf_Runtime *R) { return 0; }
+int crtlib__execl(elf_Runtime *R) { return 0; }
+int crtlib_system(elf_Runtime *R) { return 0; }
+#endif
 
 lapi void crtlib_load(elf_Runtime *rt) {
 	elf_Module *md = rt->md;

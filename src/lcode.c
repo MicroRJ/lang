@@ -41,7 +41,7 @@ void langL_localdealloc(elf_FileState *fs, llocalid x) {
 lbyteid langL_addbyte(elf_FileState *fs, llineid line, lBytecode byte) {
 	elf_FileFunc *fn = fs->fn;
 	elf_Module *md = fs->md;
-	if (0) bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
+	if (0) elf_bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
 
 	elf_arradd(md->lines,line);
 	elf_arradd(md->bytes,byte);
@@ -534,9 +534,9 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 					llocalid xx = langL_localize(fs,line,v.y);
 					elf_emitbytexy(fs,line,BC_ISNIL,x,xx);
 				} else goto _else;
-			} else { _else:
-				llocalid xx = langL_localize(fs,line,v.x);
-				llocalid yy = langL_localize(fs,line,v.y);
+			} else { llocalid xx,yy; _else:
+				xx = langL_localize(fs,line,v.x);
+				yy = langL_localize(fs,line,v.y);
 				elf_emitbytexyz(fs,line,nodetobyte(v.k),x,xx,yy);
 			}
 		} break;
@@ -573,7 +573,7 @@ void langL_moveto(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
 			llocalid xx = langL_localize(fs,line,v.x);
 			llocalid ii = langL_localize(fs,line,v.y);
 			llocalid yy = langL_localize(fs,line,y);
-			lnodeop op = v.k == NODE_INDEX ? BC_SETINDEX : BC_SETFIELD;
+			lbyteop op = v.k == NODE_INDEX ? BC_SETINDEX : BC_SETFIELD;
 			elf_emitbytexyz(fs,line,op,xx,ii,yy);
 		} break;
 		case NODE_METAFIELD: {
@@ -776,12 +776,12 @@ lbyteop nodetobyte(lnodeop tt) {
 		case NODE_EQ:      	return BC_EQ;
 		case NODE_LT:      	return BC_LT;
 		case NODE_LTEQ:    	return BC_LTEQ;
-		case NODE_BITSHL:    	return BC_SHL;
-		case NODE_BITSHR:    	return BC_SHR;
-		case NODE_BITXOR:    	return BC_XOR;
+		case NODE_BITSHL: return BC_SHL;
+		case NODE_BITSHR: return BC_SHR;
+		case NODE_BITXOR: return BC_XOR;
+		/* for the intended use cases, this is an error */
+		default: LNOBRANCH;
 	}
-	/* for intended use cases, this is an error */
-	LNOBRANCH;
-	return NODE_NONE;
+	return BC_HALT;
 }
 

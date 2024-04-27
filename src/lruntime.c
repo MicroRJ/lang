@@ -154,7 +154,7 @@ int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocal
 	if (filename == lnil) filename = elf_checkstr(R,x);
 
 	char *contents;
-	Error error = sys_loadfilebytes(lHEAP,&contents,filename->string);
+	Error error = sys_loadfilebytes(lHEAP,(void**)&contents,filename->string);
 	if (LFAILED(error)) return -1;
 
 	elf_Module *M = R->M;
@@ -195,7 +195,10 @@ int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocal
 
 	R->frame->locals[x].tag = TAG_CLS;
 	R->frame->locals[x].f   = elf_newcl(R,p);
-	if (R->top == R->call->locals) __debugbreak(); // ++ R->top;
+	/* todo: come back to this */
+	if (R->top == R->call->locals) {
+		elf_debugger(); // ++ R->top;
+	}
 	int nyield = elf_callfn(R,lnil,x,x,0,y);
 
 	/* todo: lines? */
@@ -228,11 +231,13 @@ int elf_run(elf_Runtime *R) {
 		elf_int bc = fn.bytes + jp;
 		lBytecode b = md->bytes[bc];
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
 		if (R->logging || call->logging) {
-			bytefpf(md,stdout,jp,b);
+			elf_bytefpf(md,stdout,jp,b);
 		}
-		if (R->debugbreak) __debugbreak();
+		if (R->debugbreak) {
+			elf_debugger();
+		}
 #endif
 
 		switch (b.k) {

@@ -5,14 +5,13 @@
 */
 
 
-/* this is just to get some basic games
-going on */
+/* this is just to get some basic games going on */
 
-# pragma  comment(lib,"Ws2_32")
-#include  "Winsock2.h"
-#include  "ws2tcpip.h"
-#include    "ws2def.h"
-
+#if defined(_WIN32)
+# pragma comment(lib,"Ws2_32")
+#include "Winsock2.h"
+#include "ws2tcpip.h"
+#include   "ws2def.h"
 
 typedef struct LMSG {
 	unsigned int length;
@@ -168,6 +167,18 @@ lapi int netlib_recv(elf_Runtime *R) {
 	} else elf_putnil(R);
 	return 1;
 }
+#else
+lapi int netlib_init(elf_Runtime *R) { return 0; };
+lapi int netlib_close(elf_Runtime *R) { return 0; };
+lapi int netlib_listen(elf_Runtime *R) { return 0; };
+lapi int netlib_accept(elf_Runtime *R) { return 0; };
+lapi int netlib_pollclient(elf_Runtime *R) { return 0; };
+lapi int netlib_tcpserver(elf_Runtime *R) { return 0; };
+lapi int netlib_tcpclient(elf_Runtime *R) { return 0; };
+lapi int netlib_send(elf_Runtime *R) { return 0; };
+lapi int netlib_ioctl(elf_Runtime *R) { return 0; };
+lapi int netlib_recv(elf_Runtime *R) { return 0; };
+#endif
 
 
 lapi void netlib_load(elf_Runtime *R) {

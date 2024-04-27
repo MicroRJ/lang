@@ -43,7 +43,7 @@ int linelen(char *p, int m) {
 
 
 int syslib_fpfv_(FILE *file, elf_val v, elf_bool quotes);
-void bytefpf(elf_Module *md, FILE *file, lbyteid id, lBytecode b) {
+void elf_bytefpf(elf_Module *md, FILE *file, lbyteid id, lBytecode b) {
 	fprintf(file,"%04i\t%s"
 	,	id, lang_bytename(b.k));
 	if (lang_byteclass(b.k) == BC_CLASS_XYZ) {
@@ -97,7 +97,7 @@ void lang_dumpmodule(elf_Module *md, elf_Handle file) {
 			// char *lineloc;
 			// elfX_getlocinfo(md->file,md->lines[j],&linenum,&lineloc);
 			// fprintf(file,"%-3i:%-3i",linenum,(int)(md->lines[j]-lineloc));
-			bytefpf(md,file,j,b);
+			elf_bytefpf(md,file,j,b);
 		}
 	}
 #if 0
@@ -106,7 +106,7 @@ void lang_dumpmodule(elf_Module *md, elf_Handle file) {
 		fprintf(file,"FUNC: [%i] %i,%i (%i:%i):\n",(int)i,p.bytes,p.nbytes,p.x,p.nlocals);
 		for (lbyteid j = 0; j < p.nbytes; ++j) {
 			lBytecode b = md->bytes[p.bytes+j];
-			bytefpf(md,file,j,b);
+			elf_bytefpf(md,file,j,b);
 		}
 		fprintf(file,"end\n");
 	}

@@ -61,16 +61,15 @@ int syslib_libfn(elf_Runtime *rt) {
 int syslib_loadlib(elf_Runtime *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_Handle lib = sys_loadlib(name->c);
-	if (lib != INVALID_HANDLE_VALUE) {
+	if (lib != lnil) {
 		elf_putsys(rt,lib);
-	} else {
-		elf_putnil(rt);
-	}
+	} else elf_putnil(rt);
 	return 1;
 }
 
 
 int syslib_exec(elf_Runtime *R) {
+#if defined(_WIN32)
 	elf_String *cmd = elf_getstr(R,0);
 	STARTUPINFO si = {sizeof(si)};
 	PROCESS_INFORMATION pi = {0};
@@ -78,6 +77,9 @@ int syslib_exec(elf_Runtime *R) {
 	elf_putint(R,result);
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+#else
+	elf_putint(R,0);
+#endif
 	return 1;
 }
 
@@ -98,7 +100,11 @@ int syslib_freadall(elf_Runtime *R) {
 
 int syslib_ftemp(elf_Runtime *R) {
 	FILE *file = {0};
+#if defined(_MSC_VER)
 	tmpfile_s(&file);
+#else
+	file = tmpfile();
+#endif
 	elf_putsys(R,(elf_Handle)file);
 	return 1;
 }
@@ -106,7 +112,6 @@ int syslib_ftemp(elf_Runtime *R) {
 
 int syslib_workdir(elf_Runtime *rt) {
 	elf_logerror("this function is deprecated");
-
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
 	elf_pushnewstr(rt,buf);
@@ -225,6 +230,7 @@ elf_globaldecl elf_String *keyname;
 elf_globaldecl elf_String *keypath;
 elf_globaldecl elf_String *keyisdir;
 void syslib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *flags, elf_Closure *cl) {
+#if defined(_WIN32)
 	elf_Module *md = R->md;
 
 	char *dir = S_tpf("%s\\*",d->c);
@@ -254,6 +260,7 @@ void syslib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *
 			}
 		}
 	} while (FindNextFileA(h,&f));
+#endif
 }
 
 
