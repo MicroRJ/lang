@@ -109,10 +109,10 @@ int syslib_freadall(elf_Runtime *R) {
 
 int syslib_ftemp(elf_Runtime *R) {
 	FILE *file = {0};
-#if defined(_MSC_VER)
-	tmpfile_s(&file);
-#else
+#if defined(PLATFORM_WEB)
 	file = tmpfile();
+#else
+	tmpfile_s(&file);
 #endif
 	elf_putsys(R,(elf_Handle)file);
 	return 1;

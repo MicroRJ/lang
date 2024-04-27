@@ -63,6 +63,28 @@ int crtlib_exit(elf_Runtime *rt) {
 }
 
 
+int crtlib_fopen(elf_Runtime *c) {
+	elf_String *name = elf_getstr(c,0);
+	elf_String *flags = elf_getstr(c,1);
+	FILE *file = lnil;
+#if defined(PLATFORM_WEB)
+	file = fopen(name->c,flags->c);
+#else
+	fopen_s(&file,name->c,flags->c);
+#endif
+	elf_putsys(c,(elf_Handle) file);
+	return 1;
+}
+
+
+int crtlib_fclose(elf_Runtime *c) {
+	elf_Handle file = elf_getsys(c,0);
+	fclose(file);
+	return 0;
+}
+
+
+
 #if defined(_MSC_VER)
 
 int crtlib__getch(elf_Runtime *rt) {
@@ -102,23 +124,6 @@ int crtlib__strtime(elf_Runtime *rt) {
 	_strtime_s(buf,sizeof(buf));
 	elf_putnewstr(rt,buf);
 	return 1;
-}
-
-
-int crtlib_fopen(elf_Runtime *c) {
-	elf_String *name = elf_getstr(c,0);
-	elf_String *flags = elf_getstr(c,1);
-	FILE *file = lnil;
-	fopen_s(&file,name->c,flags->c);
-	elf_putsys(c,(elf_Handle) file);
-	return 1;
-}
-
-
-int crtlib_fclose(elf_Runtime *c) {
-	elf_Handle file = elf_getsys(c,0);
-	fclose(file);
-	return 0;
 }
 
 
@@ -214,8 +219,6 @@ DEFSTUB(crtlib_time)
 DEFSTUB(crtlib_clock)
 DEFSTUB(crtlib__strdate)
 DEFSTUB(crtlib__strtime)
-DEFSTUB(crtlib_fopen)
-DEFSTUB(crtlib_fclose)
 DEFSTUB(crtlib_fsize)
 DEFSTUB(crtlib__unlink)
 DEFSTUB(crtlib__unlock_file)
