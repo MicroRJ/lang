@@ -54,7 +54,7 @@ loadassets = fun() ? {
 	let time_ = clocktime()
 	finally pf("loaded assets, took => ", timediffs(time_))
 
-	elf.sys.pf("loading assets... ")
+	elf.pf("loading assets... ")
 	textures = {
 		tiles = lgi_loadtexture("assets/tiles2.png"),
 		stag = lgi_loadtexture("assets/critter_stag.png"),

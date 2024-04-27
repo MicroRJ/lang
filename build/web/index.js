@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\rodri\AppData\Local\Temp\tmpzxst6j90.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpvo_d1es2.js
 
   if (!Module.expectedDataFileDownloads) {
     Module.expectedDataFileDownloads = 0;
@@ -217,25 +217,25 @@ Module['FS_createPath']("/code", "tests", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/code/tests/bug1.elf", "start": 0, "end": 669}, {"filename": "/code/tests/bug2.elf", "start": 669, "end": 1788}, {"filename": "/code/tests/bug3.elf", "start": 1788, "end": 2119}, {"filename": "/code/tests/fib.test.lang", "start": 2119, "end": 2979}, {"filename": "/code/tests/finally.test.lang", "start": 2979, "end": 3397}, {"filename": "/code/tests/find.lang", "start": 3397, "end": 4175}, {"filename": "/code/tests/for.test.lang", "start": 4175, "end": 4253}, {"filename": "/code/tests/fun.test.lang", "start": 4253, "end": 4799}, {"filename": "/code/tests/fun1.test.lang", "start": 4799, "end": 4916}, {"filename": "/code/tests/gc.f", "start": 4916, "end": 5294}, {"filename": "/code/tests/hash.lang", "start": 5294, "end": 6196}, {"filename": "/code/tests/if.test.lang", "start": 6196, "end": 6908}, {"filename": "/code/tests/inc.lang", "start": 6908, "end": 7017}, {"filename": "/code/tests/inv.lang", "start": 7017, "end": 7315}, {"filename": "/code/tests/j.f", "start": 7315, "end": 8091}, {"filename": "/code/tests/jit.lang", "start": 8091, "end": 9274}, {"filename": "/code/tests/load.lang", "start": 9274, "end": 9673}, {"filename": "/code/tests/match.test.lang", "start": 9673, "end": 10152}, {"filename": "/code/tests/meta.test.lang", "start": 10152, "end": 10207}, {"filename": "/code/tests/predict.lang", "start": 10207, "end": 10307}, {"filename": "/code/tests/question.lang", "start": 10307, "end": 10460}, {"filename": "/code/tests/simple.lang", "start": 10460, "end": 11403}, {"filename": "/code/tests/stack.test.lang", "start": 11403, "end": 11733}, {"filename": "/code/tests/test.lang", "start": 11733, "end": 12723}, {"filename": "/code/tests/tests.ignore", "start": 12723, "end": 12751}, {"filename": "/code/tests/unload.test.lang", "start": 12751, "end": 12963}], "remote_package_size": 12963});
+    loadPackage({"files": [{"filename": "/code/tests/.module.ignore", "start": 0, "end": 2084}, {"filename": "/code/tests/bug1.elf", "start": 2084, "end": 2753}, {"filename": "/code/tests/bug1.elf.module.ignore", "start": 2753, "end": 3562}, {"filename": "/code/tests/bug2.elf", "start": 3562, "end": 4681}, {"filename": "/code/tests/bug2.elf.module.ignore", "start": 4681, "end": 5100}, {"filename": "/code/tests/bug3.elf", "start": 5100, "end": 5431}, {"filename": "/code/tests/bug3.elf.module.ignore", "start": 5431, "end": 6065}, {"filename": "/code/tests/fib.test.lang", "start": 6065, "end": 6925}, {"filename": "/code/tests/filefind.web2.ignore", "start": 6925, "end": 19213}, {"filename": "/code/tests/finally.test.lang", "start": 19213, "end": 19631}, {"filename": "/code/tests/find.lang", "start": 19631, "end": 20409}, {"filename": "/code/tests/for.test.lang", "start": 20409, "end": 20487}, {"filename": "/code/tests/fun.test.lang", "start": 20487, "end": 21033}, {"filename": "/code/tests/fun1.test.lang", "start": 21033, "end": 21150}, {"filename": "/code/tests/gc.f", "start": 21150, "end": 21528}, {"filename": "/code/tests/hash.lang", "start": 21528, "end": 22430}, {"filename": "/code/tests/if.test.lang", "start": 22430, "end": 23142}, {"filename": "/code/tests/inc.lang", "start": 23142, "end": 23251}, {"filename": "/code/tests/inv.lang", "start": 23251, "end": 23549}, {"filename": "/code/tests/j.f", "start": 23549, "end": 24325}, {"filename": "/code/tests/jit.lang", "start": 24325, "end": 25508}, {"filename": "/code/tests/load.lang", "start": 25508, "end": 25907}, {"filename": "/code/tests/match.test.lang", "start": 25907, "end": 26386}, {"filename": "/code/tests/meta.test.lang", "start": 26386, "end": 26441}, {"filename": "/code/tests/predict.lang", "start": 26441, "end": 26541}, {"filename": "/code/tests/question.lang", "start": 26541, "end": 26694}, {"filename": "/code/tests/simple.lang", "start": 26694, "end": 27637}, {"filename": "/code/tests/stack.test.lang", "start": 27637, "end": 27967}, {"filename": "/code/tests/test.lang", "start": 27967, "end": 28957}, {"filename": "/code/tests/test.lang.module.ignore", "start": 28957, "end": 55468}, {"filename": "/code/tests/tests.ignore", "start": 55468, "end": 55496}, {"filename": "/code/tests/unload.ignore", "start": 55496, "end": 55529}, {"filename": "/code/tests/unload.test.lang", "start": 55529, "end": 55741}, {"filename": "/code/tests/unload.test.lang.module.ignore", "start": 55741, "end": 57444}], "remote_package_size": 57444});
 
   })();
 
-// end include: C:\Users\rodri\AppData\Local\Temp\tmpzxst6j90.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmp2zunpvd7.js
+// end include: C:\Users\rodri\AppData\Local\Temp\tmpvo_d1es2.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpsehj587w.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmp2zunpvd7.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmpyqmh2ct2.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmpsehj587w.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpnmk4cnxt.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach(function(task) {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmpyqmh2ct2.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmpnmk4cnxt.js
 
 
 // Sometimes an existing Module object exists with properties

@@ -1,8 +1,7 @@
-
-log ?= pf
+log ?= elf.pf
 load "code/games/lgi.elf"
 if _chdir("code/games/shooter") ? {
-	pf("invalid pwd: ", pwd())
+	log("invalid pwd: ", pwd())
 	leave false
 }
 load "vec.elf"
@@ -30,8 +29,8 @@ lgi_initWindowed(1024,720, "shooter")
 
 loadassets = fun() ? {
 	let time_ = clocktime()
-	finally pf("loaded assets, took => ", timediffs(time_))
-	pf("loading assets... ")
+	finally log("loaded assets, took => ", timediffs(time_))
+	log("loading assets... ")
 	textures = {
 		"player" = lgi_loadtexture("assets/Atlas.png"),
 		"background" = lgi_loadtexture("assets/background.png"),

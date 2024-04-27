@@ -159,7 +159,7 @@ void elf_register(elf_Runtime *, char *, lBinding fn);
 #include "src/lcode.c"
 #include "src/lfile.c"
 #include "src/ltest.c"
-#include "src/lsyslib.c"
+#include "src/lelflib.c"
 #include "src/lcrtlib.c"
 #include "src/lnetlib.c"
 #include "src/lruntime.c"

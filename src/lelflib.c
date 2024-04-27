@@ -343,9 +343,9 @@ elf_api void syslib_load(elf_Runtime *R) {
 	elf_register(R,"elf.loadfile",syslib_loadfile);
 	elf_register(R,"elf.sys.clocktime",syslib_clocktime);
 	elf_register(R,"elf.sys.timediffs",syslib_timediffs);
-	elf_register(R,"elf.sys.fpf",syslib_fpf);
-	elf_register(R,"elf.sys.lpf",syslib_lpf);
-	elf_register(R,"elf.sys.pf",syslib_pf);
+	elf_register(R,"elf.fpf",syslib_fpf);
+	elf_register(R,"elf.lpf",syslib_lpf);
+	elf_register(R,"elf.pf",syslib_pf);
 
 
 

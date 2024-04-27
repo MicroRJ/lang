@@ -201,25 +201,32 @@ int crtlib_system(elf_Runtime *rt) {
 	return 1;
 }
 #else
-int crtlib__getch(elf_Runtime *R) { return 0; }
-int crtlib__getpid(elf_Runtime *R) { return 0; }
-int crtlib_time(elf_Runtime *R) { return 0; }
-int crtlib_clock(elf_Runtime *R) { return 0; }
-int crtlib__strdate(elf_Runtime *R) { return 0; }
-int crtlib__strtime(elf_Runtime *R) { return 0; }
-int crtlib_fopen(elf_Runtime *R) { return 0; }
-int crtlib_fclose(elf_Runtime *R) { return 0; }
-int crtlib_fsize(elf_Runtime *R) { return 0; }
-int crtlib__unlink(elf_Runtime *R) { return 0; }
-int crtlib__unlock_file(elf_Runtime *R) { return 0; }
-int crtlib__write(elf_Runtime *R) { return 0; }
-int crtlib__close(elf_Runtime *R) { return 0; }
-int crtlib__commit(elf_Runtime *R) { return 0; }
-int crtlib__chdir(elf_Runtime *R) { return 0; }
-int crtlib__chdrive(elf_Runtime *R) { return 0; }
-int crtlib__chmode(elf_Runtime *R) { return 0; }
-int crtlib__execl(elf_Runtime *R) { return 0; }
-int crtlib_system(elf_Runtime *R) { return 0; }
+
+#define DEFSTUB(NAME) \
+int NAME(elf_Runtime *R) {\
+	elf_logerror(XSTRINGIFY(NAME)"(): not implemented for this platform");\
+	return 0;\
+}
+
+DEFSTUB(crtlib__getch)
+DEFSTUB(crtlib__getpid)
+DEFSTUB(crtlib_time)
+DEFSTUB(crtlib_clock)
+DEFSTUB(crtlib__strdate)
+DEFSTUB(crtlib__strtime)
+DEFSTUB(crtlib_fopen)
+DEFSTUB(crtlib_fclose)
+DEFSTUB(crtlib_fsize)
+DEFSTUB(crtlib__unlink)
+DEFSTUB(crtlib__unlock_file)
+DEFSTUB(crtlib__write)
+DEFSTUB(crtlib__close)
+DEFSTUB(crtlib__commit)
+DEFSTUB(crtlib__chdir)
+DEFSTUB(crtlib__chdrive)
+DEFSTUB(crtlib__chmode)
+DEFSTUB(crtlib__execl)
+DEFSTUB(crtlib_system)
 #endif
 
 elf_api void crtlib_load(elf_Runtime *rt) {
