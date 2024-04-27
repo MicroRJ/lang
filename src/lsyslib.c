@@ -123,7 +123,7 @@ int syslib_workdir(elf_Runtime *rt) {
 	elf_logerror("this function is deprecated");
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
-	elf_pushnewstr(rt,buf);
+	elf_putnewstr(rt,buf);
 	if (rt->f->x == 1) {
 		elf_String *s = elf_getstr(rt,0);
 		sys_setpwd(s->c);
@@ -135,7 +135,7 @@ int syslib_workdir(elf_Runtime *rt) {
 int syslib_pwd(elf_Runtime *rt) {
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
-	elf_pushnewstr(rt,buf);
+	elf_putnewstr(rt,buf);
 	return 1;
 }
 
@@ -208,20 +208,20 @@ int syslib_pf(elf_Runtime *rt) {
 }
 
 
-lapi int syslib_sleep(elf_Runtime *rt) {
+elf_api int syslib_sleep(elf_Runtime *rt) {
 	elf_assert(rt->f->x == 1);
 	sys_sleep(elf_getint(rt,0));
 	return 0;
 }
 
 
-lapi int syslib_clocktime(elf_Runtime *rt) {
+elf_api int syslib_clocktime(elf_Runtime *rt) {
 	elf_putint(rt,sys_clocktime());
 	return 1;
 }
 
 
-lapi int syslib_timediffs(elf_Runtime *rt) {
+elf_api int syslib_timediffs(elf_Runtime *rt) {
 	elf_assert(rt->f->x == 1);
 	elf_int i = elf_getint(rt,0);
 	elf_putnum(rt,(sys_clocktime() - i) / (elf_num) sys_clockhz());
@@ -238,60 +238,89 @@ elf_bool isvirtual(char const *fn) {
 elf_globaldecl elf_String *keyname;
 elf_globaldecl elf_String *keypath;
 elf_globaldecl elf_String *keyisdir;
+
 void syslib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *flags, elf_Closure *cl) {
-#if defined(_WIN32)
-	elf_Module *md = R->md;
-
-	char *dir = S_tpf("%s\\*",d->c);
+#if defined(PLATFORM_WIN32)
 	WIN32_FIND_DATAA f;
-	HANDLE h = FindFirstFileA(dir,&f);
-
+	HANDLE h = FindFirstFileA(elf_tpf("%s\\*",d->c),&f);
 	if (h != INVALID_HANDLE_VALUE) do {
 		if (isvirtual(f.cFileName)) continue;
 
 		int isdir = 0 != (f.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 
 		elf_String *name = elf_newstr(R,f.cFileName);
-		elf_String *path = elf_newstr(R,S_tpf("%s\\%s",d->string,f.cFileName));
+		elf_String *path = elf_newstr(R,elf_tpf("%s\\%s",d->c,f.cFileName));
 
-		llocalid base = elf_putcl(R,cl);
-		elf_Table *file = elf_pushnewtab(R);
+		llocalid base = elf_putcls(R,cl);
+		elf_Table *file = elf_putnewtab(R);
 		elf_puttab(R,flags);
-		elf_tabput(file,lang_S(keyname),lang_S(name));
-		elf_tabput(file,lang_S(keypath),lang_S(path));
-		elf_tabput(file,lang_S(keyisdir),lang_I(isdir));
+		elf_tabsetstrfld(file,keyname,name);
+		elf_tabsetstrfld(file,keypath,path);
+		elf_tabsetintfld(file,keyisdir,isdir);
 
-		int r = elf_rootcall(R,base,2,1);
+		int r = elf_callfn(R,base,2,1);
 		if ((r > 0) && elf_getint(R,base)) {
-			elf_tabput(list,lang_S(path),lang_T(file));
+			elf_tabset(list,lang_S(path),lang_T(file));
 			if (isdir) {
 				syslib_listdir_(R,path,list,flags,cl);
 			}
 		}
 	} while (FindNextFileA(h,&f));
+#elif defined(PLATFORM_WEB)
+	DIR *dir = opendir(d->c);
+	if (dir != lnil) {
+		struct dirent *entry;
+		while ((entry = readdir(dir)) != lnil) {
+			if (isvirtual(entry->d_name)) {
+			 	continue;
+			}
+			elf_bool isdir = (entry->d_type & DT_DIR) != lfalse;
+			elf_val *top = elf_gettop(R);
+			elf_String *name = elf_putnewstr(R,entry->d_name);
+			elf_String *path = elf_putnewstr(R,elf_tpf("%s/%s",d->c,entry->d_name));
+
+			llocalid base = elf_putcls(R,cl);
+			/* file and flags arguments */
+			elf_Table *file = elf_putnewtab(R);
+			elf_puttab(R,flags);
+			elf_tabsetstrfld(file,keyname,name);
+			elf_tabsetstrfld(file,keypath,path);
+			elf_tabsetintfld(file,keyisdir,isdir);
+
+			int r = elf_callfn(R,base,2,1);
+			if ((r > 0) && elf_getint(R,base)) {
+				elf_tabset(list,lang_S(path),lang_T(file));
+				if (isdir) {
+					syslib_listdir_(R,path,list,flags,cl);
+				}
+			}
+			elf_settop(R,top);
+		}
+		closedir(dir);
+	}
 #endif
 }
 
 
-lapi int syslib_listdir(elf_Runtime *R) {
+elf_api int syslib_listdir(elf_Runtime *R) {
 	elf_assert(R->frame->x == 2);
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */
-	keyname = elf_pushnewstr(R,"name");
-	keypath = elf_pushnewstr(R,"path");
-	keyisdir = elf_pushnewstr(R,"isdir");
+	keyname = elf_putnewstr(R,"name");
+	keypath = elf_putnewstr(R,"path");
+	keyisdir = elf_putnewstr(R,"isdir");
 	elf_Closure *cl = elf_getcls(R,1);
 	elf_String *dir = elf_getstr(R,0);
-	elf_Table *flags = elf_pushnewtab(R);
+	elf_Table *flags = elf_putnewtab(R);
 	/* push list last to serve as return value */
-	elf_Table *list = elf_pushnewtab(R);
+	elf_Table *list = elf_putnewtab(R);
 	syslib_listdir_(R,dir,list,flags,cl);
 	return 1;
 }
 
 
 /* todo: can we do this from code */
-lapi void syslib_load(elf_Runtime *R) {
+elf_api void syslib_load(elf_Runtime *R) {
 	/* todo: these shouldn't be here */
 	elf_register(R,"ntoi",syslib_ntoi);
 	elf_register(R,"iton",syslib_iton);

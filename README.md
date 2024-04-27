@@ -1,25 +1,26 @@
 
-Look, I couldn't even come up with a
-name for this project, nonetheless,
-hopefully it turns into something.
+Welcome to elf, the programming language.
 
-Look at the 'code' tree to figure how
-how the language works.
+Try online:
+
+https://elflang.netlify.app
+
 
 This project is unreleased, meaning that
 it is not meant for public consumption,
 yet... aka use at your own risk.
 
+
 There are many incomplete features, and
-spurious code sprinkled here and there,
-but the core structure is fine and the
-code is tends to be organized.
+spurious code sprinkled here and there.
+
 
 This project is ideal for those interested
 in a minimalist, embeddable scripting
 language, written in vanilla C.
 
-lang has pretty standard and minimalist syntax,
+
+elf has pretty standard and minimalist syntax,
 ideal for getting stuff done quickly.
 
 ```
@@ -28,7 +29,6 @@ table = {1,2,3}
 pf(table) \\ {1,2,3}
 
 add3 = fun(x,y,z) ? (x + y + z)
-
 add3(1,2,3)
 ```
 
@@ -39,23 +39,10 @@ a dynamically typed language.
 
 ### TODO:
 
-- Can we figure out a name for this
-language? Ideally 3-5 letters and
-starts with 'l'.
+- Better Online Playground
 
-- Help me port this, see lsys.h for list
-of functions that need porting.
+- Incremental GC
 
-- Can we extend corelib please?
+- Tracing JIT!
 
-- Can we borrow some features of SSA to
-figure out the types of expressions at
-compile time to generate slightly more
-optimized bytecode?
-
-- keep working out the garbage collector
-and memory stuff, spurious code alert.
-
-- Can we get some machine code generation?
-
-- Add native multi-threading support
+- Multithreading!

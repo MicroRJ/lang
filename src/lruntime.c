@@ -5,6 +5,7 @@
 */
 
 
+
 elf_num elf_iton(elf_val v) {
 	return v.tag == TAG_INT ? (elf_num) v.i : v.n;
 }
@@ -41,18 +42,18 @@ void elf_throw(elf_Runtime *R, lbyteid id, char *error) {
 
 int langR_typecheck(elf_Runtime *R, lbyteid id, llocalid loc, lvaluetag x, lvaluetag y) {
 	if (x != y) {
-		elf_throw(R,id,S_tpf("$%i, expected %s, instead got %s",loc,tag2s[x],tag2s[y]));
+		elf_throw(R,id,elf_tpf("$%i, expected %s, instead got %s",loc,tag2s[x],tag2s[y]));
 	}
 	return x == y;
 }
 
 
-int elf_rootcall(elf_Runtime *R, llocalid rxy, int nx, int ny) {
-	return elf_callfn(R,lnil,rxy,rxy,nx,ny);
+int elf_callfn(elf_Runtime *R, llocalid rxy, int nx, int ny) {
+	return elf_callex(R,lnil,rxy,rxy,nx,ny);
 }
 
 
-int elf_callfn(elf_Runtime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
+int elf_callex(elf_Runtime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
 	elf_CallFrame *caller = R->call;
 	elf_val fn = caller->locals[rx];
 	elf_val *locals = caller->locals + rx + 1;
@@ -145,18 +146,17 @@ int elf_loadexpr(elf_Runtime *R, elf_String *contents, llocalid rxy, int ny) {
 	/* base register becomes closure */
 	R->call->locals[rxy].tag = TAG_CLS;
 	R->call->locals[rxy].f   = elf_newcl(R,p);
-	return elf_rootcall(R,rxy,0,ny);
+	return elf_callfn(R,rxy,0,ny);
 }
 
 
-int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocalid x, int y) {
 
-	if (filename == lnil) filename = elf_checkstr(R,x);
-
-	char *contents;
-	Error error = sys_loadfilebytes(lHEAP,(void**)&contents,filename->string);
-	if (LFAILED(error)) {
-		elf_logerror("'%s': could not read file",filename->c);
+int elf_loadcode(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocalid x, int y, char *contents) {
+	/* todo: I don't like this */
+	if (filename == lnil) {
+	 	filename = elf_checkstr(R,x);
+	}
+	if (contents == lnil) {
 		return -1;
 	}
 
@@ -202,11 +202,25 @@ int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocal
 	if (R->top == R->call->locals) {
 		elf_debugger(); // ++ R->top;
 	}
-	int nyield = elf_callfn(R,lnil,x,x,0,y);
+	int nyield = elf_callex(R,lnil,x,x,0,y);
 
 	/* todo: lines? */
 	// elf_delmem(lHEAP,contents);
 	return nyield;
+}
+
+
+int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *name, llocalid x, int y) {
+	if (name == lnil) {
+		name = elf_checkstr(R,x);
+	}
+	char *contents;
+	Error error = sys_loadfilebytes(lHEAP,(void**)&contents,name->string);
+	if (LFAILED(error)) {
+		elf_logerror("'%s': could not read file",name->c);
+		return -1;
+	}
+	return elf_loadcode(R,fs,name,x,y,contents);
 }
 
 
@@ -244,33 +258,34 @@ int elf_run(elf_Runtime *R) {
 #endif
 
 		switch (b.k) {
-			case BC_LEAVE: {
-				if (call->dl != lnil) {
-					call-> j = call->dl->j;
-					call->dl = call->dl->n;
-				} else goto leave;
-			} break;
-			case BC_DELAY: {
-				/* todo: can we make this better */
-				ldelaylist *dl = langM_alloc(lHEAP,sizeof(ldelaylist));
-				dl->n = c->dl;
-				dl->j = c->j;
-				c->dl = dl;
+	case BC_LEAVE: {
+		if (call->dl != lnil) {
+			call-> j = call->dl->j;
+			call->dl = call->dl->n;
+		} else goto leave;
+	} break;
+	case BC_DELAY: {
+		/* todo: can we make this better */
+		ldelaylist *dl;
+		dl = elf_alloc(lHEAP,sizeof(ldelaylist));
+		dl->n = c->dl;
+		dl->j = c->j;
+		c->dl = dl;
 
-				elf_assert(b.i >= 0);
-				c->j = jp + b.i;
-			} break;
-			case BC_YIELD: {
-				elf_assert(b.x >= 0);
-				/* check that we don't exceed number of
-				expected outputs */
-				int ny = MIN(b.z,call->ny);
-				for (llocalid y = 0; y < ny; ++y) {
-					caller->locals[call->ry+y] = locals[b.y+y];
-				}
-				call->ny = ny;
-				call->j = jp + b.x;
-			} break;
+		elf_assert(b.i >= 0);
+		c->j = jp + b.i;
+	} break;
+	case BC_YIELD: {
+		elf_assert(b.x >= 0);
+		/* check that we don't exceed number of
+		expected outputs */
+		int ny = MIN(b.z,call->ny);
+		for (llocalid y = 0; y < ny; ++y) {
+			caller->locals[call->ry+y] = locals[b.y+y];
+		}
+		call->ny = ny;
+		call->j = jp + b.x;
+	} break;
 			case BC_STKGET: {
 				langR_typecheck(R,bc,0,TAG_INT,locals[b.y].tag);
 				locals[b.x] = locals[locals[b.y].i];
@@ -355,7 +370,7 @@ int elf_run(elf_Runtime *R) {
 			} break;
 			case BC_SETINDEX: case BC_SETFIELD: {
 				if (langR_typecheck(R,bc,b.x,TAG_TAB,locals[b.x].tag)) {
-					elf_tabput(locals[b.x].t,locals[b.y],locals[b.z]);
+					elf_tabset(locals[b.x].t,locals[b.y],locals[b.z]);
 				} else LNOBRANCH;
 			} break;
 			case BC_SETMETATABLE: {
@@ -370,8 +385,8 @@ int elf_run(elf_Runtime *R) {
 				if (elf_tagisobj(xx.tag)) {
 					elf_val yy = locals[b.y];
 					elf_val zz = locals[b.z];
-					elf_tabput(xx.x_obj->metatable,yy,zz);
-				} else elf_throw(R,bc,S_tpf("'%s': not an object", tag2s[xx.tag]));
+					elf_tabset(xx.x_obj->metatable,yy,zz);
+				} else elf_throw(R,bc,elf_tpf("'%s': not an object", tag2s[xx.tag]));
 			} break;
 			case BC_METAFIELD: {
 				elf_val *yy = &locals[b.y];
@@ -379,16 +394,16 @@ int elf_run(elf_Runtime *R) {
 					locals[b.x] = elf_tablookup(yy->j->metatable,locals[b.z]);
 				} else {
 					locals[b.x] = (elf_val){TAG_NIL};
-					elf_throw(R,bc,S_tpf("'%s': not an object", tag2s[yy->tag]));
+					elf_throw(R,bc,elf_tpf("'%s': not an object", tag2s[yy->tag]));
 				}
 			} break;
 			case BC_METACALL: {
 				R->j = bc;
-				elf_callfn(R,locals[b.x].j,b.x+1,b.x,b.y,b.z);
+				elf_callex(R,locals[b.x].j,b.x+1,b.x,b.y,b.z);
 			} break;
 			case BC_CALL: {
 				R->j = bc;
-				elf_rootcall(R,b.x,b.y,b.z);
+				elf_callfn(R,b.x,b.y,b.z);
 			} break;
 			case BC_ISNIL: {
 				elf_val x = locals[b.y];

@@ -90,12 +90,12 @@ typedef struct elf_Closure {
 } elf_Closure;
 
 
-lapi elf_val lang_T(elf_Table *t);
-lapi elf_val lang_C(lBinding c);
-lapi elf_val lang_S(elf_String *s);
-lapi elf_val lang_F(elf_Closure *f);
-lapi elf_val lang_I(elf_int i);
-lapi elf_val lang_N(elf_num n);
+elf_api elf_val lang_T(elf_Table *t);
+elf_api elf_val lang_C(lBinding c);
+elf_api elf_val lang_S(elf_String *s);
+elf_api elf_val lang_F(elf_Closure *f);
+elf_api elf_val lang_I(elf_int i);
+elf_api elf_val lang_N(elf_num n);
 
 
 
@@ -132,49 +132,49 @@ int tisnil(elf_val x) {
 
 
 
-lapi elf_val lang_T(elf_Table *t) {
+elf_api elf_val lang_T(elf_Table *t) {
 	elf_val v = (elf_val){TAG_TAB};
 	v.t = t;
 	return v;
 }
 
 
-lapi elf_val lang_C(lBinding c) {
+elf_api elf_val lang_C(lBinding c) {
 	elf_val v = (elf_val){TAG_BID};
 	v.c = c;
 	return v;
 }
 
 
-lapi elf_val lang_H(elf_Handle h) {
+elf_api elf_val lang_H(elf_Handle h) {
 	elf_val v = (elf_val){TAG_SYS};
 	v.h = h;
 	return v;
 }
 
 
-lapi elf_val lang_S(elf_String *s) {
+elf_api elf_val lang_S(elf_String *s) {
 	elf_val v = (elf_val){TAG_STR};
 	v.s = s;
 	return v;
 }
 
 
-lapi elf_val lang_F(elf_Closure *f) {
+elf_api elf_val lang_F(elf_Closure *f) {
 	elf_val v = (elf_val){TAG_CLS};
 	v.f = f;
 	return v;
 }
 
 
-lapi elf_val lang_I(elf_int i) {
+elf_api elf_val lang_I(elf_int i) {
 	elf_val v = (elf_val){TAG_INT};
 	v.i = i;
 	return v;
 }
 
 
-lapi elf_val lang_N(elf_num n) {
+elf_api elf_val lang_N(elf_num n) {
 	elf_val v = (elf_val){TAG_NUM};
 	v.n = n;
 	return v;

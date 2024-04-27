@@ -5,10 +5,10 @@
 */
 
 
-/* em knows where this is at */
 #if defined(PLATFORM_WEB)
-#include <emscripten.h>
-#elif defined(_WIN32)
+#include <sys/types.h>
+#include <dirent.h>
+#elif defined(PLATFORM_WIN32)
 #pragma comment(lib,"user32")
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -22,7 +22,7 @@
 
 
 
-lapi elf_bool sys_debugger() {
+elf_api elf_bool sys_debugger() {
 #if defined(PLATFORM_WIN32)
 	DebugBreak();
 	return 1;
@@ -36,7 +36,7 @@ lapi elf_bool sys_debugger() {
 
 
 
-lapi void sys_consolelog(int type, char *message) {
+elf_api void sys_consolelog(int type, char *message) {
 #if defined(PLATFORM_WIN32)
 	OutputDebugStringA(message);
 #else
@@ -56,8 +56,8 @@ lapi void sys_consolelog(int type, char *message) {
 }
 
 
-lapi int sys_getlasterror() {
-#if defined(_WIN32)
+elf_api int sys_getlasterror() {
+#if defined(PLATFORM_WIN32)
 	return GetLastError();
 #else
 	return 0;
@@ -65,16 +65,16 @@ lapi int sys_getlasterror() {
 }
 
 
-lapi void sys_geterrormsg(int error, char *buff, int len) {
-#if defined(_WIN32)
+elf_api void sys_geterrormsg(int error, char *buff, int len) {
+#if defined(PLATFORM_WIN32)
 	if (error == 0) error = GetLastError();
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,0x00,error,LANG_USER_DEFAULT,buff,len,NULL);
 #endif
 }
 
 
-lapi void *sys_valloc(elf_int length) {
-#if defined(_WIN32)
+elf_api void *sys_valloc(elf_int length) {
+#if defined(PLATFORM_WIN32)
 	return VirtualAlloc(NULL,length,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
 #else
 	return lnil;
@@ -84,8 +84,8 @@ lapi void *sys_valloc(elf_int length) {
 
 /* timing */
 
-lapi void sys_sleep(elf_int ms) {
-#if defined(PLATFORM_WIN32)
+elf_api void sys_sleep(elf_int ms) {
+#if defined(PLATFORMPLATFORM_WIN32)
 	Sleep((DWORD) ms);
 #elif defined(PLATFORM_WEB)
 	emscripten_sleep(ms);
@@ -94,8 +94,8 @@ lapi void sys_sleep(elf_int ms) {
 }
 
 
-lapi elf_int sys_clockhz() {
-#if defined(_WIN32)
+elf_api elf_int sys_clockhz() {
+#if defined(PLATFORM_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceFrequency(&largeInt);
 	return largeInt.QuadPart;
@@ -105,8 +105,8 @@ lapi elf_int sys_clockhz() {
 }
 
 
-lapi elf_int sys_clocktime() {
-#if defined(_WIN32)
+elf_api elf_int sys_clocktime() {
+#if defined(PLATFORM_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceCounter(&largeInt);
 	return largeInt.QuadPart;
@@ -116,8 +116,8 @@ lapi elf_int sys_clocktime() {
 }
 
 
-lapi int sys_getmyname(int length, char *buffer) {
-#if defined(_WIN32)
+elf_api int sys_getmyname(int length, char *buffer) {
+#if defined(PLATFORM_WIN32)
 	return GetModuleFileName(NULL,buffer,length);
 #else
 	return 0;
@@ -125,8 +125,8 @@ lapi int sys_getmyname(int length, char *buffer) {
 }
 
 
-lapi int sys_getmypid() {
-#if defined(_WIN32)
+elf_api int sys_getmypid() {
+#if defined(PLATFORM_WIN32)
 	return GetCurrentProcessId();
 #else
 	return 0;
@@ -134,8 +134,8 @@ lapi int sys_getmypid() {
 }
 
 
-lapi int sys_pwd(int length, char *buffer) {
-#if defined(_WIN32)
+elf_api int sys_pwd(int length, char *buffer) {
+#if defined(PLATFORM_WIN32)
 	return GetCurrentDirectory(length,buffer);
 #else
 	return 0;
@@ -143,8 +143,8 @@ lapi int sys_pwd(int length, char *buffer) {
 }
 
 
-lapi int sys_setpwd(char *buffer) {
-#if defined(_WIN32)
+elf_api int sys_setpwd(char *buffer) {
+#if defined(PLATFORM_WIN32)
 	return SetCurrentDirectory(buffer);
 #else
 	return 0;
@@ -152,8 +152,8 @@ lapi int sys_setpwd(char *buffer) {
 }
 
 
-lapi elf_Handle sys_loadlib(char const *name) {
-#if defined(_WIN32)
+elf_api elf_Handle sys_loadlib(char const *name) {
+#if defined(PLATFORM_WIN32)
 	return (elf_Handle) LoadLibraryA(name);
 #else
 	return 0;
@@ -161,8 +161,8 @@ lapi elf_Handle sys_loadlib(char const *name) {
 }
 
 
-lapi void *sys_libfn(elf_Handle dll, char const *name) {
-#if defined(_WIN32)
+elf_api void *sys_libfn(elf_Handle dll, char const *name) {
+#if defined(PLATFORM_WIN32)
 	return (void *) GetProcAddress(dll,name);
 #else
 	return 0;
@@ -170,7 +170,7 @@ lapi void *sys_libfn(elf_Handle dll, char const *name) {
 }
 
 
-lapi Error sys_loadfilebytes(Alloc *allocfn, void **data, char const *name) {
+elf_api Error sys_loadfilebytes(Alloc *allocfn, void **data, char const *name) {
 
 	Error error = Error_None;
 
@@ -184,11 +184,11 @@ lapi Error sys_loadfilebytes(Alloc *allocfn, void **data, char const *name) {
 	}
 
 	*data = lnil;
-#if defined(_WIN32)
+#if defined(PLATFORM_WIN32)
 	HANDLE hfile = CreateFileA(name,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,0x00,NULL);
 	if (hfile != INVALID_HANDLE_VALUE) {
 		DWORD hi,lo = GetFileSize(hfile,&hi);
-		char *buf = langM_alloc(allocfn,lo+1);
+		char *buf = elf_alloc(allocfn,lo+1);
 		DWORD bytes;
 		if (ReadFile(hfile,buf,lo,&bytes,NULL)) {
 			buf[bytes] = 0;
@@ -220,7 +220,7 @@ lapi Error sys_loadfilebytes(Alloc *allocfn, void **data, char const *name) {
 	fseek(file,0,SEEK_END);
 	long fileSize = ftell(file);
 	fseek(file,0,SEEK_SET);
-	char *buf = (char *) langM_alloc(allocfn,fileSize+1);
+	char *buf = (char *) elf_alloc(allocfn,fileSize+1);
 	fread(buf,1,fileSize,file);
 	fclose(file);
 	buf[fileSize] = 0;
@@ -237,7 +237,7 @@ lapi Error sys_loadfilebytes(Alloc *allocfn, void **data, char const *name) {
 }
 
 
-lapi Error sys_savefilebytes(char const *buffer, elf_int length, char const *fileName) {
+elf_api Error sys_savefilebytes(char const *buffer, elf_int length, char const *fileName) {
 	FILE *file;
 #if defined(_MSC_VER)
 	fopen_s(&file,fileName,"wb");

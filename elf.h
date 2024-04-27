@@ -7,6 +7,15 @@
 #ifndef _elf_
 #define _elf_
 
+#if defined(_WIN32)
+	#define PLATFORM_WIN32
+#elif defined(PLATFORM_WEB)
+	#if !defined(PLATFORM_WEB)
+		#define PLATFORM_WEB
+	#endif
+#endif
+
+
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable:4100)
@@ -26,6 +35,12 @@
 #pragma GCC diagnostic ignored "-Wparentheses-equality"
 #pragma GCC diagnostic ignored "-Wmissing-braces"
 #pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
+
+/* em knows where this is at */
+#if defined(PLATFORM_WEB)
+#include <emscripten.h>
 #endif
 
 
@@ -62,20 +77,14 @@
 	#define MIN(x,y) ((x) < (y) ? (x) : (y))
 #endif
 
-
-#if !defined(lapi)
-	#define lapi static
-#endif
-
-
-/* todo: porting */
-
 #define elf_globaldecl static
 
 #if defined(_MSC_VER)
+	#define elf_api static
 	#define elf_libfundecl __declspec(dllexport)
 	#define elf_threaddecl static __declspec(thread)
 #elif defined(PLATFORM_WEB)
+	#define elf_api EMSCRIPTEN_KEEPALIVE
 	#define elf_libfundecl EMSCRIPTEN_KEEPALIVE
 	#define elf_threaddecl static
 #else
@@ -155,16 +164,18 @@ void elf_register(elf_Runtime *, char *, lBinding fn);
 #include "src/lnetlib.c"
 #include "src/lruntime.c"
 #include "src/lapi.c"
-
+#if defined(PLATFORM_WEB)
+#include "src/lwebapi.c"
+#endif
 
 
 void elf_register(elf_Runtime *R, char *name, lBinding fn) {
-	lang_addglobal(R->M,elf_pushnewstr(R,name),lang_C(fn));
+	lang_addglobal(R->M,elf_putnewstr(R,name),lang_C(fn));
 }
 
 
 void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b) {
-	elf_tabput(obj,lang_S(elf_newstr(R,name)),lang_C(b));
+	elf_tabset(obj,lang_S(elf_newstr(R,name)),lang_C(b));
 }
 
 

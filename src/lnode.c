@@ -160,7 +160,7 @@ void elf_nodelitapply(elf_FileState *fs, elf_Table *tab, lnodeid id) {
 			if ((x.k == NODE_FIELD) || (x.k == NODE_INDEX)) {
 				elf_val key = elf_nodetolitval(fs,x.x);
 				elf_val val = elf_nodetolitval(fs,v.y);
-				elf_tabput(tab,key,val);
+				elf_tabset(tab,key,val);
 			} else LNOBRANCH;
 		} break;
 		default: LNOBRANCH;

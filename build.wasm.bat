@@ -9,14 +9,19 @@
 @REM emsdk install latest
 @REM emsdk activate latest --system --permanent
 @REM
+@REM to run:
+@REM emrun index.html
 @REM
 @IF "%ELFBUILDWEB_ONCE%"==""  (
    @CALL %EMSDK%/emsdk activate latest
 )
 @SET ELFBUILDWEB_ONCE="YES"
 @SETLOCAL
-@PUSHD build
-	@REM -Os -g -S
-	@CALL emcc -o elf.html ../elf.c -O0 -Wall -Isrc -s USE_GLFW=3 -DPLATFORM_WEB --preload-file ../code/tests
-@POPD
+@SET MYSHELL=shell.html
+@SET MYDATAP=code/tests
+
+@REM -Os -g -S
+@REM -s EXPORTED_FUNCTIONS="['elf_loadfile', 'elf_loadexpr']"
+@CALL emcc -o build\web\index.html elf.c -O0 -Wall -Isrc -s USE_GLFW=3 -DPLATFORM_WEB --shell-file %MYSHELL% --preload-file %MYDATAP% -s EXPORTED_RUNTIME_METHODS="['cwrap','wasmExports']"
+
 @ENDLOCAL

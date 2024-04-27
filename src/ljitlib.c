@@ -25,7 +25,7 @@ int jitlib_jit(elf_Runtime *rt) {
 }
 
 
-lapi void jitlib_load(elf_Runtime *rt) {
+elf_api void jitlib_load(elf_Runtime *rt) {
 	elf_Module *md = rt->md;
-	lang_addglobal(md,elf_pushnewstr(rt,"jit"),lang_C(jitlib_jit));
+	lang_addglobal(md,elf_putnewstr(rt,"jit"),lang_C(jitlib_jit));
 }

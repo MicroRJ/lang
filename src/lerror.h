@@ -4,6 +4,10 @@
 ** Error Codes
 */
 
+
+#define LERROR "lerror.h"
+
+
 #if !defined(ERROR_XITEM)
 
 #define LFAILED(err) ((err) != Error_None)
@@ -15,7 +19,7 @@ typedef enum Error {
 	Error_None = 0,
 
 #define ERROR_XITEM(NAME,DESC) Error_##NAME,
-	#include __FILE__
+	#include LERROR
 #undef ERROR_XITEM
 
 } Error;
@@ -25,7 +29,7 @@ elf_globaldecl char const *lErrorNames[] = {
 	"No Error",
 
 #define ERROR_XITEM(NAME,DESC) DESC,
-	#include __FILE__
+	#include LERROR
 #undef ERROR_XITEM
 
 };

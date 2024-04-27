@@ -29,7 +29,7 @@ char *elf_logtostr(int type) {
 }
 
 
-lapi void elf_log_(int type, ldebugloc source, const char *fmt, ...) {
+elf_api void elf_log_(int type, ldebugloc source, const char *fmt, ...) {
 
 	char b[0x1000];
 

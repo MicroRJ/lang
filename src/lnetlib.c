@@ -19,20 +19,20 @@ typedef struct LMSG {
 
 
 
-lapi int netlib_init(elf_Runtime *R) {
+elf_api int netlib_init(elf_Runtime *R) {
 	WSADATA data;
 	WSAStartup(MAKEWORD(2,2),&data);
 	return 0;
 }
 
 
-lapi int netlib_close(elf_Runtime *R) {
+elf_api int netlib_close(elf_Runtime *R) {
 	WSACleanup();
 	return 0;
 }
 
 
-lapi int netlib_listen(elf_Runtime *R) {
+elf_api int netlib_listen(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	int error = listen(handle,SOMAXCONN);
 	elf_putint(R,error!=SOCKET_ERROR);
@@ -40,7 +40,7 @@ lapi int netlib_listen(elf_Runtime *R) {
 }
 
 
-lapi int netlib_accept(elf_Runtime *R) {
+elf_api int netlib_accept(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	SOCKET client = accept(handle,NULL,NULL);
 	elf_putsys(R,(elf_Handle)client);
@@ -48,7 +48,7 @@ lapi int netlib_accept(elf_Runtime *R) {
 }
 
 
-lapi int netlib_pollclient(elf_Runtime *R) {
+elf_api int netlib_pollclient(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	fd_set ready;
 	FD_ZERO(&ready);
@@ -64,7 +64,7 @@ lapi int netlib_pollclient(elf_Runtime *R) {
 }
 
 
-lapi int netlib_tcpserver(elf_Runtime *R) {
+elf_api int netlib_tcpserver(elf_Runtime *R) {
 	elf_String *addrnameS = elf_getstr(R,0);
 	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
@@ -87,7 +87,7 @@ lapi int netlib_tcpserver(elf_Runtime *R) {
 }
 
 
-lapi int netlib_tcpclient(elf_Runtime *R) {
+elf_api int netlib_tcpclient(elf_Runtime *R) {
 	elf_String *addrnameS = elf_getstr(R,0);
 	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
@@ -110,7 +110,7 @@ lapi int netlib_tcpclient(elf_Runtime *R) {
 }
 
 
-lapi int netlib_send(elf_Runtime *R) {
+elf_api int netlib_send(elf_Runtime *R) {
 	/* todo: make this a class? */
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	elf_String *payload = elf_getstr(R,1);
@@ -123,7 +123,7 @@ lapi int netlib_send(elf_Runtime *R) {
 }
 
 
-lapi int netlib_ioctl(elf_Runtime *R) {
+elf_api int netlib_ioctl(elf_Runtime *R) {
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	long mode = 1;
 	int error = ioctlsocket(socket,FIONBIO,&mode);
@@ -132,7 +132,7 @@ lapi int netlib_ioctl(elf_Runtime *R) {
 }
 
 
-lapi int netlib_recv(elf_Runtime *R) {
+elf_api int netlib_recv(elf_Runtime *R) {
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	LMSG message = {0};
 	if (recv(socket,(char*)&message,sizeof(message),0) != -1) {
@@ -168,31 +168,31 @@ lapi int netlib_recv(elf_Runtime *R) {
 	return 1;
 }
 #else
-lapi int netlib_init(elf_Runtime *R) { return 0; };
-lapi int netlib_close(elf_Runtime *R) { return 0; };
-lapi int netlib_listen(elf_Runtime *R) { return 0; };
-lapi int netlib_accept(elf_Runtime *R) { return 0; };
-lapi int netlib_pollclient(elf_Runtime *R) { return 0; };
-lapi int netlib_tcpserver(elf_Runtime *R) { return 0; };
-lapi int netlib_tcpclient(elf_Runtime *R) { return 0; };
-lapi int netlib_send(elf_Runtime *R) { return 0; };
-lapi int netlib_ioctl(elf_Runtime *R) { return 0; };
-lapi int netlib_recv(elf_Runtime *R) { return 0; };
+elf_api int netlib_init(elf_Runtime *R) { return 0; };
+elf_api int netlib_close(elf_Runtime *R) { return 0; };
+elf_api int netlib_listen(elf_Runtime *R) { return 0; };
+elf_api int netlib_accept(elf_Runtime *R) { return 0; };
+elf_api int netlib_pollclient(elf_Runtime *R) { return 0; };
+elf_api int netlib_tcpserver(elf_Runtime *R) { return 0; };
+elf_api int netlib_tcpclient(elf_Runtime *R) { return 0; };
+elf_api int netlib_send(elf_Runtime *R) { return 0; };
+elf_api int netlib_ioctl(elf_Runtime *R) { return 0; };
+elf_api int netlib_recv(elf_Runtime *R) { return 0; };
 #endif
 
 
-lapi void netlib_load(elf_Runtime *R) {
+elf_api void netlib_load(elf_Runtime *R) {
 	elf_Module *md = R->md;
-	lang_addglobal(md,elf_pushnewstr(R,"listen"),lang_C(netlib_listen));
-	lang_addglobal(md,elf_pushnewstr(R,"accept"),lang_C(netlib_accept));
-	lang_addglobal(md,elf_pushnewstr(R,"pollclient"),lang_C(netlib_pollclient));
-	lang_addglobal(md,elf_pushnewstr(R,"tcpserver"),lang_C(netlib_tcpserver));
-	lang_addglobal(md,elf_pushnewstr(R,"tcpclient"),lang_C(netlib_tcpclient));
-	lang_addglobal(md,elf_pushnewstr(R,"netlib_init"),lang_C(netlib_init));
-	lang_addglobal(md,elf_pushnewstr(R,"netlib_close"),lang_C(netlib_close));
-	lang_addglobal(md,elf_pushnewstr(R,"send"),lang_C(netlib_send));
-	lang_addglobal(md,elf_pushnewstr(R,"recv"),lang_C(netlib_recv));
-	lang_addglobal(md,elf_pushnewstr(R,"ioctl"),lang_C(netlib_ioctl));
+	lang_addglobal(md,elf_putnewstr(R,"listen"),lang_C(netlib_listen));
+	lang_addglobal(md,elf_putnewstr(R,"accept"),lang_C(netlib_accept));
+	lang_addglobal(md,elf_putnewstr(R,"pollclient"),lang_C(netlib_pollclient));
+	lang_addglobal(md,elf_putnewstr(R,"tcpserver"),lang_C(netlib_tcpserver));
+	lang_addglobal(md,elf_putnewstr(R,"tcpclient"),lang_C(netlib_tcpclient));
+	lang_addglobal(md,elf_putnewstr(R,"netlib_init"),lang_C(netlib_init));
+	lang_addglobal(md,elf_putnewstr(R,"netlib_close"),lang_C(netlib_close));
+	lang_addglobal(md,elf_putnewstr(R,"send"),lang_C(netlib_send));
+	lang_addglobal(md,elf_putnewstr(R,"recv"),lang_C(netlib_recv));
+	lang_addglobal(md,elf_putnewstr(R,"ioctl"),lang_C(netlib_ioctl));
 }
 
 

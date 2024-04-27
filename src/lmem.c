@@ -13,7 +13,7 @@ elf_globaldecl Alloc langM_globalalloc = {"default-heap-allocator",langM_defglob
 
 /* todo: should prob migrate to using something
 like stb leak */
-void *langM_clear(void *target, elf_int length) {
+void *elf_memclear(void *target, elf_int length) {
 #if defined(_WIN32)
 	ZeroMemory(target,length);
 #else
@@ -56,7 +56,7 @@ void *langM_realloc_(Alloc *c, elf_int length, void *memory, ldebugloc loca) {
 
 
 void *langM_clearalloc_(Alloc *c, elf_int size, ldebugloc loca) {
-	return langM_clear(langM_alloc_(c,size,loca),size);
+	return elf_memclear(langM_alloc_(c,size,loca),size);
 }
 
 

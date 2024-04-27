@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\rodri\AppData\Local\Temp\tmpdxpkbyzn.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpzxst6j90.js
 
   if (!Module.expectedDataFileDownloads) {
     Module.expectedDataFileDownloads = 0;
@@ -60,8 +60,8 @@ if (ENVIRONMENT_IS_NODE) {
         // web worker
         PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
       }
-      var PACKAGE_NAME = 'elf.data';
-      var REMOTE_PACKAGE_BASE = 'elf.data';
+      var PACKAGE_NAME = 'build/web/index.data';
+      var REMOTE_PACKAGE_BASE = 'index.data';
       if (typeof Module['locateFilePackage'] === 'function' && !Module['locateFile']) {
         Module['locateFile'] = Module['locateFilePackage'];
         err('warning: you defined Module.locateFilePackage, that has been renamed to Module.locateFile (using your locateFilePackage for now)');
@@ -193,10 +193,10 @@ Module['FS_createPath']("/code", "tests", true, true);
           var files = metadata['files'];
           for (var i = 0; i < files.length; ++i) {
             DataRequest.prototype.requests[files[i].filename].onload();
-          }          Module['removeRunDependency']('datafile_elf.data');
+          }          Module['removeRunDependency']('datafile_build/web/index.data');
 
       };
-      Module['addRunDependency']('datafile_elf.data');
+      Module['addRunDependency']('datafile_build/web/index.data');
 
       if (!Module.preloadResults) Module.preloadResults = {};
 
@@ -217,25 +217,25 @@ Module['FS_createPath']("/code", "tests", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/code/tests/bug1.elf", "start": 0, "end": 669}, {"filename": "/code/tests/bug2.elf", "start": 669, "end": 1788}, {"filename": "/code/tests/bug3.elf", "start": 1788, "end": 2119}, {"filename": "/code/tests/fib.test.lang", "start": 2119, "end": 2901}, {"filename": "/code/tests/finally.test.lang", "start": 2901, "end": 3319}, {"filename": "/code/tests/find.lang", "start": 3319, "end": 4097}, {"filename": "/code/tests/for.test.lang", "start": 4097, "end": 4175}, {"filename": "/code/tests/fun.test.lang", "start": 4175, "end": 4721}, {"filename": "/code/tests/fun1.test.lang", "start": 4721, "end": 4838}, {"filename": "/code/tests/gc.f", "start": 4838, "end": 5216}, {"filename": "/code/tests/hash.lang", "start": 5216, "end": 6118}, {"filename": "/code/tests/if.test.lang", "start": 6118, "end": 6830}, {"filename": "/code/tests/inc.lang", "start": 6830, "end": 6939}, {"filename": "/code/tests/inv.lang", "start": 6939, "end": 7237}, {"filename": "/code/tests/j.f", "start": 7237, "end": 8013}, {"filename": "/code/tests/jit.lang", "start": 8013, "end": 9196}, {"filename": "/code/tests/load.lang", "start": 9196, "end": 9595}, {"filename": "/code/tests/match.test.lang", "start": 9595, "end": 10074}, {"filename": "/code/tests/meta.test.lang", "start": 10074, "end": 10129}, {"filename": "/code/tests/predict.lang", "start": 10129, "end": 10229}, {"filename": "/code/tests/question.lang", "start": 10229, "end": 10382}, {"filename": "/code/tests/simple.lang", "start": 10382, "end": 11325}, {"filename": "/code/tests/stack.test.lang", "start": 11325, "end": 11655}, {"filename": "/code/tests/test.lang", "start": 11655, "end": 12645}, {"filename": "/code/tests/tests.ignore", "start": 12645, "end": 12673}, {"filename": "/code/tests/unload.test.lang", "start": 12673, "end": 12885}], "remote_package_size": 12885});
+    loadPackage({"files": [{"filename": "/code/tests/bug1.elf", "start": 0, "end": 669}, {"filename": "/code/tests/bug2.elf", "start": 669, "end": 1788}, {"filename": "/code/tests/bug3.elf", "start": 1788, "end": 2119}, {"filename": "/code/tests/fib.test.lang", "start": 2119, "end": 2979}, {"filename": "/code/tests/finally.test.lang", "start": 2979, "end": 3397}, {"filename": "/code/tests/find.lang", "start": 3397, "end": 4175}, {"filename": "/code/tests/for.test.lang", "start": 4175, "end": 4253}, {"filename": "/code/tests/fun.test.lang", "start": 4253, "end": 4799}, {"filename": "/code/tests/fun1.test.lang", "start": 4799, "end": 4916}, {"filename": "/code/tests/gc.f", "start": 4916, "end": 5294}, {"filename": "/code/tests/hash.lang", "start": 5294, "end": 6196}, {"filename": "/code/tests/if.test.lang", "start": 6196, "end": 6908}, {"filename": "/code/tests/inc.lang", "start": 6908, "end": 7017}, {"filename": "/code/tests/inv.lang", "start": 7017, "end": 7315}, {"filename": "/code/tests/j.f", "start": 7315, "end": 8091}, {"filename": "/code/tests/jit.lang", "start": 8091, "end": 9274}, {"filename": "/code/tests/load.lang", "start": 9274, "end": 9673}, {"filename": "/code/tests/match.test.lang", "start": 9673, "end": 10152}, {"filename": "/code/tests/meta.test.lang", "start": 10152, "end": 10207}, {"filename": "/code/tests/predict.lang", "start": 10207, "end": 10307}, {"filename": "/code/tests/question.lang", "start": 10307, "end": 10460}, {"filename": "/code/tests/simple.lang", "start": 10460, "end": 11403}, {"filename": "/code/tests/stack.test.lang", "start": 11403, "end": 11733}, {"filename": "/code/tests/test.lang", "start": 11733, "end": 12723}, {"filename": "/code/tests/tests.ignore", "start": 12723, "end": 12751}, {"filename": "/code/tests/unload.test.lang", "start": 12751, "end": 12963}], "remote_package_size": 12963});
 
   })();
 
-// end include: C:\Users\rodri\AppData\Local\Temp\tmpdxpkbyzn.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmpnrumlkvq.js
+// end include: C:\Users\rodri\AppData\Local\Temp\tmpzxst6j90.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmp2zunpvd7.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmpnrumlkvq.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmp29e1p4w4.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmp2zunpvd7.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpyqmh2ct2.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach(function(task) {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmp29e1p4w4.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmpyqmh2ct2.js
 
 
 // Sometimes an existing Module object exists with properties
@@ -858,7 +858,7 @@ function createExportWrapper(name, nargs) {
 // include: runtime_exceptions.js
 // end include: runtime_exceptions.js
 var wasmBinaryFile;
-  wasmBinaryFile = 'elf.wasm';
+  wasmBinaryFile = 'index.wasm';
   if (!isDataURI(wasmBinaryFile)) {
     wasmBinaryFile = locateFile(wasmBinaryFile);
   }
@@ -972,7 +972,7 @@ function createWasm() {
   function receiveInstance(instance, module) {
     wasmExports = instance.exports;
 
-    
+    Module['wasmExports'] = wasmExports;
 
     wasmMemory = wasmExports['memory'];
     
@@ -4111,6 +4111,61 @@ function dbg(...args) {
   }
   }
 
+  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
+    };
+  
+  function ___syscall_getdents64(fd, dirp, count) {
+  try {
+  
+      var stream = SYSCALLS.getStreamFromFD(fd)
+      stream.getdents ||= FS.readdir(stream.path);
+  
+      var struct_size = 280;
+      var pos = 0;
+      var off = FS.llseek(stream, 0, 1);
+  
+      var idx = Math.floor(off / struct_size);
+  
+      while (idx < stream.getdents.length && pos + struct_size <= count) {
+        var id;
+        var type;
+        var name = stream.getdents[idx];
+        if (name === '.') {
+          id = stream.node.id;
+          type = 4; // DT_DIR
+        }
+        else if (name === '..') {
+          var lookup = FS.lookupPath(stream.path, { parent: true });
+          id = lookup.node.id;
+          type = 4; // DT_DIR
+        }
+        else {
+          var child = FS.lookupNode(stream.node, name);
+          id = child.id;
+          type = FS.isChrdev(child.mode) ? 2 :  // DT_CHR, character device.
+                 FS.isDir(child.mode) ? 4 :     // DT_DIR, directory.
+                 FS.isLink(child.mode) ? 10 :   // DT_LNK, symbolic link.
+                 8;                             // DT_REG, regular file.
+        }
+        assert(id);
+        (tempI64 = [id>>>0,(tempDouble = id,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[((dirp + pos)>>2)] = tempI64[0],HEAP32[(((dirp + pos)+(4))>>2)] = tempI64[1]);
+        (tempI64 = [(idx + 1) * struct_size>>>0,(tempDouble = (idx + 1) * struct_size,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((dirp + pos)+(8))>>2)] = tempI64[0],HEAP32[(((dirp + pos)+(12))>>2)] = tempI64[1]);
+        HEAP16[(((dirp + pos)+(16))>>1)] = 280;
+        HEAP8[(dirp + pos)+(18)] = type;
+        stringToUTF8(name, dirp + pos + 19, 256);
+        pos += struct_size;
+        idx += 1;
+      }
+      FS.llseek(stream, idx * struct_size, 0);
+      return pos;
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
   
   function ___syscall_ioctl(fd, op, varargs) {
   SYSCALLS.varargs = varargs;
@@ -5000,10 +5055,6 @@ function dbg(...args) {
     };
 
   
-  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
-      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
-      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
-    };
   
   var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
   var stringToUTF8OnStack = (str) => {
@@ -5013,6 +5064,90 @@ function dbg(...args) {
       return ret;
     };
 
+
+  var getCFunc = (ident) => {
+      var func = Module['_' + ident]; // closure exported function
+      assert(func, 'Cannot call unknown function ' + ident + ', make sure it is exported');
+      return func;
+    };
+  
+  
+  var writeArrayToMemory = (array, buffer) => {
+      assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
+      HEAP8.set(array, buffer);
+    };
+  
+  
+  
+  
+  
+  
+    /**
+     * @param {string|null=} returnType
+     * @param {Array=} argTypes
+     * @param {Arguments|Array=} args
+     * @param {Object=} opts
+     */
+  var ccall = (ident, returnType, argTypes, args, opts) => {
+      // For fast lookup of conversion functions
+      var toC = {
+        'string': (str) => {
+          var ret = 0;
+          if (str !== null && str !== undefined && str !== 0) { // null string
+            // at most 4 bytes per UTF-8 code point, +1 for the trailing '\0'
+            ret = stringToUTF8OnStack(str);
+          }
+          return ret;
+        },
+        'array': (arr) => {
+          var ret = stackAlloc(arr.length);
+          writeArrayToMemory(arr, ret);
+          return ret;
+        }
+      };
+  
+      function convertReturnValue(ret) {
+        if (returnType === 'string') {
+          
+          return UTF8ToString(ret);
+        }
+        if (returnType === 'boolean') return Boolean(ret);
+        return ret;
+      }
+  
+      var func = getCFunc(ident);
+      var cArgs = [];
+      var stack = 0;
+      assert(returnType !== 'array', 'Return type should not be "array".');
+      if (args) {
+        for (var i = 0; i < args.length; i++) {
+          var converter = toC[argTypes[i]];
+          if (converter) {
+            if (stack === 0) stack = stackSave();
+            cArgs[i] = converter(args[i]);
+          } else {
+            cArgs[i] = args[i];
+          }
+        }
+      }
+      var ret = func(...cArgs);
+      function onDone(ret) {
+        if (stack !== 0) stackRestore(stack);
+        return convertReturnValue(ret);
+      }
+  
+      ret = onDone(ret);
+      return ret;
+    };
+  
+    /**
+     * @param {string=} returnType
+     * @param {Array=} argTypes
+     * @param {Object=} opts
+     */
+  var cwrap = (ident, returnType, argTypes, opts) => {
+      return (...args) => ccall(ident, returnType, argTypes, args, opts);
+    };
 
 
 
@@ -5026,6 +5161,8 @@ function checkIncomingModuleAPI() {
 var wasmImports = {
   /** @export */
   __syscall_fcntl64: ___syscall_fcntl64,
+  /** @export */
+  __syscall_getdents64: ___syscall_getdents64,
   /** @export */
   __syscall_ioctl: ___syscall_ioctl,
   /** @export */
@@ -5061,6 +5198,85 @@ var wasmImports = {
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
+var _sys_debugger = Module['_sys_debugger'] = createExportWrapper('sys_debugger', 0);
+var _lang_T = Module['_lang_T'] = createExportWrapper('lang_T', 2);
+var _lang_C = Module['_lang_C'] = createExportWrapper('lang_C', 2);
+var _lang_H = Module['_lang_H'] = createExportWrapper('lang_H', 2);
+var _lang_S = Module['_lang_S'] = createExportWrapper('lang_S', 2);
+var _lang_F = Module['_lang_F'] = createExportWrapper('lang_F', 2);
+var _lang_I = Module['_lang_I'] = createExportWrapper('lang_I', 3);
+var _lang_N = Module['_lang_N'] = createExportWrapper('lang_N', 2);
+var _sys_consolelog = Module['_sys_consolelog'] = createExportWrapper('sys_consolelog', 2);
+var _sys_getlasterror = Module['_sys_getlasterror'] = createExportWrapper('sys_getlasterror', 0);
+var _sys_geterrormsg = Module['_sys_geterrormsg'] = createExportWrapper('sys_geterrormsg', 3);
+var _sys_valloc = Module['_sys_valloc'] = createExportWrapper('sys_valloc', 2);
+var _sys_sleep = Module['_sys_sleep'] = createExportWrapper('sys_sleep', 2);
+var _sys_clockhz = Module['_sys_clockhz'] = createExportWrapper('sys_clockhz', 0);
+var _sys_clocktime = Module['_sys_clocktime'] = createExportWrapper('sys_clocktime', 0);
+var _sys_getmyname = Module['_sys_getmyname'] = createExportWrapper('sys_getmyname', 2);
+var _sys_getmypid = Module['_sys_getmypid'] = createExportWrapper('sys_getmypid', 0);
+var _sys_pwd = Module['_sys_pwd'] = createExportWrapper('sys_pwd', 2);
+var _sys_setpwd = Module['_sys_setpwd'] = createExportWrapper('sys_setpwd', 1);
+var _sys_loadlib = Module['_sys_loadlib'] = createExportWrapper('sys_loadlib', 1);
+var _sys_libfn = Module['_sys_libfn'] = createExportWrapper('sys_libfn', 2);
+var _sys_loadfilebytes = Module['_sys_loadfilebytes'] = createExportWrapper('sys_loadfilebytes', 3);
+var _langM_alloc_ = Module['_langM_alloc_'] = createExportWrapper('langM_alloc_', 4);
+var _sys_savefilebytes = Module['_sys_savefilebytes'] = createExportWrapper('sys_savefilebytes', 4);
+var _langM_dealloc_ = Module['_langM_dealloc_'] = createExportWrapper('langM_dealloc_', 3);
+var _langM_realloc_ = Module['_langM_realloc_'] = createExportWrapper('langM_realloc_', 5);
+var _langM_clearalloc_ = Module['_langM_clearalloc_'] = createExportWrapper('langM_clearalloc_', 4);
+var _langM_defglobalallocfn = Module['_langM_defglobalallocfn'] = createExportWrapper('langM_defglobalallocfn', 8);
+var _langM_deftlocalallocfn = Module['_langM_deftlocalallocfn'] = createExportWrapper('langM_deftlocalallocfn', 8);
+var _elf_log_ = Module['_elf_log_'] = createExportWrapper('elf_log_', 4);
+var _elf_putnewtab = Module['_elf_putnewtab'] = createExportWrapper('elf_putnewtab', 1);
+var _elf_puttab = Module['_elf_puttab'] = createExportWrapper('elf_puttab', 2);
+var _elf_putint = Module['_elf_putint'] = createExportWrapper('elf_putint', 3);
+var _elf_getthis = Module['_elf_getthis'] = createExportWrapper('elf_getthis', 1);
+var _elf_getstr = Module['_elf_getstr'] = createExportWrapper('elf_getstr', 2);
+var _elf_getval = Module['_elf_getval'] = createExportWrapper('elf_getval', 3);
+var _elf_putstr = Module['_elf_putstr'] = createExportWrapper('elf_putstr', 2);
+var _elf_putval = Module['_elf_putval'] = createExportWrapper('elf_putval', 2);
+var _elf_checkcl = Module['_elf_checkcl'] = createExportWrapper('elf_checkcl', 2);
+var _elf_stkput = Module['_elf_stkput'] = createExportWrapper('elf_stkput', 2);
+var _elf_callex = Module['_elf_callex'] = createExportWrapper('elf_callex', 6);
+var _elf_getsys = Module['_elf_getsys'] = createExportWrapper('elf_getsys', 2);
+var _elf_getint = Module['_elf_getint'] = createExportWrapper('elf_getint', 2);
+var _elf_run = Module['_elf_run'] = createExportWrapper('elf_run', 1);
+var _elf_newcl = Module['_elf_newcl'] = createExportWrapper('elf_newcl', 2);
+var _elf_gettab = Module['_elf_gettab'] = createExportWrapper('elf_gettab', 2);
+var _elf_getobj = Module['_elf_getobj'] = createExportWrapper('elf_getobj', 2);
+var _elf_getcls = Module['_elf_getcls'] = createExportWrapper('elf_getcls', 2);
+var _elf_putnewstr = Module['_elf_putnewstr'] = createExportWrapper('elf_putnewstr', 2);
+var _elf_putnum = Module['_elf_putnum'] = createExportWrapper('elf_putnum', 2);
+var _elf_loadexpr = Module['_elf_loadexpr'] = createExportWrapper('elf_loadexpr', 4);
+var _elf_callfn = Module['_elf_callfn'] = createExportWrapper('elf_callfn', 4);
+var _elf_checkstr = Module['_elf_checkstr'] = createExportWrapper('elf_checkstr', 2);
+var _elf_putbinding = Module['_elf_putbinding'] = createExportWrapper('elf_putbinding', 2);
+var _elf_putnil = Module['_elf_putnil'] = createExportWrapper('elf_putnil', 1);
+var _elf_putsys = Module['_elf_putsys'] = createExportWrapper('elf_putsys', 2);
+var _syslib_sleep = Module['_syslib_sleep'] = createExportWrapper('syslib_sleep', 1);
+var _syslib_clocktime = Module['_syslib_clocktime'] = createExportWrapper('syslib_clocktime', 1);
+var _syslib_timediffs = Module['_syslib_timediffs'] = createExportWrapper('syslib_timediffs', 1);
+var _elf_putcls = Module['_elf_putcls'] = createExportWrapper('elf_putcls', 2);
+var _syslib_listdir = Module['_syslib_listdir'] = createExportWrapper('syslib_listdir', 1);
+var _syslib_load = Module['_syslib_load'] = createExportWrapper('syslib_load', 1);
+var _elf_getnum = Module['_elf_getnum'] = createExportWrapper('elf_getnum', 2);
+var _crtlib_load = Module['_crtlib_load'] = createExportWrapper('crtlib_load', 1);
+var _netlib_init = Module['_netlib_init'] = createExportWrapper('netlib_init', 1);
+var _netlib_close = Module['_netlib_close'] = createExportWrapper('netlib_close', 1);
+var _netlib_listen = Module['_netlib_listen'] = createExportWrapper('netlib_listen', 1);
+var _netlib_accept = Module['_netlib_accept'] = createExportWrapper('netlib_accept', 1);
+var _netlib_pollclient = Module['_netlib_pollclient'] = createExportWrapper('netlib_pollclient', 1);
+var _netlib_tcpserver = Module['_netlib_tcpserver'] = createExportWrapper('netlib_tcpserver', 1);
+var _netlib_tcpclient = Module['_netlib_tcpclient'] = createExportWrapper('netlib_tcpclient', 1);
+var _netlib_send = Module['_netlib_send'] = createExportWrapper('netlib_send', 1);
+var _netlib_ioctl = Module['_netlib_ioctl'] = createExportWrapper('netlib_ioctl', 1);
+var _netlib_recv = Module['_netlib_recv'] = createExportWrapper('netlib_recv', 1);
+var _netlib_load = Module['_netlib_load'] = createExportWrapper('netlib_load', 1);
+var _elf_stklen = Module['_elf_stklen'] = createExportWrapper('elf_stklen', 1);
+var _elf_putnewcls = Module['_elf_putnewcls'] = createExportWrapper('elf_putnewcls', 2);
+var _elfweb_ini = Module['_elfweb_ini'] = createExportWrapper('elfweb_ini', 0);
+var _elfweb_loadcode = Module['_elfweb_loadcode'] = createExportWrapper('elfweb_loadcode', 2);
 var _main = Module['_main'] = createExportWrapper('__main_argc_argv', 2);
 var _fflush = createExportWrapper('fflush', 1);
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
@@ -5082,6 +5298,8 @@ Module['removeRunDependency'] = removeRunDependency;
 Module['FS_createPath'] = FS.createPath;
 Module['FS_createLazyFile'] = FS.createLazyFile;
 Module['FS_createDevice'] = FS.createDevice;
+Module['wasmExports'] = wasmExports;
+Module['cwrap'] = cwrap;
 Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
 Module['FS_createDataFile'] = FS.createDataFile;
 Module['FS_unlink'] = FS.unlink;
@@ -5125,9 +5343,6 @@ var missingLibrarySymbols = [
   'STACK_ALIGN',
   'POINTER_SIZE',
   'ASSERTIONS',
-  'getCFunc',
-  'ccall',
-  'cwrap',
   'uleb128Encode',
   'sigToWasmTypes',
   'generateFuncType',
@@ -5147,7 +5362,6 @@ var missingLibrarySymbols = [
   'stringToUTF32',
   'lengthBytesUTF32',
   'stringToNewUTF8',
-  'writeArrayToMemory',
   'registerKeyEventCallback',
   'maybeCStringToJsString',
   'findEventTarget',
@@ -5257,7 +5471,6 @@ var unexportedSymbols = [
   'callMain',
   'abort',
   'wasmMemory',
-  'wasmExports',
   'writeStackCookie',
   'checkStackCookie',
   'convertI32PairToI53',
@@ -5295,6 +5508,8 @@ var unexportedSymbols = [
   'mmapAlloc',
   'wasmTable',
   'noExitRuntime',
+  'getCFunc',
+  'ccall',
   'freeTableIndexes',
   'functionsInTableMap',
   'reallyNegative',
@@ -5315,6 +5530,7 @@ var unexportedSymbols = [
   'intArrayFromString',
   'UTF16Decoder',
   'stringToUTF8OnStack',
+  'writeArrayToMemory',
   'JSEvents',
   'specialHTMLTargets',
   'findCanvasEventTarget',

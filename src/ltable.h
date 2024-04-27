@@ -29,7 +29,7 @@ elf_Table *elf_newtablen(elf_Runtime *, elf_int);
 elf_Table *elf_newtab(elf_Runtime *);
 
 elf_int elf_tabtake(elf_Table *table, elf_val k);
-void elf_tabput(elf_Table *table, elf_val k, elf_val v);
+void elf_tabset(elf_Table *table, elf_val k, elf_val v);
 elf_int elf_tabhashval(elf_val v);
 elf_hashint elf_tabrehash(elf_hashint hash);
 elf_hashint elf_tabhashstr(char *junk);

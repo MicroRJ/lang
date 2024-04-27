@@ -6,7 +6,7 @@
 
 
 elf_Table *elf_newtabmetatab(elf_Runtime *R) {
-	elf_Table *tab = elf_pushnewtab(R);
+	elf_Table *tab = elf_putnewtab(R);
 	elf_tabmfld(R,tab,"length",elf_tablength_);
 	elf_tabmfld(R,tab,"tally",elf_tabtally_);
 	elf_tabmfld(R,tab,"haskey",elf_tabhaskey_);
@@ -28,7 +28,7 @@ elf_Table *elf_newtablen(elf_Runtime *R, elf_int ntotal) {
 
 	table->ntotal = ntotal;
 	table->nslots = 0;
-	table->slots = elf_newmemzro(lHEAP,ntotal*sizeof(elf_tabslot));
+	table->slots = elf_clearalloc(lHEAP,ntotal*sizeof(elf_tabslot));
 	return table;
 }
 
@@ -117,7 +117,7 @@ void elf_tabcheckthreshold(elf_Table *table) {
 		elf_Table newtable = * table;
 		newtable.ntotal = table->ntotal << 2;
 		if (newtable.ntotal < table->ntotal) LNOBRANCH;
-		newtable.slots = elf_newmemzro(lHEAP,newtable.ntotal * sizeof(elf_tabslot));
+		newtable.slots = elf_clearalloc(lHEAP,newtable.ntotal * sizeof(elf_tabslot));
 
 		for (int i = 0; i < table->ntotal; ++ i) {
 			elf_tabslot slot = table->slots[i];
@@ -138,7 +138,17 @@ void elf_tabcheckthreshold(elf_Table *table) {
 }
 
 
-void elf_tabput(elf_Table *table, elf_val k, elf_val v) {
+void elf_tabsetstrfld(elf_Table *tab, elf_String *key, elf_String *val) {
+	elf_tabset(tab,lang_S(key),lang_S(val));
+}
+
+
+void elf_tabsetintfld(elf_Table *tab, elf_String *key, elf_int val) {
+	elf_tabset(tab,lang_S(key),lang_I(val));
+}
+
+
+void elf_tabset(elf_Table *table, elf_val k, elf_val v) {
 	elf_tabcheckthreshold(table);
 	elf_int slot = elf_tabhashin(table,k);
 	/* todo: instead return an error here */
@@ -276,7 +286,7 @@ int elf_tabput_(elf_Runtime *c) {
 	if (n == 2) j = elf_getval(c,1);
 
 	elf_Table *table = (elf_Table*) c->f->obj;
-	elf_tabput(table,k,j);
+	elf_tabset(table,k,j);
 	return 0;
 }
 
@@ -295,7 +305,7 @@ int elf_tabforeach_(elf_Runtime *R) {
 			/* call the iterator function with two arguments */
 			/* todo: should yield boolean to signal whether to
 			stop or not */
-			elf_callfn(R,R->frame->obj,0,0,2,0);
+			elf_callex(R,R->frame->obj,0,0,2,0);
 		}
 	}
 	return 0;

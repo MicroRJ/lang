@@ -47,7 +47,7 @@ void *elf_newobj(elf_Runtime *R, ObjectType type, elf_int tell) {
 		}
 	}
 
-	elf_Object *obj = elf_newmemzro(lHEAP,tell);
+	elf_Object *obj = elf_clearalloc(lHEAP,tell);
 	obj->type = type;
 	obj->tell = tell;
 	LDODEBUG(

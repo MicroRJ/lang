@@ -6,7 +6,7 @@
 
 
 elf_Table *elf_newstrmetatab(elf_Runtime *R) {
-	elf_Table *tab = elf_pushnewtab(R);
+	elf_Table *tab = elf_putnewtab(R);
 	elf_tabmfld(R,tab,"length",langS_length_);
 	elf_tabmfld(R,tab,"match",langS_match_);
 	elf_tabmfld(R,tab,"hash",langS_hash_);
@@ -77,7 +77,7 @@ char *S_ncopy(Alloc *allocator, int length, char const *string) {
 	if (length <= 0) {
 		length = S_length(string);
 	}
-	char *result = langM_alloc(allocator,length+1);
+	char *result = elf_alloc(allocator,length+1);
 	langM_copy(result,string,length);
 	result[length]=0;
 	return result;
@@ -127,7 +127,7 @@ int langS_hash_(elf_Runtime *c) {
 
 char *S_pfv(Alloc *cator, char const *format, va_list v) {
 	int length = stbsp_vsnprintf(NULL,0,format,v);
-	char *contents = langM_alloc(cator,length+1);
+	char *contents = elf_alloc(cator,length+1);
 	stbsp_vsnprintf(contents,length+1,format,v);
 	return contents;
 }
