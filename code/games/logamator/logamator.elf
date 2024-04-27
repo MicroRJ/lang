@@ -1,0 +1,52 @@
+/*
+logamator
+
+A symbol manipulation game,
+where the point of it is
+to collapse the string down
+to the single character x.
+
+given:
+x = yz = x
+z = xy = z
+y = zx = y
+
+prove: yz = zy
+
+xx = yzyz
+xx = yz = zxxy = zyzyzy
+
+
+
+Here are some puzzles:
+prove: yz = zy
+		 yz = xzz
+		 xzz = zy
+
+prove: xx = x
+
+
+So then we generate a random
+expression, for instance we
+start with 'x'. And the game
+can randomly expand 'x' to
+generate a new string, then
+the string can be further
+expanded or or collapsed.
+x -> xzxy
+The goal is for the user to
+get back to x.
+
+Tell me, what do you think of
+this game idea, do you see
+any potential flaws?
+xx
+
+*/
+gen = fun() ? {
+	let r = rnd(0,4)
+
+	if r == 0 ? {
+
+	}
+}

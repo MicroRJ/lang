@@ -44,7 +44,7 @@ ISO_YSCALE = TILE_DRAWDIMEN * ISO_YSKEW
 indexed by position in world */
 
 camera = {
-	"xyz" = vec3(0,0,0)
+	xyz = vec3(0,0,0)
 }
 
 
@@ -54,11 +54,11 @@ loadassets = fun() ? {
 	let time_ = clocktime()
 	finally pf("loaded assets, took => ", timediffs(time_))
 
-	pf("loading assets... ")
+	elf.sys.pf("loading assets... ")
 	textures = {
-		"tiles" = lgi_loadtexture("assets/tiles2.png"),
-		"stag" = lgi_loadtexture("assets/critter_stag.png"),
-		"wolf" = lgi_loadtexture("assets/critter_wolf.png"),
+		tiles = lgi_loadtexture("assets/tiles2.png"),
+		stag = lgi_loadtexture("assets/critter_stag.png"),
+		wolf = lgi_loadtexture("assets/critter_wolf.png"),
 	}
 	/* make it so that we can change the default sampler */
 	for i in 0..textures:length() ? {

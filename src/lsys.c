@@ -5,6 +5,57 @@
 */
 
 
+/* em knows where this is at */
+#if defined(PLATFORM_WEB)
+#include <emscripten.h>
+#elif defined(_WIN32)
+#pragma comment(lib,"user32")
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#define _NO_CRT_STDIO_INLINE
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#include <Windowsx.h>
+#else
+/* otherwise user is prob on a calculator */
+#endif
+
+
+
+lapi elf_bool sys_debugger() {
+#if defined(PLATFORM_WIN32)
+	DebugBreak();
+	return 1;
+#elif defined(PLATFORM_WEB)
+	emscripten_debugger();
+	return 1;
+#else
+	return 0;
+#endif
+}
+
+
+
+lapi void sys_consolelog(int type, char *message) {
+#if defined(PLATFORM_WIN32)
+	OutputDebugStringA(message);
+#else
+	switch (type) {
+		case ELF_LOGDBUG: case ELF_LOGINFO: {
+			type = EM_LOG_CONSOLE;
+		} break;
+		case ELF_LOGERROR: case ELF_LOGFATAL: {
+			type = EM_LOG_ERROR;
+		} break;
+		case ELF_LOGWARN: {
+		 	type = EM_LOG_WARN;
+		} break;
+	}
+	emscripten_log(type,message);
+#endif
+}
+
+
 lapi int sys_getlasterror() {
 #if defined(_WIN32)
 	return GetLastError();
@@ -31,9 +82,14 @@ lapi void *sys_valloc(elf_int length) {
 }
 
 
+/* timing */
+
 lapi void sys_sleep(elf_int ms) {
-#if defined(_WIN32)
+#if defined(PLATFORM_WIN32)
 	Sleep((DWORD) ms);
+#elif defined(PLATFORM_WEB)
+	emscripten_sleep(ms);
+#else
 #endif
 }
 

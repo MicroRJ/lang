@@ -39,7 +39,16 @@ int syslib_ntoi(elf_Runtime *R) {
 
 int syslib_loadexpr(elf_Runtime *R) {
 	elf_String *contents = elf_getstr(R,0);
-	elf_loadexpr(R,contents,-1,R->call->y);
+	elf_loadexpr(R,contents,R->call->ry,R->call->ny);
+	/* no need to do hoisting */
+	return 0;
+}
+
+
+int syslib_loadfile(elf_Runtime *R) {
+	elf_String *filename = elf_getstr(R,0);
+	elf_FileState fs = {0};
+	elf_loadfile(R,&fs,filename,R->call->ry,R->call->ny);
 	/* no need to do hoisting */
 	return 0;
 }
@@ -282,30 +291,41 @@ lapi int syslib_listdir(elf_Runtime *R) {
 
 
 /* todo: can we do this from code */
-lapi void syslib_load(elf_Runtime *rt) {
-	elf_Module *md = rt->md;
+lapi void syslib_load(elf_Runtime *R) {
+	/* todo: these shouldn't be here */
+	elf_register(R,"ntoi",syslib_ntoi);
+	elf_register(R,"iton",syslib_iton);
 
-	lang_addglobal(md,elf_pushnewstr(rt,"ntoi"),lang_C(syslib_ntoi));
-	lang_addglobal(md,elf_pushnewstr(rt,"iton"),lang_C(syslib_iton));
+	/* todo: deprecated */
+	elf_register(R,"loadexpr",syslib_loadexpr);
+	elf_register(R,"loadfile",syslib_loadfile);
+	elf_register(R,"clocktime",syslib_clocktime);
+	elf_register(R,"timediffs",syslib_timediffs);
+	elf_register(R,"fpf",syslib_fpf);
+	elf_register(R,"pf",syslib_pf);
+	elf_register(R,"lpf",syslib_lpf);
+	elf_register(R,"loadlib",syslib_loadlib);
+	elf_register(R,"libfn",syslib_libfn);
 
-	lang_addglobal(md,elf_pushnewstr(rt,"loadlib"),lang_C(syslib_loadlib));
-	lang_addglobal(md,elf_pushnewstr(rt,"libfn"),lang_C(syslib_libfn));
-	lang_addglobal(md,elf_pushnewstr(rt,"loadexpr"),lang_C(syslib_loadexpr));
 
-	lang_addglobal(md,elf_pushnewstr(rt,"workdir"),lang_C(syslib_workdir));
-	lang_addglobal(md,elf_pushnewstr(rt,"pwd"),lang_C(syslib_pwd));
-	lang_addglobal(md,elf_pushnewstr(rt,"setpwd"),lang_C(syslib_setpwd));
+	elf_register(R,"elf.loadlib",syslib_loadlib);
+	elf_register(R,"elf.libfn",syslib_libfn);
+	elf_register(R,"elf.loadexpr",syslib_loadexpr);
+	elf_register(R,"elf.loadfile",syslib_loadfile);
+	elf_register(R,"elf.sys.clocktime",syslib_clocktime);
+	elf_register(R,"elf.sys.timediffs",syslib_timediffs);
+	elf_register(R,"elf.sys.fpf",syslib_fpf);
+	elf_register(R,"elf.sys.lpf",syslib_lpf);
+	elf_register(R,"elf.sys.pf",syslib_pf);
 
-	lang_addglobal(md,elf_pushnewstr(rt,"freadall"),lang_C(syslib_freadall));
-	lang_addglobal(md,elf_pushnewstr(rt,"ftemp"),lang_C(syslib_ftemp));
 
-	lang_addglobal(md,elf_pushnewstr(rt,"fpf"),lang_C(syslib_fpf));
-	lang_addglobal(md,elf_pushnewstr(rt,"pf"),lang_C(syslib_pf));
-	lang_addglobal(md,elf_pushnewstr(rt,"lpf"),lang_C(syslib_lpf));
 
-	lang_addglobal(md,elf_pushnewstr(rt,"clocktime"),lang_C(syslib_clocktime));
-	lang_addglobal(md,elf_pushnewstr(rt,"timediffs"),lang_C(syslib_timediffs));
-	lang_addglobal(md,elf_pushnewstr(rt,"listdir"),lang_C(syslib_listdir));
-	lang_addglobal(md,elf_pushnewstr(rt,"sleep"),lang_C(syslib_sleep));
-	lang_addglobal(md,elf_pushnewstr(rt,"exec"),lang_C(syslib_exec));
+	elf_register(R,"workdir",syslib_workdir);
+	elf_register(R,"pwd",syslib_pwd);
+	elf_register(R,"setpwd",syslib_setpwd);
+	elf_register(R,"freadall",syslib_freadall);
+	elf_register(R,"ftemp",syslib_ftemp);
+	elf_register(R,"listdir",syslib_listdir);
+	elf_register(R,"sleep",syslib_sleep);
+	elf_register(R,"exec",syslib_exec);
 }

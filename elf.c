@@ -12,7 +12,7 @@ int main(int n, char **c) {
 	(void) n;
 
 	#if defined(PLATFORM_WEB)
-	printf("WEB!\n");
+	sys_consolelog(ELF_LOGDBUG,"WEB!");
 	int *var = {0};
 	elf_varadd(var,1);
 	if (var[0] != 1) printf("FAILED: '%i': var.add!\n",var[0]);

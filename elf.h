@@ -105,13 +105,18 @@ typedef struct elf_Closure elf_Closure;
 
 
 #include "src/ltype.h"
-#include "src/ldebug.h"
-#include "src/lobject.h"
-#include "src/lapi.h"
 #include "src/lerror.h"
-#include "src/llog.h"
+#include "src/ldebug.h"
 #include "src/lmem.h"
 #include "src/lsys.h"
+
+void elf_debugger() {
+	sys_debugger();
+}
+
+#include "src/lobject.h"
+#include "src/lapi.h"
+#include "src/llog.h"
 #include "src/ltoken.h"
 #include "src/lbyte.h"
 #include "src/lmodule.h"
@@ -126,21 +131,9 @@ void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b);
 #include "src/lcode.h"
 #include "src/lfile.h"
 
-
-#if defined(_WIN32)
-# pragma comment(lib,"user32")
-# define NOMINMAX
-# define WIN32_LEAN_AND_MEAN
-# define _NO_CRT_STDIO_INLINE
-# define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#include <Windowsx.h>
-#endif
-/* otherwise user is prob on a calculator */
-
 elf_int elf_clocktime();
 elf_num elf_timediffs(elf_int begin);
-
+void elf_register(elf_Runtime *, char *, lBinding fn);
 
 #include "src/lsys.c"
 #include "src/lmem.c"
@@ -162,6 +155,12 @@ elf_num elf_timediffs(elf_int begin);
 #include "src/lnetlib.c"
 #include "src/lruntime.c"
 #include "src/lapi.c"
+
+
+
+void elf_register(elf_Runtime *R, char *name, lBinding fn) {
+	lang_addglobal(R->M,elf_pushnewstr(R,name),lang_C(fn));
+}
 
 
 void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b) {

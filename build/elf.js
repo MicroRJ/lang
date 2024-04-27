@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\rodri\AppData\Local\Temp\tmppgdsq9up.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpdxpkbyzn.js
 
   if (!Module.expectedDataFileDownloads) {
     Module.expectedDataFileDownloads = 0;
@@ -217,25 +217,25 @@ Module['FS_createPath']("/code", "tests", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/code/tests/.module.ignore", "start": 0, "end": 2084}, {"filename": "/code/tests/bug1.elf", "start": 2084, "end": 2753}, {"filename": "/code/tests/bug1.elf.module.ignore", "start": 2753, "end": 3562}, {"filename": "/code/tests/bug2.elf", "start": 3562, "end": 4681}, {"filename": "/code/tests/bug2.elf.module.ignore", "start": 4681, "end": 5100}, {"filename": "/code/tests/bug3.elf", "start": 5100, "end": 5431}, {"filename": "/code/tests/bug3.elf.module.ignore", "start": 5431, "end": 6065}, {"filename": "/code/tests/fib.test.lang", "start": 6065, "end": 6847}, {"filename": "/code/tests/fib.wat", "start": 6847, "end": 7131}, {"filename": "/code/tests/filefind.web2.ignore", "start": 7131, "end": 19419}, {"filename": "/code/tests/finally.test.lang", "start": 19419, "end": 19837}, {"filename": "/code/tests/find.lang", "start": 19837, "end": 20615}, {"filename": "/code/tests/for.test.lang", "start": 20615, "end": 20693}, {"filename": "/code/tests/fun.test.lang", "start": 20693, "end": 21239}, {"filename": "/code/tests/fun1.test.lang", "start": 21239, "end": 21356}, {"filename": "/code/tests/gc.f", "start": 21356, "end": 21734}, {"filename": "/code/tests/hash.lang", "start": 21734, "end": 22636}, {"filename": "/code/tests/if.test.lang", "start": 22636, "end": 23348}, {"filename": "/code/tests/inc.lang", "start": 23348, "end": 23457}, {"filename": "/code/tests/inv.lang", "start": 23457, "end": 23755}, {"filename": "/code/tests/j.f", "start": 23755, "end": 24531}, {"filename": "/code/tests/jit.lang", "start": 24531, "end": 25714}, {"filename": "/code/tests/load.lang", "start": 25714, "end": 26113}, {"filename": "/code/tests/match.test.lang", "start": 26113, "end": 26592}, {"filename": "/code/tests/meta.test.lang", "start": 26592, "end": 26647}, {"filename": "/code/tests/predict.lang", "start": 26647, "end": 26747}, {"filename": "/code/tests/question.lang", "start": 26747, "end": 26900}, {"filename": "/code/tests/simple.lang", "start": 26900, "end": 27843}, {"filename": "/code/tests/stack.test.lang", "start": 27843, "end": 28173}, {"filename": "/code/tests/test.lang", "start": 28173, "end": 29163}, {"filename": "/code/tests/test.lang.module.ignore", "start": 29163, "end": 55674}, {"filename": "/code/tests/tests.ignore", "start": 55674, "end": 55702}, {"filename": "/code/tests/unload.ignore", "start": 55702, "end": 55735}, {"filename": "/code/tests/unload.test.lang", "start": 55735, "end": 55947}, {"filename": "/code/tests/unload.test.lang.module.ignore", "start": 55947, "end": 57650}], "remote_package_size": 57650});
+    loadPackage({"files": [{"filename": "/code/tests/bug1.elf", "start": 0, "end": 669}, {"filename": "/code/tests/bug2.elf", "start": 669, "end": 1788}, {"filename": "/code/tests/bug3.elf", "start": 1788, "end": 2119}, {"filename": "/code/tests/fib.test.lang", "start": 2119, "end": 2901}, {"filename": "/code/tests/finally.test.lang", "start": 2901, "end": 3319}, {"filename": "/code/tests/find.lang", "start": 3319, "end": 4097}, {"filename": "/code/tests/for.test.lang", "start": 4097, "end": 4175}, {"filename": "/code/tests/fun.test.lang", "start": 4175, "end": 4721}, {"filename": "/code/tests/fun1.test.lang", "start": 4721, "end": 4838}, {"filename": "/code/tests/gc.f", "start": 4838, "end": 5216}, {"filename": "/code/tests/hash.lang", "start": 5216, "end": 6118}, {"filename": "/code/tests/if.test.lang", "start": 6118, "end": 6830}, {"filename": "/code/tests/inc.lang", "start": 6830, "end": 6939}, {"filename": "/code/tests/inv.lang", "start": 6939, "end": 7237}, {"filename": "/code/tests/j.f", "start": 7237, "end": 8013}, {"filename": "/code/tests/jit.lang", "start": 8013, "end": 9196}, {"filename": "/code/tests/load.lang", "start": 9196, "end": 9595}, {"filename": "/code/tests/match.test.lang", "start": 9595, "end": 10074}, {"filename": "/code/tests/meta.test.lang", "start": 10074, "end": 10129}, {"filename": "/code/tests/predict.lang", "start": 10129, "end": 10229}, {"filename": "/code/tests/question.lang", "start": 10229, "end": 10382}, {"filename": "/code/tests/simple.lang", "start": 10382, "end": 11325}, {"filename": "/code/tests/stack.test.lang", "start": 11325, "end": 11655}, {"filename": "/code/tests/test.lang", "start": 11655, "end": 12645}, {"filename": "/code/tests/tests.ignore", "start": 12645, "end": 12673}, {"filename": "/code/tests/unload.test.lang", "start": 12673, "end": 12885}], "remote_package_size": 12885});
 
   })();
 
-// end include: C:\Users\rodri\AppData\Local\Temp\tmppgdsq9up.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmpkc5awdpc.js
+// end include: C:\Users\rodri\AppData\Local\Temp\tmpdxpkbyzn.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpnrumlkvq.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmpkc5awdpc.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmpnryevwe4.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmpnrumlkvq.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmp29e1p4w4.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach(function(task) {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmpnryevwe4.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmp29e1p4w4.js
 
 
 // Sometimes an existing Module object exists with properties
@@ -4252,12 +4252,592 @@ function dbg(...args) {
 
   var _emscripten_date_now = () => Date.now();
 
+  function _emscripten_debugger() { debugger }
+
   var _emscripten_get_now;
       // Modern environment where performance.now() is supported:
       // N.B. a shorter form "_emscripten_get_now = performance.now;" is
       // unfortunately not allowed even in current browsers (e.g. FF Nightly 75).
       _emscripten_get_now = () => performance.now();
   ;
+
+  var reallyNegative = (x) => x < 0 || (x === 0 && (1/x) === -Infinity);
+  
+  var convertI32PairToI53 = (lo, hi) => {
+      // This function should not be getting called with too large unsigned numbers
+      // in high part (if hi >= 0x7FFFFFFFF, one should have been calling
+      // convertU32PairToI53())
+      assert(hi === (hi|0));
+      return (lo >>> 0) + hi * 4294967296;
+    };
+  
+  var convertU32PairToI53 = (lo, hi) => {
+      return (lo >>> 0) + (hi >>> 0) * 4294967296;
+    };
+  
+  var reSign = (value, bits) => {
+      if (value <= 0) {
+        return value;
+      }
+      var half = bits <= 32 ? Math.abs(1 << (bits-1)) // abs is needed if bits == 32
+                            : Math.pow(2, bits-1);
+      // for huge values, we can hit the precision limit and always get true here.
+      // so don't do that but, in general there is no perfect solution here. With
+      // 64-bit ints, we get rounding and errors
+      // TODO: In i64 mode 1, resign the two parts separately and safely
+      if (value >= half && (bits <= 32 || value > half)) {
+        // Cannot bitshift half, as it may be at the limit of the bits JS uses in
+        // bitshifts
+        value = -2*half + value;
+      }
+      return value;
+    };
+  
+  var unSign = (value, bits) => {
+      if (value >= 0) {
+        return value;
+      }
+      // Need some trickery, since if bits == 32, we are right at the limit of the
+      // bits JS uses in bitshifts
+      return bits <= 32 ? 2*Math.abs(1 << (bits-1)) + value
+                        : Math.pow(2, bits)         + value;
+    };
+  
+  var strLen = (ptr) => {
+      var end = ptr;
+      while (HEAPU8[end]) ++end;
+      return end - ptr;
+    };
+  
+  var formatString = (format, varargs) => {
+      assert((varargs & 3) === 0);
+      var textIndex = format;
+      var argIndex = varargs;
+      // This must be called before reading a double or i64 vararg. It will bump the pointer properly.
+      // It also does an assert on i32 values, so it's nice to call it before all varargs calls.
+      function prepVararg(ptr, type) {
+        if (type === 'double' || type === 'i64') {
+          // move so the load is aligned
+          if (ptr & 7) {
+            assert((ptr & 7) === 4);
+            ptr += 4;
+          }
+        } else {
+          assert((ptr & 3) === 0);
+        }
+        return ptr;
+      }
+      function getNextArg(type) {
+        // NOTE: Explicitly ignoring type safety. Otherwise this fails:
+        //       int x = 4; printf("%c\n", (char)x);
+        var ret;
+        argIndex = prepVararg(argIndex, type);
+        if (type === 'double') {
+          ret = HEAPF64[((argIndex)>>3)];
+          argIndex += 8;
+        } else if (type == 'i64') {
+          ret = [HEAP32[((argIndex)>>2)],
+                 HEAP32[(((argIndex)+(4))>>2)]];
+          argIndex += 8;
+        } else {
+          assert((argIndex & 3) === 0);
+          type = 'i32'; // varargs are always i32, i64, or double
+          ret = HEAP32[((argIndex)>>2)];
+          argIndex += 4;
+        }
+        return ret;
+      }
+  
+      var ret = [];
+      var curr, next, currArg;
+      while (1) {
+        var startTextIndex = textIndex;
+        curr = HEAP8[textIndex];
+        if (curr === 0) break;
+        next = HEAP8[textIndex+1];
+        if (curr == 37) {
+          // Handle flags.
+          var flagAlwaysSigned = false;
+          var flagLeftAlign = false;
+          var flagAlternative = false;
+          var flagZeroPad = false;
+          var flagPadSign = false;
+          flagsLoop: while (1) {
+            switch (next) {
+              case 43:
+                flagAlwaysSigned = true;
+                break;
+              case 45:
+                flagLeftAlign = true;
+                break;
+              case 35:
+                flagAlternative = true;
+                break;
+              case 48:
+                if (flagZeroPad) {
+                  break flagsLoop;
+                } else {
+                  flagZeroPad = true;
+                  break;
+                }
+              case 32:
+                flagPadSign = true;
+                break;
+              default:
+                break flagsLoop;
+            }
+            textIndex++;
+            next = HEAP8[textIndex+1];
+          }
+  
+          // Handle width.
+          var width = 0;
+          if (next == 42) {
+            width = getNextArg('i32');
+            textIndex++;
+            next = HEAP8[textIndex+1];
+          } else {
+            while (next >= 48 && next <= 57) {
+              width = width * 10 + (next - 48);
+              textIndex++;
+              next = HEAP8[textIndex+1];
+            }
+          }
+  
+          // Handle precision.
+          var precisionSet = false, precision = -1;
+          if (next == 46) {
+            precision = 0;
+            precisionSet = true;
+            textIndex++;
+            next = HEAP8[textIndex+1];
+            if (next == 42) {
+              precision = getNextArg('i32');
+              textIndex++;
+            } else {
+              while (1) {
+                var precisionChr = HEAP8[textIndex+1];
+                if (precisionChr < 48 ||
+                    precisionChr > 57) break;
+                precision = precision * 10 + (precisionChr - 48);
+                textIndex++;
+              }
+            }
+            next = HEAP8[textIndex+1];
+          }
+          if (precision < 0) {
+            precision = 6; // Standard default.
+            precisionSet = false;
+          }
+  
+          // Handle integer sizes. WARNING: These assume a 32-bit architecture!
+          var argSize;
+          switch (String.fromCharCode(next)) {
+            case 'h':
+              var nextNext = HEAP8[textIndex+2];
+              if (nextNext == 104) {
+                textIndex++;
+                argSize = 1; // char (actually i32 in varargs)
+              } else {
+                argSize = 2; // short (actually i32 in varargs)
+              }
+              break;
+            case 'l':
+              var nextNext = HEAP8[textIndex+2];
+              if (nextNext == 108) {
+                textIndex++;
+                argSize = 8; // long long
+              } else {
+                argSize = 4; // long
+              }
+              break;
+            case 'L': // long long
+            case 'q': // int64_t
+            case 'j': // intmax_t
+              argSize = 8;
+              break;
+            case 'z': // size_t
+            case 't': // ptrdiff_t
+            case 'I': // signed ptrdiff_t or unsigned size_t
+              argSize = 4;
+              break;
+            default:
+              argSize = null;
+          }
+          if (argSize) textIndex++;
+          next = HEAP8[textIndex+1];
+  
+          // Handle type specifier.
+          switch (String.fromCharCode(next)) {
+            case 'd': case 'i': case 'u': case 'o': case 'x': case 'X': case 'p': {
+              // Integer.
+              var signed = next == 100 || next == 105;
+              argSize = argSize || 4;
+              currArg = getNextArg('i' + (argSize * 8));
+              var argText;
+              // Flatten i64-1 [low, high] into a (slightly rounded) double
+              if (argSize == 8) {
+                currArg = next == 117 ? convertU32PairToI53(currArg[0], currArg[1]) : convertI32PairToI53(currArg[0], currArg[1]);
+              }
+              // Truncate to requested size.
+              if (argSize <= 4) {
+                var limit = Math.pow(256, argSize) - 1;
+                currArg = (signed ? reSign : unSign)(currArg & limit, argSize * 8);
+              }
+              // Format the number.
+              var currAbsArg = Math.abs(currArg);
+              var prefix = '';
+              if (next == 100 || next == 105) {
+                argText = reSign(currArg, 8 * argSize).toString(10);
+              } else if (next == 117) {
+                argText = unSign(currArg, 8 * argSize).toString(10);
+                currArg = Math.abs(currArg);
+              } else if (next == 111) {
+                argText = (flagAlternative ? '0' : '') + currAbsArg.toString(8);
+              } else if (next == 120 || next == 88) {
+                prefix = (flagAlternative && currArg != 0) ? '0x' : '';
+                if (currArg < 0) {
+                  // Represent negative numbers in hex as 2's complement.
+                  currArg = -currArg;
+                  argText = (currAbsArg - 1).toString(16);
+                  var buffer = [];
+                  for (var i = 0; i < argText.length; i++) {
+                    buffer.push((0xF - parseInt(argText[i], 16)).toString(16));
+                  }
+                  argText = buffer.join('');
+                  while (argText.length < argSize * 2) argText = 'f' + argText;
+                } else {
+                  argText = currAbsArg.toString(16);
+                }
+                if (next == 88) {
+                  prefix = prefix.toUpperCase();
+                  argText = argText.toUpperCase();
+                }
+              } else if (next == 112) {
+                if (currAbsArg === 0) {
+                  argText = '(nil)';
+                } else {
+                  prefix = '0x';
+                  argText = currAbsArg.toString(16);
+                }
+              }
+              if (precisionSet) {
+                while (argText.length < precision) {
+                  argText = '0' + argText;
+                }
+              }
+  
+              // Add sign if needed
+              if (currArg >= 0) {
+                if (flagAlwaysSigned) {
+                  prefix = '+' + prefix;
+                } else if (flagPadSign) {
+                  prefix = ' ' + prefix;
+                }
+              }
+  
+              // Move sign to prefix so we zero-pad after the sign
+              if (argText.charAt(0) == '-') {
+                prefix = '-' + prefix;
+                argText = argText.substr(1);
+              }
+  
+              // Add padding.
+              while (prefix.length + argText.length < width) {
+                if (flagLeftAlign) {
+                  argText += ' ';
+                } else {
+                  if (flagZeroPad) {
+                    argText = '0' + argText;
+                  } else {
+                    prefix = ' ' + prefix;
+                  }
+                }
+              }
+  
+              // Insert the result into the buffer.
+              argText = prefix + argText;
+              argText.split('').forEach(function(chr) {
+                ret.push(chr.charCodeAt(0));
+              });
+              break;
+            }
+            case 'f': case 'F': case 'e': case 'E': case 'g': case 'G': {
+              // Float.
+              currArg = getNextArg('double');
+              var argText;
+              if (isNaN(currArg)) {
+                argText = 'nan';
+                flagZeroPad = false;
+              } else if (!isFinite(currArg)) {
+                argText = (currArg < 0 ? '-' : '') + 'inf';
+                flagZeroPad = false;
+              } else {
+                var isGeneral = false;
+                var effectivePrecision = Math.min(precision, 20);
+  
+                // Convert g/G to f/F or e/E, as per:
+                // http://pubs.opengroup.org/onlinepubs/9699919799/functions/printf.html
+                if (next == 103 || next == 71) {
+                  isGeneral = true;
+                  precision = precision || 1;
+                  var exponent = parseInt(currArg.toExponential(effectivePrecision).split('e')[1], 10);
+                  if (precision > exponent && exponent >= -4) {
+                    next = ((next == 103) ? 'f' : 'F').charCodeAt(0);
+                    precision -= exponent + 1;
+                  } else {
+                    next = ((next == 103) ? 'e' : 'E').charCodeAt(0);
+                    precision--;
+                  }
+                  effectivePrecision = Math.min(precision, 20);
+                }
+  
+                if (next == 101 || next == 69) {
+                  argText = currArg.toExponential(effectivePrecision);
+                  // Make sure the exponent has at least 2 digits.
+                  if (/[eE][-+]\d$/.test(argText)) {
+                    argText = argText.slice(0, -1) + '0' + argText.slice(-1);
+                  }
+                } else if (next == 102 || next == 70) {
+                  argText = currArg.toFixed(effectivePrecision);
+                  if (currArg === 0 && reallyNegative(currArg)) {
+                    argText = '-' + argText;
+                  }
+                }
+  
+                var parts = argText.split('e');
+                if (isGeneral && !flagAlternative) {
+                  // Discard trailing zeros and periods.
+                  while (parts[0].length > 1 && parts[0].includes('.') &&
+                         (parts[0].slice(-1) == '0' || parts[0].slice(-1) == '.')) {
+                    parts[0] = parts[0].slice(0, -1);
+                  }
+                } else {
+                  // Make sure we have a period in alternative mode.
+                  if (flagAlternative && argText.indexOf('.') == -1) parts[0] += '.';
+                  // Zero pad until required precision.
+                  while (precision > effectivePrecision++) parts[0] += '0';
+                }
+                argText = parts[0] + (parts.length > 1 ? 'e' + parts[1] : '');
+  
+                // Capitalize 'E' if needed.
+                if (next == 69) argText = argText.toUpperCase();
+  
+                // Add sign.
+                if (currArg >= 0) {
+                  if (flagAlwaysSigned) {
+                    argText = '+' + argText;
+                  } else if (flagPadSign) {
+                    argText = ' ' + argText;
+                  }
+                }
+              }
+  
+              // Add padding.
+              while (argText.length < width) {
+                if (flagLeftAlign) {
+                  argText += ' ';
+                } else {
+                  if (flagZeroPad && (argText[0] == '-' || argText[0] == '+')) {
+                    argText = argText[0] + '0' + argText.slice(1);
+                  } else {
+                    argText = (flagZeroPad ? '0' : ' ') + argText;
+                  }
+                }
+              }
+  
+              // Adjust case.
+              if (next < 97) argText = argText.toUpperCase();
+  
+              // Insert the result into the buffer.
+              argText.split('').forEach(function(chr) {
+                ret.push(chr.charCodeAt(0));
+              });
+              break;
+            }
+            case 's': {
+              // String.
+              var arg = getNextArg('i8*');
+              var argLength = arg ? strLen(arg) : '(null)'.length;
+              if (precisionSet) argLength = Math.min(argLength, precision);
+              if (!flagLeftAlign) {
+                while (argLength < width--) {
+                  ret.push(32);
+                }
+              }
+              if (arg) {
+                for (var i = 0; i < argLength; i++) {
+                  ret.push(HEAPU8[arg++]);
+                }
+              } else {
+                ret = ret.concat(intArrayFromString('(null)'.substr(0, argLength), true));
+              }
+              if (flagLeftAlign) {
+                while (argLength < width--) {
+                  ret.push(32);
+                }
+              }
+              break;
+            }
+            case 'c': {
+              // Character.
+              if (flagLeftAlign) ret.push(getNextArg('i8'));
+              while (--width > 0) {
+                ret.push(32);
+              }
+              if (!flagLeftAlign) ret.push(getNextArg('i8'));
+              break;
+            }
+            case 'n': {
+              // Write the length written so far to the next parameter.
+              var ptr = getNextArg('i32*');
+              HEAP32[((ptr)>>2)] = ret.length;
+              break;
+            }
+            case '%': {
+              // Literal percent sign.
+              ret.push(curr);
+              break;
+            }
+            default: {
+              // Unknown specifiers remain untouched.
+              for (var i = startTextIndex; i < textIndex + 2; i++) {
+                ret.push(HEAP8[i]);
+              }
+            }
+          }
+          textIndex += 2;
+          // TODO: Support a/A (hex float) and m (last error) specifiers.
+          // TODO: Support %1${specifier} for arg selection.
+        } else {
+          ret.push(curr);
+          textIndex += 1;
+        }
+      }
+      return ret;
+    };
+  
+  function jsStackTrace() {
+      return new Error().stack.toString();
+    }
+  
+  /** @param {number=} flags */
+  function getCallstack(flags) {
+      var callstack = jsStackTrace();
+  
+      // Find the symbols in the callstack that corresponds to the functions that
+      // report callstack information, and remove everything up to these from the
+      // output.
+      var iThisFunc = callstack.lastIndexOf('_emscripten_log');
+      var iThisFunc2 = callstack.lastIndexOf('_emscripten_get_callstack');
+      var iNextLine = callstack.indexOf('\n', Math.max(iThisFunc, iThisFunc2))+1;
+      callstack = callstack.slice(iNextLine);
+  
+      // If user requested to see the original source stack, but no source map
+      // information is available, just fall back to showing the JS stack.
+      if (flags & 8 && typeof emscripten_source_map == 'undefined') {
+        warnOnce('Source map information is not available, emscripten_log with EM_LOG_C_STACK will be ignored. Build with "--pre-js $EMSCRIPTEN/src/emscripten-source-map.min.js" linker flag to add source map loading to code.');
+        flags ^= 8;
+        flags |= 16;
+      }
+  
+      // Process all lines:
+      var lines = callstack.split('\n');
+      callstack = '';
+      // New FF30 with column info: extract components of form:
+      // '       Object._main@http://server.com:4324:12'
+      var newFirefoxRe = new RegExp('\\s*(.*?)@(.*?):([0-9]+):([0-9]+)');
+      // Old FF without column info: extract components of form:
+      // '       Object._main@http://server.com:4324'
+      var firefoxRe = new RegExp('\\s*(.*?)@(.*):(.*)(:(.*))?');
+      // Extract components of form:
+      // '    at Object._main (http://server.com/file.html:4324:12)'
+      var chromeRe = new RegExp('\\s*at (.*?) \\\((.*):(.*):(.*)\\\)');
+  
+      for (var l in lines) {
+        var line = lines[l];
+  
+        var symbolName = '';
+        var file = '';
+        var lineno = 0;
+        var column = 0;
+  
+        var parts = chromeRe.exec(line);
+        if (parts && parts.length == 5) {
+          symbolName = parts[1];
+          file = parts[2];
+          lineno = parts[3];
+          column = parts[4];
+        } else {
+          parts = newFirefoxRe.exec(line);
+          if (!parts) parts = firefoxRe.exec(line);
+          if (parts && parts.length >= 4) {
+            symbolName = parts[1];
+            file = parts[2];
+            lineno = parts[3];
+            // Old Firefox doesn't carry column information, but in new FF30, it
+            // is present. See https://bugzilla.mozilla.org/show_bug.cgi?id=762556
+            column = parts[4]|0;
+          } else {
+            // Was not able to extract this line for demangling/sourcemapping
+            // purposes. Output it as-is.
+            callstack += line + '\n';
+            continue;
+          }
+        }
+  
+        var haveSourceMap = false;
+  
+        if (flags & 8) {
+          var orig = emscripten_source_map.originalPositionFor({line: lineno, column: column});
+          haveSourceMap = orig?.source;
+          if (haveSourceMap) {
+            if (flags & 64) {
+              orig.source = orig.source.substring(orig.source.replace(/\\/g, "/").lastIndexOf('/')+1);
+            }
+            callstack += `    at ${symbolName} (${orig.source}:${orig.line}:${orig.column})\n`;
+          }
+        }
+        if ((flags & 16) || !haveSourceMap) {
+          if (flags & 64) {
+            file = file.substring(file.replace(/\\/g, "/").lastIndexOf('/')+1);
+          }
+          callstack += (haveSourceMap ? (`     = ${symbolName}`) : (`    at ${symbolName}`)) + ` (${file}:${lineno}:${column})\n`;
+        }
+      }
+      // Trim extra whitespace at the end of the output.
+      callstack = callstack.replace(/\s+$/, '');
+      return callstack;
+    }
+  var emscriptenLog = (flags, str) => {
+      if (flags & 24) {
+        str = str.replace(/\s+$/, ''); // Ensure the message and the callstack are joined cleanly with exactly one newline.
+        str += (str.length > 0 ? '\n' : '') + getCallstack(flags);
+      }
+  
+      if (flags & 1) {
+        if (flags & 4) {
+          console.error(str);
+        } else if (flags & 2) {
+          console.warn(str);
+        } else if (flags & 512) {
+          console.info(str);
+        } else if (flags & 256) {
+          console.debug(str);
+        } else {
+          console.log(str);
+        }
+      } else if (flags & 6) {
+        err(str);
+      } else {
+        out(str);
+      }
+    };
+  var _emscripten_log = (flags, format, varargs) => {
+      var result = formatString(format, varargs);
+      var str = UTF8ArrayToString(result, 0);
+      emscriptenLog(flags, str);
+    };
 
   var getHeapMax = () =>
       HEAPU8.length;
@@ -4270,6 +4850,10 @@ function dbg(...args) {
       // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
       requestedSize >>>= 0;
       abortOnCannotGrowMemory(requestedSize);
+    };
+
+  var _emscripten_sleep = () => {
+      throw 'Please compile your program with async support in order to use asynchronous operations like emscripten_sleep';
     };
 
   function _fd_close(fd) {
@@ -4457,9 +5041,15 @@ var wasmImports = {
   /** @export */
   emscripten_date_now: _emscripten_date_now,
   /** @export */
+  emscripten_debugger: _emscripten_debugger,
+  /** @export */
   emscripten_get_now: _emscripten_get_now,
   /** @export */
+  emscripten_log: _emscripten_log,
+  /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
+  /** @export */
+  emscripten_sleep: _emscripten_sleep,
   /** @export */
   fd_close: _fd_close,
   /** @export */
@@ -4503,8 +5093,6 @@ var missingLibrarySymbols = [
   'writeI53ToU64Signaling',
   'readI53FromI64',
   'readI53FromU64',
-  'convertI32PairToI53',
-  'convertU32PairToI53',
   'getTempRet0',
   'setTempRet0',
   'growMemory',
@@ -4518,7 +5106,6 @@ var missingLibrarySymbols = [
   'inetNtop6',
   'readSockaddr',
   'writeSockaddr',
-  'emscriptenLog',
   'readEmAsmArgs',
   'jstoi_q',
   'getExecutableName',
@@ -4550,11 +5137,6 @@ var missingLibrarySymbols = [
   'getFunctionAddress',
   'addFunction',
   'removeFunction',
-  'reallyNegative',
-  'unSign',
-  'strLen',
-  'reSign',
-  'formatString',
   'intArrayToString',
   'AsciiToString',
   'stringToAscii',
@@ -4607,8 +5189,6 @@ var missingLibrarySymbols = [
   'registerBatteryEventCallback',
   'setCanvasElementSize',
   'getCanvasElementSize',
-  'jsStackTrace',
-  'getCallstack',
   'convertPCtoSourceLocation',
   'getEnvStrings',
   'checkWasiClock',
@@ -4680,7 +5260,9 @@ var unexportedSymbols = [
   'wasmExports',
   'writeStackCookie',
   'checkStackCookie',
+  'convertI32PairToI53',
   'convertI32PairToI53Checked',
+  'convertU32PairToI53',
   'stackSave',
   'stackRestore',
   'stackAlloc',
@@ -4703,6 +5285,7 @@ var unexportedSymbols = [
   'randomFill',
   'timers',
   'warnOnce',
+  'emscriptenLog',
   'readEmAsmArgsArray',
   'jstoi_s',
   'handleException',
@@ -4714,6 +5297,11 @@ var unexportedSymbols = [
   'noExitRuntime',
   'freeTableIndexes',
   'functionsInTableMap',
+  'reallyNegative',
+  'unSign',
+  'strLen',
+  'reSign',
+  'formatString',
   'setValue',
   'getValue',
   'PATH',
@@ -4732,6 +5320,8 @@ var unexportedSymbols = [
   'findCanvasEventTarget',
   'currentFullscreenStrategy',
   'restoreOldWindowedStyle',
+  'jsStackTrace',
+  'getCallstack',
   'UNWIND_CACHE',
   'ExitStatus',
   'doReadv',

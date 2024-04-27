@@ -1,6 +1,6 @@
 /*
 ** See Copyright Notice In elf.h
-** ltoken.lang
+** token.elf
 ** Metaprogram to generate ltoken.h
 */
 
@@ -77,6 +77,7 @@ newtk = fun(x,r,s) ? {
 
 tklist = {
 	newtk("NONE", N, "none"),
+	newtk("ELF", K, "elf"),
 	newtk("NEW", K, "new"),
 	newtk("THIS", K, "this"),
 	newtk("ENUM", K, "enum"),
@@ -175,13 +176,13 @@ fpf(file,"#define FIRST_KEYWORD ", firstkeyword, "\n")
 fpf(file,"#define  LAST_KEYWORD ", lastkeyword, "\n\n\n")
 
 fpf(file,"typedef struct ltoken {\n")
-fpf(file,"\tenum ltokentype type;\n")
+fpf(file,"\tunsigned char type;\n")
 fpf(file,"\tllineid line;\n")
 fpf(file,"\tunsigned int eol: 1;\n")
 fpf(file,"\tunion {\n")
 fpf(file,"\t\tchar *s;\n")
-fpf(file,"\t\tllongint i;\n")
-fpf(file,"\t\tlnumber n;\n")
+fpf(file,"\t\telf_int i;\n")
+fpf(file,"\t\telf_num n;\n")
 fpf(file,"\t};\n")
 fpf(file,"} ltoken;\n\n\n")
 
@@ -199,7 +200,7 @@ fpf(file,"} ltokentype;\n\n\n")
 fpf(file,"typedef struct ltokenintel {\n")
 fpf(file,"\tchar *name;\n")
 fpf(file,"\tchar prec;\n")
-fpf(file,"\tlhashid hash;\n")
+fpf(file,"\telf_hashint hash;\n")
 fpf(file,"} ltokenintel;\n\n\n")
 
 fpf(file,"elf_globaldecl ltokenintel elfX_tokenintel[] = {\n")

@@ -5,13 +5,6 @@
 */
 
 
-#if defined(_MSC_VER)
-	#define elf_debugger() __debugbreak()
-#else
-	#define elf_debugger()
-#endif
-
-
 typedef struct ldebugloc {
 	char const *fileName;
 	int lineNumber;

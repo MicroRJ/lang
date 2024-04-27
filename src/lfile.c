@@ -158,7 +158,7 @@ int elfY_indexofentityincache(elf_FileFunc *fn, lentityid id) {
 ** function, storing a copy of the entity id in the function's
 ** captures.
 */
-void elfY_captureentity(elf_FileState *fs, elf_FileFunc *fn, lentityid id) {
+void elf_fscapent(elf_FileState *fs, elf_FileFunc *fn, lentityid id) {
 	/* ensure the entity should actually be captured */
 	elf_assert(id.x < fn->entities);
 	elf_arrfori(fn->captures) {
@@ -169,18 +169,20 @@ void elfY_captureentity(elf_FileState *fs, elf_FileFunc *fn, lentityid id) {
 
 
 /*
-** Find the closest entity in order of lexical relevance,
-** starting from the last declared entity.
+** Find the closest entity in order of lexical
+** relevance, starting from the last declared entity.
 ** The id returned is an absolute index into fs->entities,
 ** you should make it relative to the current function.
 ** If the entity is outside of this function, then it caches it.
 */
-lentityid elfY_fndentity(elf_FileState *fs, llineid line, char *name) {
+lentityid elf_fsfndent(elf_FileState *fs, llineid line, char *name) {
 	elf_FileFunc *fn = fs->fn;
 	for (int x = fs->nentities-1; x >= 0; --x) {
 		if (S_eq(fs->entities[x].name,name)) {
 			lentityid id = {x};
-			if (x < fn->entities) elfY_captureentity(fs,fn,id);
+	if (x < fn->entities) {
+		elf_fscapent(fs,fn,id);
+	}
 			return id;
 		}
 	}
@@ -196,7 +198,7 @@ lentityid elfY_fndentity(elf_FileState *fs, llineid line, char *name) {
 */
 lnodeid elf_fsnewlocalentity(elf_FileState *fs, llineid line, char *name, elf_bool enm) {
 	elf_FileFunc *fn = fs->fn;
-	lentityid id = elfY_fndentity(fs,line,name);
+	lentityid id = elf_fsfndent(fs,line,name);
 	if (id.x == NO_ENTITY.x) {
 		id = elfY_allocentity(fs,line);
 
@@ -222,7 +224,7 @@ lnodeid elf_fsnewlocalentity(elf_FileState *fs, llineid line, char *name, elf_bo
 
 
 lnodeid elf_fsfndentitynode(elf_FileState *fs, llineid line, char *name) {
-	lentityid id = elfY_fndentity(fs,line,name);
+	lentityid id = elf_fsfndent(fs,line,name);
 	if (id.x == NO_ENTITY.x) return NO_NODE;
 	elf_FileFunc *fn = fs->fn;
 	/* to figure out whether this is capture, simply
@@ -276,10 +278,9 @@ lnodeid *elf_fsloadcallargs(elf_FileState *fs) {
 }
 
 
-/* -- Pretty self explanatory function,
-- could have used the token itself, but
-- that's for smart people to do.
-- */
+/* pretty self explanatory function,
+could have used the token itself, but
+that's for smart people to do. */
 lnodeop tktonode(ltokentype tk) {
 	switch (tk) {
 		case TK_DOT_DOT:            return NODE_RANGE;
@@ -429,8 +430,8 @@ lnodeid elf_fsloadtable(elf_FileState *fs) {
 	lnodeid table = elf_nodetab(fs,tk.line,lnil);
 	int index = 0;
 	if (!elf_testtk(fs,TK_CURLY_RIGHT)) do {
-		/* -- todo: instead of doing this, convert the node
-		to a refernce instead */
+		/* -- todo: instead of doing this,
+		convert the node to a refernce instead */
 		if (elf_testthentk(fs,TK_ASSIGN)) {
 			tk = fs->lasttk;
 			fs->flags |= NOTANENTITY;
@@ -438,7 +439,9 @@ lnodeid elf_fsloadtable(elf_FileState *fs) {
 			fs->flags &= ~NOTANENTITY;
 			elf_taketk(fs,TK_ASSIGN);
 			lnodeid val = elf_fsloadexpr(fs);
-			if (elf_fscheckexpr(fs,fs->tk.line,val)) break;
+	if (elf_fscheckexpr(fs,fs->tk.line,val)) {
+		break;
+	}
 			lnodeid fld = elf_nodefield(fs,fs->lasttk.line,table,key);
 			lnodeid f = elf_nodeload(fs,fs->lasttk.line,fld,val);
 			elf_varadd(z,f);
@@ -473,20 +476,48 @@ lnodeid elf_fsloadexpr(elf_FileState *fs) {
 
 
 lnodeid elf_fsloadunary(elf_FileState *fs) {
-	lnodeid v = - 1;
+	lnodeid v = NO_NODE;
 	ltoken tk = fs->tk;
 	switch (tk.type) {
-		case TK_WORD: { elf_yieldtk(fs);
+		/* elf is a reserved keyword used
+		for the core namespace */
+		case TK_ELF: {
+			elf_yieldtk(fs);
+			char buf[MAX_PATH] = {"elf"};
+			if (elf_testtk(fs,TK_DOT)) {
+
+		while (elf_picktk(fs,TK_DOT)) {
+			elf_taketk(fs,TK_WORD);
+			strcat(buf,".");
+			strcat(buf,fs->lasttk.s);
+		}
+
+				lglobalid x = lang_addsymbol(fs->M,elf_newstr(fs->R,buf));
+				v = elf_nodeglobal(fs,tk.line,x);
+
+			/* for all intended purposes, this is an error */
+			} else elf_lineerror(fs,tk.line,"expected '.' after 'elf', incomplete name");
+		} break;
+		case TK_WORD: {
+			elf_yieldtk(fs);
 			if (~fs->flags & NOTANENTITY) {
 				v = elf_fsfndentitynode(fs,tk.line,tk.s);
-				if (v == NO_NODE) {
-					/* todo:! gc'd string */
-					lglobalid x = lang_addsymbol(fs->md,elf_newstr(fs->rt,tk.s));
-					if (x != -1) v = elf_nodeglobal(fs,tk.line,x);
-				}
-				if (v == NO_NODE) {
-					elf_lineerror(fs,tk.line,"'%s': undeclared identifier",tk.s);
-				}
+		if (v == NO_NODE) {
+			/* todo!: gc'd string, all these objects
+			created when parsing should be attached
+			to the file, and the file should be an
+			object of sorts, when the file is done
+			with, we deallocate it, since the file
+			is a closure of sorts, this should be
+			pretty straight forward... */
+			lglobalid x = lang_addsymbol(fs->M,elf_newstr(fs->R,tk.s));
+			if (x != NO_NODE) {
+				v = elf_nodeglobal(fs,tk.line,x);
+			}
+		}
+		if (v == NO_NODE) {
+			elf_lineerror(fs,tk.line,"'%s': undeclared identifier",tk.s);
+		}
 			} else {
 				v = elf_nodestr(fs,tk.line,tk.s);
 			}

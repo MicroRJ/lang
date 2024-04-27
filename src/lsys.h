@@ -5,6 +5,22 @@
 */
 
 
+/* todo: define this elsewhere */
+#if defined(_WIN32)
+	#define PLATFORM_WIN32
+#else
+	#if !defined(PLATFORM_WEB)
+		#define PLATFORM_WEB
+	#endif
+#endif
+
+
+/* triggers the debugger for this program,
+returns whether a debugger was successfully
+attached */
+lapi elf_bool sys_debugger();
+
+
 lapi void *sys_valloc(elf_int length);
 
 lapi elf_int sys_clockhz();

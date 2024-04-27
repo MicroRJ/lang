@@ -17,10 +17,20 @@ char *S_filename(char *s) {
 }
 
 
+char *elf_logtostr(int type) {
+	switch (type) {
+		case ELF_LOGDBUG: return "DEBUG";
+		case ELF_LOGINFO: return "INFO";
+		case ELF_LOGWARN: return "WARN";
+		case ELF_LOGERROR: return "ERROR";
+		case ELF_LOGFATAL: return "FATAL";
+		default: return "OTHER";
+	}
+}
+
+
 lapi void elf_log_(int type, ldebugloc source, const char *fmt, ...) {
-	static const char *toString[] = {
-		"FATAL", "ERROR", "WARNING", "INFO", "DEBUG"
-	};
+
 	char b[0x1000];
 
 	va_list xx;
@@ -34,7 +44,7 @@ lapi void elf_log_(int type, ldebugloc source, const char *fmt, ...) {
 	char *file = (char*) source.fileName;
 	char *func = (char*) source.func;
 
-	printf("%s %s[%i] %s(): %s\n",toString[type],S_filename(file),line,func,b);
+	printf("%s %s[%i] %s(): %s\n",elf_logtostr(type),S_filename(file),line,func,b);
 }
 
 
