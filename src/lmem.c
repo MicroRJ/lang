@@ -34,7 +34,6 @@ void *langM_copy(void *target, void const *source, elf_int length) {
 
 
 void langM_dealloc_(Alloc *c, const void *memory, ldebugloc loca) {
-
 	Error error = c->fn(c,0,0,0,(void **)&memory,loca);
 	elf_assert(LPASSED(error));
 }
@@ -71,15 +70,11 @@ unsigned char *M_memory;
 #endif
 #endif
 
-#if defined(_DEBUG)
-void elf_inimem() {
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF|_CRTDBG_LEAK_CHECK_DF|_CRTDBG_REPORT_FLAG);
-	_CrtSetReportMode(_CRT_ERROR,_CRTDBG_MODE_DEBUG);
-#if 0
-	M_length = GIGABYTES(4);
-	M_memory = sys_valloc(M_length);
-#endif
-}
+#if defined(_DEBUG) && defined(_MSC_VER)
+	void elf_inimem() {
+		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF|_CRTDBG_LEAK_CHECK_DF|_CRTDBG_REPORT_FLAG);
+		_CrtSetReportMode(_CRT_ERROR,_CRTDBG_MODE_DEBUG);
+	}
 #else
 	#define elf_inimem()
 #endif
@@ -90,15 +85,28 @@ ALLOCFN(langM_defglobalallocfn) {
 		return Error_InvalidArguments;
 	}
 	if (newSize == 0) {
+#if defined(_MSC_VER)
 		_aligned_free(*oldAndNewMemory);
+#else
+		free(*oldAndNewMemory);
+#endif
 	} else {
 		if (*oldAndNewMemory == 0) {
+#if defined(_MSC_VER)
 			*oldAndNewMemory = _aligned_malloc(newSize,0x10);
+#else
+			*oldAndNewMemory = malloc(newSize);
+#endif
 		} else {
+#if defined(_MSC_VER)
 			*oldAndNewMemory = _aligned_realloc(*oldAndNewMemory,newSize,0x10);
+#else
+			*oldAndNewMemory = realloc(*oldAndNewMemory,newSize);
+#endif
 		}
 
 		if (*oldAndNewMemory == 0) {
+			elf_debugger();
 			return Error_OutOfMemory;
 		}
 	}

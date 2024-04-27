@@ -103,13 +103,13 @@ int testlib_pc(elf_Runtime *c) {
 
 
 int testlib_gcpause(elf_Runtime *c) {
-	langGC_pause(c);
+	elf_gcpause(c);
 	return 0;
 }
 
 
 int testlib_gcunpause(elf_Runtime *c) {
-	langGC_unpause(c);
+	elf_gcresume(c);
 	return 0;
 }
 

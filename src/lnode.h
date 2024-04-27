@@ -129,8 +129,8 @@ lvaluetag elf_nodettotag(lnodety ty) {
 		case NT_SYS: return TAG_SYS;
 		case NT_NUM: return TAG_NUM;
 		case NT_INT: return TAG_INT;
+		default: LNOBRANCH;
 	}
-	LNOBRANCH;
 	return TAG_NIL;
 }
 

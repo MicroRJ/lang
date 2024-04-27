@@ -8,6 +8,8 @@
 lapi int sys_getlasterror() {
 #if defined(_WIN32)
 	return GetLastError();
+#else
+	return 0;
 #endif
 }
 
@@ -23,6 +25,8 @@ lapi void sys_geterrormsg(int error, char *buff, int len) {
 lapi void *sys_valloc(elf_int length) {
 #if defined(_WIN32)
 	return VirtualAlloc(NULL,length,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
+#else
+	return lnil;
 #endif
 }
 
@@ -39,6 +43,8 @@ lapi elf_int sys_clockhz() {
 	LARGE_INTEGER largeInt;
 	QueryPerformanceFrequency(&largeInt);
 	return largeInt.QuadPart;
+#else
+	return 0;
 #endif
 }
 
@@ -48,6 +54,8 @@ lapi elf_int sys_clocktime() {
 	LARGE_INTEGER largeInt;
 	QueryPerformanceCounter(&largeInt);
 	return largeInt.QuadPart;
+#else
+	return 0;
 #endif
 }
 
@@ -55,6 +63,8 @@ lapi elf_int sys_clocktime() {
 lapi int sys_getmyname(int length, char *buffer) {
 #if defined(_WIN32)
 	return GetModuleFileName(NULL,buffer,length);
+#else
+	return 0;
 #endif
 }
 
@@ -62,6 +72,8 @@ lapi int sys_getmyname(int length, char *buffer) {
 lapi int sys_getmypid() {
 #if defined(_WIN32)
 	return GetCurrentProcessId();
+#else
+	return 0;
 #endif
 }
 
@@ -69,6 +81,8 @@ lapi int sys_getmypid() {
 lapi int sys_pwd(int length, char *buffer) {
 #if defined(_WIN32)
 	return GetCurrentDirectory(length,buffer);
+#else
+	return 0;
 #endif
 }
 
@@ -76,6 +90,8 @@ lapi int sys_pwd(int length, char *buffer) {
 lapi int sys_setpwd(char *buffer) {
 #if defined(_WIN32)
 	return SetCurrentDirectory(buffer);
+#else
+	return 0;
 #endif
 }
 
@@ -83,6 +99,8 @@ lapi int sys_setpwd(char *buffer) {
 lapi elf_Handle sys_loadlib(char const *name) {
 #if defined(_WIN32)
 	return (elf_Handle) LoadLibraryA(name);
+#else
+	return 0;
 #endif
 }
 
@@ -90,11 +108,13 @@ lapi elf_Handle sys_loadlib(char const *name) {
 lapi void *sys_libfn(elf_Handle dll, char const *name) {
 #if defined(_WIN32)
 	return (void *) GetProcAddress(dll,name);
+#else
+	return 0;
 #endif
 }
 
 
-lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
+lapi Error sys_loadfilebytes(Alloc *allocfn, void **data, char const *name) {
 
 	Error error = Error_None;
 
@@ -112,7 +132,7 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 	HANDLE hfile = CreateFileA(name,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,0x00,NULL);
 	if (hfile != INVALID_HANDLE_VALUE) {
 		DWORD hi,lo = GetFileSize(hfile,&hi);
-		char *buf = langM_alloc(allocator,lo+1);
+		char *buf = langM_alloc(allocfn,lo+1);
 		DWORD bytes;
 		if (ReadFile(hfile,buf,lo,&bytes,NULL)) {
 			buf[bytes] = 0;
@@ -122,7 +142,7 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 				goto leave;
 			}
 		} else {
-			elf_delmem(allocator,buf);
+			elf_delmem(allocfn,buf);
 			error = Error_CouldNotReadFile;
 			goto leave;
 		}
@@ -144,7 +164,7 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 	fseek(file,0,SEEK_END);
 	long fileSize = ftell(file);
 	fseek(file,0,SEEK_SET);
-	char *buf = (char *) langM_alloc(money,fileSize+1);
+	char *buf = (char *) langM_alloc(allocfn,fileSize+1);
 	fread(buf,1,fileSize,file);
 	fclose(file);
 	buf[fileSize] = 0;
@@ -162,9 +182,12 @@ lapi Error sys_loadfilebytes(Alloc *allocator, void **data, char const *name) {
 
 
 lapi Error sys_savefilebytes(char const *buffer, elf_int length, char const *fileName) {
-
 	FILE *file;
+#if defined(_MSC_VER)
 	fopen_s(&file,fileName,"wb");
+#else
+	file = fopen(fileName,"wb");
+#endif
 
 	if (file == lnil) {
 		return Error_CouldNotOpenFile;

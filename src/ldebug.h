@@ -5,6 +5,13 @@
 */
 
 
+#if defined(_MSC_VER)
+	#define elf_debugger() __debugbreak()
+#else
+	#define elf_debugger()
+#endif
+
+
 typedef struct ldebugloc {
 	char const *fileName;
 	int lineNumber;
@@ -41,13 +48,13 @@ void lang_assertfn(ldebugloc ind, char const *name, elf_bool expr);
 #if !defined(LNOBRANCH)
 	#define LNOBRANCH do {\
 		printf("%s[%i] %s(): You've Hit A Roadblock\n",__FILE__,__LINE__,__func__);\
-		__debugbreak();\
+		elf_debugger();\
 	} while (0)
 #endif
 
 
 #if defined(_DEBUG)
-	#define LCHECKPRINTF(FORMAT,...) ((lfalse)?(sprintf_s(lnil,0,FORMAT,__VA_ARGS__),lnil):lnil)
+	#define LCHECKPRINTF(FORMAT,...) ((lfalse)?(snprintf(lnil,0,FORMAT,__VA_ARGS__),lnil):lnil)
 #else
 	#define LCHECKPRINTF(FORMAT,...) 0
 #endif

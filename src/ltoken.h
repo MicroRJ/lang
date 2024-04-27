@@ -10,7 +10,7 @@
 
 
 typedef struct ltoken {
-	enum ltokentype type;
+	unsigned char type;
 	llineid line;
 	unsigned int eol: 1;
 	union {

@@ -67,7 +67,7 @@ void elfX_error2(char *filename, char *contents, char *loc, char const *fmt, ...
 		va_start(v,fmt);
 		stbsp_vsnprintf(b,sizeof(b),fmt,v);
 		va_end(v);
-		printf("%s [%i:%lli]: %s\n",filename,linenum,1+loc-lineloc,b);
+		printf("%s [%i:%lli]: %s\n",filename,linenum,(elf_int)(1+loc-lineloc),b);
 	}
 	printf("| %.*s\n",linelen,lineloc);
 	printf("| %.*s\n",underline+1,u);
@@ -110,35 +110,35 @@ void elf_lineerror(elf_FileState *fs, char *loc, char const *fmt, ...) {
 		va_start(v,fmt);
 		stbsp_vsnprintf(b,sizeof(b),fmt,v);
 		va_end(v);
-		printf("%s [%i:%lli]: %s\n",fs->filename,linenum,1+loc-lineloc,b);
+		printf("%s [%i:%lli]: %s\n",fs->filename,linenum,(elf_int)(1+loc-lineloc),b);
 	}
 	printf("| %.*s\n",linelen,lineloc);
 	printf("| %.*s\n",underline+1,u);
 }
 
 
-elf_bool elfX_isdigit(char x) {
+elf_bool elf_chrisdigit(char x) {
 	return x >= '0' && x <= '9';
 }
 
 
-elf_bool elfX_islowercase(char x) {
+elf_bool elf_chrislowercase(char x) {
 	return x >= 'a' && x <= 'z';
 }
 
 
-elf_bool elfX_isuppercase(char x) {
+elf_bool elf_chrisuppercase(char x) {
 	return x >= 'A' && x <= 'Z';
 }
 
 
-elf_bool elfX_isletter(char x) {
-	return elfX_isuppercase(x) || elfX_islowercase(x);
+elf_bool elf_chrisletter(char x) {
+	return elf_chrisuppercase(x) || elf_chrislowercase(x);
 }
 
 
-elf_bool elfX_isalphanum(char x) {
-	return elfX_isletter(x) || elfX_isdigit(x) || (x) == '_';
+elf_bool elf_chrisalphanum(char x) {
+	return elf_chrisletter(x) || elf_chrisdigit(x) || (x) == '_';
 }
 
 
@@ -182,20 +182,20 @@ ltoken elf_yieldtk(elf_FileState *file) {
 	/* remove, not needed #todo */
 	elf_globaldecl char buffer[0x100];
 
-	retry:
+	ltoken tk;
 
-	char *line = file->thischar;
-	ltoken tk = {TK_NONE,file->thischar};
+	retry:
+	tk = (ltoken){TK_NONE,file->thischar};
 
 	/* we could put all of the ascii codes in the switch
 	statement, but that just makes it look incredibly silly  */
 	switch (thischr()) {
 		default: {
-			if (elfX_isletter(thischr()) || (thischr() == '_')) {
+			if (elf_chrisletter(thischr()) || (thischr() == '_')) {
 				int length = 0;
 				do {
 					buffer[length++] = movechr();
-				} while (elfX_isalphanum(thischr()));
+				} while (elf_chrisalphanum(thischr()));
 				buffer[length] = 0;
 
 				tk.type = wordorkeyword(buffer);
@@ -225,7 +225,7 @@ ltoken elf_yieldtk(elf_FileState *file) {
 			if (base == 10) {
 				do {
 					i = i * 10 + (movechr() - '0');
-				} while (isdigit(thischr()));
+				} while (elf_chrisdigit(thischr()));
 			} else {
 				for (;;) {
 					if (thischr() >= 'A' && thischr() <= 'Z') {
@@ -247,11 +247,11 @@ ltoken elf_yieldtk(elf_FileState *file) {
 
 					elf_num p = 1;
 					elf_num n = 0;
-					if (isdigit(thischr())) {
+					if (elf_chrisdigit(thischr())) {
 						do  {
 							n = n * 10 + (movechr() - '0');
 							p *= 10;
-						} while (isdigit(thischr()));
+						} while (elf_chrisdigit(thischr()));
 					}
 					tk.n = i + n / p;
 					// elf_loginfo("[%lli] = num(%f)",tk.value,n);
@@ -295,14 +295,14 @@ ltoken elf_yieldtk(elf_FileState *file) {
 			if (cmovchr('.')) {
 				tk.type = TK_DOT_DOT;
 			} else
-			if (isdigit(thischr())) {
+			if (elf_chrisdigit(thischr())) {
 				tk.type = TK_NUMBER;
 				elf_num n = 0;
 				elf_num p = 1;
 				do {
 					n = n * 10 + (movechr() - '0');
 					p *= 10;
-				} while (isdigit(thischr()));
+				} while (elf_chrisdigit(thischr()));
 				tk.n = n / p;
 				// elf_loginfo("[%lli] = num(%f)",tk.value,n);
 			}

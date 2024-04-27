@@ -19,7 +19,7 @@ void lang_assertfn(ldebugloc ind, char const *name, elf_bool expr) {
 		if (lang_globalassertionhook != lnil) {
 			lang_globalassertionhook(ind);
 		} else {
-			__debugbreak();
+			elf_debugger();
 		}
 	}
 }

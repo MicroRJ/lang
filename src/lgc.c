@@ -19,23 +19,13 @@ most of the spikes occur */
 void elf_collect(elf_Runtime *fs);
 
 
-void langGC_pause(elf_Runtime *fs) {
+void elf_gcpause(elf_Runtime *fs) {
 	fs->gcflags = ltrue;
 }
 
 
-void langGC_unpause(elf_Runtime *fs) {
+void elf_gcresume(elf_Runtime *fs) {
 	fs->gcflags = lfalse;
-}
-
-
-void langGC_markpink(elf_Object *obj) {
-	obj->gccolor = GC_PINK;
-}
-
-
-void langGC_markwhite(elf_Object *obj) {
-	obj->gccolor = GC_WHITE;
 }
 
 
@@ -88,9 +78,9 @@ void elf_remobj(elf_Runtime *fs, elf_int i) {
 void elf_delobj(elf_Runtime *R, elf_Object *obj) {
 	if (obj != lnil) {
 		R->gcmemory -= obj->tell;
-		if (obj->type == OBJ_TAB) {
-			elf_deltab((elf_Table*)obj);
-		}
+	if (obj->type == OBJ_TAB) {
+		elf_deltab((elf_Table*)obj);
+	}
 		elf_delmem(lHEAP,obj);
 	}
 }
@@ -99,6 +89,7 @@ elf_bool elf_markval(elf_val *v);
 elf_int elf_marktab(elf_Table *table);
 
 
+/* todo: remove this function */
 elf_int elf_markcl(elf_Closure *cl) {
 	elf_int n = 0, k;
 	for (k=0; k<cl->fn.ncaches; ++k) {
@@ -108,10 +99,11 @@ elf_int elf_markcl(elf_Closure *cl) {
 }
 
 
+/* todo: remove this function */
 elf_int elf_marktab(elf_Table *table) {
 	if (table->ntotal > 1024) {
-		elf_logdebug("marked high count table: %lli/%lli",
-		table->nslots,table->ntotal);
+		elf_logdebug("marked high count table: %lli/%lli"
+		, table->nslots,table->ntotal);
 	}
 	elf_int n = 0, k;
 	for (k=0; k<table->ntotal; ++k) {
@@ -143,7 +135,7 @@ elf_bool elf_markval(elf_val *v) {
 
 
 elf_int elf_markall(elf_Runtime *R) {
-	elf_int num = elf_marktab(R->M->g);
+	elf_int num = elf_markobj((elf_Object*)R->M->g);
 	for (elf_val *val = R->stk; val < R->top; ++ val) {
 		num += elf_markval(val);
 	}
@@ -152,13 +144,15 @@ elf_int elf_markall(elf_Runtime *R) {
 
 
 void elf_collect(elf_Runtime *R) {
-	elf_int time_ = elf_clocktime();
-
 	elf_int num = elf_markall(R);
+
+#if defined(LLOGGING)
+	elf_int time_ = elf_clocktime();
 	elf_int ngc = elf_arrlen(R->gc);
 	elf_int tbf = ngc-num;
 	elf_int nwo = 0;
 	elf_logdebug("tbf: %lli/%lli -> %lli",tbf,ngc,num);
+#endif
 
 	for (int i = 0; i < elf_arrlen(R->gc); i ++) {
 		elf_Object *it = R->gc[i];
@@ -170,21 +164,32 @@ void elf_collect(elf_Runtime *R) {
 		if (it == lnil) continue;
 		if (it->gccolor == GC_RED) {
 			elf_logerror("internal error: gc failed");
-			__debugbreak();
+			elf_debugger();
 		}
 		if (it->gccolor == GC_BLACK) {
+	#if defined(LLOGGING)
 			num --;
+	#endif
 			it->gccolor = GC_WHITE;
 		} else
 		if (it->gccolor == GC_WHITE) {
+	if (it == (elf_Object*) R->M->g) {
+		elf_logerror("internal error: gc failed");
+		elf_debugger();
+	}
 			it->gccolor = GC_RED;
+	#if defined(LLOGGING)
 			tbf --;
+	#endif
 			/* todo: instead of doing it this way, remove
 			objects in large ranges */
 			elf_delobj(R,it);
 			elf_remobj(R,i);
 			-- i;
-		} else nwo ++;
+		}
+	#if defined(LLOGGING)
+		else nwo ++;
+	#endif
 	}
 
 	elf_logdebug("	(%f) => leaked: %lli, %lli, %lli"

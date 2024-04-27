@@ -154,7 +154,7 @@ void elf_nodelitapply(elf_FileState *fs, elf_Table *tab, lnodeid id) {
 	switch (v.k) {
 		case NODE_LOAD: {
 			lNode x = fs->nodes[v.x];
-			if ((x.k == NODE_LOCAL)) {
+			if (x.k == NODE_LOCAL) {
 				LNOBRANCH;
 			} else
 			if ((x.k == NODE_FIELD) || (x.k == NODE_INDEX)) {

@@ -7,7 +7,7 @@
 #ifndef _elf_
 #define _elf_
 
-
+#if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable:4100)
 #pragma warning(disable:4245)
@@ -18,19 +18,27 @@
 #pragma warning(disable:4267)
 #pragma warning(disable:4389)
 #pragma warning(disable:4996)
+#elif defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+#endif
 
 
 /* todo: remove deps */
 #include <stdio.h>
 #include <stdlib.h>
-#include <crtdbg.h>
 #include <stdarg.h>
 #include <math.h>
+#include <string.h>
 
+
+#if defined(_MSC_VER)
+#include <crtdbg.h>
+#endif
 
 #ifndef STB_SPRINTF_IMPLEMENTATION
 #define STB_SPRINTF_IMPLEMENTATION
-	#include <stb/stb_sprintf.h>
+	#include "stb/stb_sprintf.h"
 #endif
 
 
@@ -58,8 +66,15 @@
 /* todo: porting */
 
 #define elf_globaldecl static
-#define elf_threaddecl static __declspec(thread)
-#define elf_libfundecl __declspec(dllexport)
+
+#if defined(_MSC_VER)
+	#define elf_libfundecl __declspec(dllexport)
+	#define elf_threaddecl static __declspec(thread)
+#elif defined(PLATFORM_WEB)
+	#define elf_libfundecl EMSCRIPTEN_KEEPALIVE
+	#define elf_threaddecl static
+#else
+#endif
 
 
 #define MEGABYTES(x) ((x)*1024llu*1024llu)
@@ -79,27 +94,27 @@ typedef struct elf_Object elf_Object;
 typedef struct elf_Closure elf_Closure;
 
 
-#include <src/ltype.h>
-#include <src/ldebug.h>
-#include <src/lobject.h>
-#include <src/lapi.h>
-#include <src/lerror.h>
-#include <src/llog.h>
-#include <src/lmem.h>
-#include <src/lsys.h>
-#include <src/ltoken.h>
-#include <src/lbyte.h>
-#include <src/lmodule.h>
-#include <src/lruntime.h>
+#include "src/ltype.h"
+#include "src/ldebug.h"
+#include "src/lobject.h"
+#include "src/lapi.h"
+#include "src/lerror.h"
+#include "src/llog.h"
+#include "src/lmem.h"
+#include "src/lsys.h"
+#include "src/ltoken.h"
+#include "src/lbyte.h"
+#include "src/lmodule.h"
+#include "src/lruntime.h"
 
 void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b);
 
-#include <src/lstring.h>
-#include <src/larray.h>
-#include <src/ltable.h>
-#include <src/lnode.h>
-#include <src/lcode.h>
-#include <src/lfile.h>
+#include "src/lstring.h"
+#include "src/larray.h"
+#include "src/ltable.h"
+#include "src/lnode.h"
+#include "src/lcode.h"
+#include "src/lfile.h"
 
 
 #if defined(_WIN32)
@@ -117,26 +132,26 @@ elf_int elf_clocktime();
 elf_num elf_timediffs(elf_int begin);
 
 
-#include <src/lsys.c>
-#include <src/lmem.c>
-#include <src/ldebug.c>
-#include <src/llog.c>
-#include <src/lgc.c>
-#include <src/lmodule.c>
-#include <src/lstring.c>
-#include <src/larray.c>
-#include <src/ltable.c>
-#include <src/lfunc.c>
-#include <src/llexer.c>
-#include <src/lnode.c>
-#include <src/lcode.c>
-#include <src/lfile.c>
-#include <src/ltest.c>
-#include <src/lsyslib.c>
-#include <src/lcrtlib.c>
-#include <src/lnetlib.c>
-#include <src/lruntime.c>
-#include <src/lapi.c>
+#include "src/lsys.c"
+#include "src/lmem.c"
+#include "src/ldebug.c"
+#include "src/llog.c"
+#include "src/lgc.c"
+#include "src/lmodule.c"
+#include "src/lstring.c"
+#include "src/larray.c"
+#include "src/ltable.c"
+#include "src/lfunc.c"
+#include "src/llexer.c"
+#include "src/lnode.c"
+#include "src/lcode.c"
+#include "src/lfile.c"
+#include "src/ltest.c"
+#include "src/lsyslib.c"
+#include "src/lcrtlib.c"
+#include "src/lnetlib.c"
+#include "src/lruntime.c"
+#include "src/lapi.c"
 
 
 void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b) {
@@ -155,8 +170,12 @@ elf_num elf_timediffs(elf_int begin) {
 }
 
 
-
+#if defined(_MSC_VER)
 #pragma warning(pop)
+#elif defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 #endif
 
 /*

@@ -121,8 +121,8 @@ lbyteclass lang_byteclass(lbyteop k) {
 		case BC_LOADFILE: {
 			return BC_CLASS_XYZ;
 		}
+		default: return BC_CLASS_I;
 	}
-	return BC_CLASS_I;
 }
 
 
@@ -171,7 +171,8 @@ char const *lang_bytename(lbyteop k) {
 		case BC_SHL: return "shl";
 		case BC_SHR: return "shr";
 		case BC_XOR: return "xor";
+
+		default: return "???";
 	}
-	return "???";
 }
 

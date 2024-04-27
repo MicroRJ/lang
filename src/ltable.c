@@ -388,8 +388,8 @@ elf_bool elf_tabvaleq(elf_val *x, elf_val *y) {
 		case TAG_TAB: case TAG_CLS: case TAG_BID: {
 			return x->i == y->i;
 		}
+		default: LNOBRANCH;
 	}
-	LNOBRANCH;
 	return lfalse;
 }
 
@@ -403,8 +403,8 @@ elf_int elf_tabhashval(elf_val v) {
 		case TAG_INT: case TAG_NUM: case TAG_BID: {
 			return elf_tabhashptr(v.p);
 		}
+		default: LNOBRANCH;
 	}
-	LNOBRANCH;
 	return lfalse;
 }
 

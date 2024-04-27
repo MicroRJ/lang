@@ -110,8 +110,8 @@ elf_bool elf_tagisobj(lvaluetag tag) {
 		case TAG_OBJ: case TAG_CLS: {
 			return ltrue;
 		}
+		default: return lfalse;
 	}
-	return lfalse;
 }
 
 
@@ -120,8 +120,8 @@ lvaluetag elf_tttotag(ObjectType type) {
 		case OBJ_CLOSURE: return TAG_CLS;
 		case OBJ_TAB: return TAG_TAB;
 		case OBJ_STRING: return TAG_STR;
+		default: LNOBRANCH;
 	}
-	LNOBRANCH;
 	return -1;
 }
 
