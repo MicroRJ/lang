@@ -7,7 +7,7 @@
 // todo: at least put shapes in a subgrid for proper rotations
 
 __logging(false)
-load "code/games/lgi.lang"
+load "code/games/lgi.elf"
 
 
 let enum vec2 = fun(x,y) ? ({"x"=x,"y"=y})

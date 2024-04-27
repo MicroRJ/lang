@@ -284,7 +284,10 @@ plotgame = fun() ? {
 							let imp = dif:norm():mul1(10)
 							entity.vel = entity.vel:add(imp)
 							// Entities[j] = nil
+
 							Particles:xrem(i) i = i - 1
+							/* todo: breaks! */
+							j = 100000000
 						}
 					}
 				}
