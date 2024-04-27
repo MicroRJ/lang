@@ -43,8 +43,8 @@ lbyteid langL_addbyte(elf_FileState *fs, llineid line, lBytecode byte) {
 	elf_Module *md = fs->md;
 	if (0) elf_bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
 
-	elf_arradd(md->lines,line);
-	elf_arradd(md->bytes,byte);
+	elf_varadd(md->lines,line);
+	elf_varadd(md->bytes,byte);
 	return md->nbytes ++;
 }
 
@@ -177,10 +177,10 @@ lbyteid langL_branchif(elf_FileState *fs, ljlist *js, elf_bool z, llocalid x, ln
 
 			if (z != 0) {
 				j = elf_emitbytexy(fs,v.line,BC_JNZ,NO_JUMP,x);
-				elf_arradd(js->t,j);
+				elf_varadd(js->t,j);
 			} else {
 				j = elf_emitbytexy(fs,v.line,BC_JZ,NO_JUMP,x);
-				elf_arradd(js->f,j);
+				elf_varadd(js->f,j);
 			}
 		} break;
 	}
@@ -242,7 +242,7 @@ void langL_yield(elf_FileState *fs, llineid line, lnodeid id) {
 
 		if (fs->fn->nyield < n) fs->fn->nyield = n;
 		lbyteid j = elf_emitbytexyz(fs,line,BC_YIELD,NO_JUMP,x,n);
-		elf_arradd(fs->fn->yj,j);
+		elf_varadd(fs->fn->yj,j);
 
 		/* if there are no results then simply leave directly */
 	} else langL_byte(fs,line,BC_LEAVE,0);
@@ -377,14 +377,14 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 		case NODE_INTEGER: {
 			if (y == 0) goto leave;
 			/* todo: interning */
-			int yy = langA_variadd(fs->md->ki,1);
+			int yy = elf_varaddi(fs->md->ki,1);
 			fs->md->ki[yy] = v.lit.i;
 			elf_emitbytexy(fs,line,BC_LOADINT,x,yy);
 		} break;
 		case NODE_NUMBER: {
 			if (y == 0) goto leave;
 			/* todo: interning */
-			int yy = langA_variadd(fs->md->kn,1);
+			int yy = elf_varaddi(fs->md->kn,1);
 			fs->md->kn[yy] = v.lit.n;
 			elf_emitbytexy(fs,line,BC_LOADNUM,x,yy);
 		} break;
@@ -433,7 +433,7 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 		} break;
 		case NODE_BUILTIN: {
 			llocalid xx = x;
-			int n = elf_arrlen(v.z);
+			int n = elf_varlen(v.z);
 			elf_arrfori(v.z) {
 				langL_localloadin(fs,NO_LINE,xx ++,v.z[i]);
 			}
@@ -487,7 +487,7 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 			elf_arrfori(v.z) {
 				langL_localloadin(fs,line,tail ++,v.z[i]);
 			}
-			int n = elf_arrlen(v.z);
+			int n = elf_varlen(v.z);
 			elf_emitbytexyz(fs,line,xx.k == NODE_METAFIELD ? BC_METACALL : BC_CALL,head,n,y);
 			/* and finally, if the registers don't match,
 			meaning the caller expects the result in a
@@ -633,7 +633,7 @@ void langL_beginif(elf_FileState *fs, llineid line, Select *s, lnodeid x, int z)
 void langL_addelse(elf_FileState *fs, llineid line, Select *s) {
 	elf_assert(s->jz != 0);
 	int j = langL_jump(fs,line,-1);
-	elf_arradd(s->j,j);
+	elf_varadd(s->j,j);
 
 	langL_tieloosejs(fs,s->jz);
 	elf_delvar(s->jz);

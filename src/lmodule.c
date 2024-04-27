@@ -8,7 +8,7 @@
 /* todo: ensure that we don't have to replace symbols */
 lglobalid lang_addsymbol(elf_Module *md, elf_String *name) {
 	if (name == 0) {
-		return langA_variadd(md->g->v,1);
+		return elf_varaddi(md->g->v,1);
 	}
 	lglobalid id = elf_tabtake(md->g,lang_S(name));
 	// elf_logdebug("global '%s' -> %i",name->c,id);
@@ -24,7 +24,7 @@ lglobalid lang_addglobal(elf_Module *md, elf_String *name, elf_val v) {
 
 
 lglobalid lang_addproto(elf_Module *md, elf_Proto p) {
-	lglobalid i = langA_variadd(md->p,1);
+	lglobalid i = elf_varaddi(md->p,1);
 	md->p[i] = p;
 	return i;
 }

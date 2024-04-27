@@ -145,7 +145,7 @@ void elf_tabput(elf_Table *table, elf_val k, elf_val v) {
 	if (slot == -1) LNOBRANCH;
 	elf_tabslot *entry = table->slots + slot;
 	if (!elf_tabslotiskey(table,slot)) {
-		elf_int i = langA_variadd(table->v,1);
+		elf_int i = elf_varaddi(table->v,1);
 		table->v[i] = v;
 
 		table->slots[slot].k = k;
@@ -173,7 +173,7 @@ elf_int elf_tabtake(elf_Table *table, elf_val k) {
 	elf_int slot = elf_tabhashin(table,k);
 	if (slot == -1) LNOBRANCH;
 	if (!elf_tabslotiskey(table,slot)) {
-		elf_int i = langA_variadd(table->v,1);
+		elf_int i = elf_varaddi(table->v,1);
 		table->v[i] = (elf_val){TAG_NIL};
 
 		table->slots[slot].k = k;
@@ -185,12 +185,12 @@ elf_int elf_tabtake(elf_Table *table, elf_val k) {
 
 
 elf_int elf_tabiadd(elf_Table *table, elf_val v) {
-	return langA_variadd(table->v,1);
+	return elf_varaddi(table->v,1);
 }
 
 
 void elf_tabadd(elf_Table *table, elf_val v) {
-	elf_arradd(table->v,v);
+	elf_varadd(table->v,v);
 }
 
 
@@ -199,14 +199,14 @@ void elf_tabadd(elf_Table *table, elf_val v) {
 
 int elf_tablength_(elf_Runtime *R) {
 	elf_Table *tab = (elf_Table*) elf_getthis(R);
-	elf_putint(R,elf_arrlen(tab->v));
+	elf_putint(R,elf_varlen(tab->v));
 	return 1;
 }
 
 
 int elf_tabtally_(elf_Runtime *R) {
 	elf_Table *tab = (elf_Table*) elf_getthis(R);
-	elf_putint(R,elf_arrlen(tab->v));
+	elf_putint(R,elf_varlen(tab->v));
 	return 1;
 }
 

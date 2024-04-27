@@ -7,7 +7,7 @@
 
 lnodeid elf_nodexyz(elf_FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z) {
 	if (langA_varmin(fs->nodes) <= fs->nnodes) {
-		langA_variadd(fs->nodes,1);
+		elf_varaddi(fs->nodes,1);
 	}
 	lNode *nd = fs->nodes + fs->nnodes;
 	nd->level = fs->level;

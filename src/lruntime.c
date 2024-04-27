@@ -17,7 +17,7 @@ elf_int elf_ntoi(elf_val v) {
 
 int fndfile(elf_Module *md, llineid line) {
 	elf_File *files = md->files;
-	int nfiles = elf_arrlen(files);
+	int nfiles = elf_varlen(files);
 	for (int x = 0; x < nfiles; ++ x) {
 		if (line < files[x].lines) continue;
 		if (line > files[x].lines+files[x].nlines-1) continue;
@@ -135,7 +135,7 @@ int elf_loadexpr(elf_Runtime *R, elf_String *contents, llocalid rxy, int ny) {
 	fl.nbytes = M->nbytes - fn.bytes;
 	fl.lines = contents->c;
 	fl.nlines = strlen(contents->c);
-	elf_arradd(M->files,fl);
+	elf_varadd(M->files,fl);
 
 	elf_Proto p = {0};
 	p.nlocals = fn.nlocals;
@@ -155,7 +155,10 @@ int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocal
 
 	char *contents;
 	Error error = sys_loadfilebytes(lHEAP,(void**)&contents,filename->string);
-	if (LFAILED(error)) return -1;
+	if (LFAILED(error)) {
+		elf_logerror("'%s': could not read file",filename->c);
+		return -1;
+	}
 
 	elf_Module *M = R->M;
 	fs->R = R;
@@ -186,7 +189,7 @@ int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocal
 	fl.lines = contents;
 	fl.nlines = strlen(contents);
 	fl.pathondisk = filename->c;
-	elf_arradd(M->files,fl);
+	elf_varadd(M->files,fl);
 
 	elf_Proto p = {0};
 	p.nlocals = fn.nlocals;
@@ -319,7 +322,7 @@ int elf_run(elf_Runtime *R) {
 				locals[b.x] = cl->caches[b.y];
 			} break;
 			case BC_CLOSURE: {
-				elf_assert(b.y >= 0 && b.y < elf_arrlen(md->p));
+				elf_assert(b.y >= 0 && b.y < elf_varlen(md->p));
 				elf_Proto p = md->p[b.y];
 				elf_Closure *ncl = elf_newcl(R,p);
 				for (int i = 0; i < p.ncaches; ++i) {

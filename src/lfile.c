@@ -70,8 +70,8 @@ ltoken elf_taketk(elf_FileState *fs, int k) {
 lentityid elfY_allocentity(elf_FileState *fs, llineid line) {
 	elf_FileFunc *ff = fs->fn;
 	lentityid id = {fs->nentities ++};
-	if (elf_arrlen(fs->entities) < fs->nentities) {
-		langA_variadd(fs->entities,1);
+	if (elf_varlen(fs->entities) < fs->nentities) {
+		elf_varaddi(fs->entities,1);
 	}
 
 	for (llocalid i = id.x; i < fs->nentities; ++i) {
@@ -164,7 +164,7 @@ void elfY_captureentity(elf_FileState *fs, elf_FileFunc *fn, lentityid id) {
 	elf_arrfori(fn->captures) {
 		if (fn->captures[i].x == id.x) return;
 	}
-	elf_arradd(fn->captures,id);
+	elf_varadd(fn->captures,id);
 }
 
 
@@ -268,7 +268,7 @@ lnodeid *elf_fsloadcallargs(elf_FileState *fs) {
 		if (!elf_testtk(fs,TK_PAREN_RIGHT)) do {
 			lnodeid x = elf_fsloadexpr(fs);
 			if (x == -1) break;
-			elf_arradd(z,x);
+			elf_varadd(z,x);
 		} while (elf_picktk(fs,TK_COMMA));
 		elf_taketk(fs,TK_PAREN_RIGHT);
 	}
@@ -368,7 +368,7 @@ lnodeid elfY_loadfn(elf_FileState *fs) {
 	p.nlocals = fn.nlocals;
 	p.bytes = fn.bytes;
 	p.nbytes  = fs->md->nbytes - fn.bytes;
-	p.ncaches = elf_arrlen(fn.captures);
+	p.ncaches = elf_varlen(fn.captures);
 	int f = lang_addproto(fs->md,p);
 
 	/* patch jump */
@@ -377,7 +377,7 @@ lnodeid elfY_loadfn(elf_FileState *fs) {
 	/* todo: */
 	lnodeid *z = lnil;
 	elf_arrfori(fn.captures) {
-		elf_arradd(z
+		elf_varadd(z
 		,	elf_nodelocal(fs,tk.line,fs->entities[fn.captures[i].x].slot));
 	}
 
@@ -441,7 +441,7 @@ lnodeid elf_fsloadtable(elf_FileState *fs) {
 			if (elf_fscheckexpr(fs,fs->tk.line,val)) break;
 			lnodeid fld = elf_nodefield(fs,fs->lasttk.line,table,key);
 			lnodeid f = elf_nodeload(fs,fs->lasttk.line,fld,val);
-			elf_arradd(z,f);
+			elf_varadd(z,f);
 		} else if (elf_testtk(fs,TK_COMMA) || elf_testtk(fs,TK_CURLY_RIGHT)) {
 			/* trap */
 		} else {
@@ -449,7 +449,7 @@ lnodeid elf_fsloadtable(elf_FileState *fs) {
 			if (elf_fscheckexpr(fs,fs->tk.line,val)) break;
 			lnodeid ii = elf_nodeint(fs,fs->lasttk.line,index ++);
 			lnodeid f = elf_nodeload(fs,fs->lasttk.line,elf_nodeindex(fs,fs->lasttk.line,table,ii),val);
-			elf_arradd(z,f);
+			elf_varadd(z,f);
 		}
 	} while(elf_picktk(fs,TK_COMMA));
 	elf_taketk(fs,TK_CURLY_RIGHT);

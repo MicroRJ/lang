@@ -21,7 +21,7 @@ Array *langA_new(elf_Module *fs, elf_int n) {
 #endif
 
 
-elf_int langA_varadd_(void **var, elf_int per, elf_int res, elf_int com) {
+elf_int elf_varaddxx(void **var, elf_int per, elf_int res, elf_int com) {
 	elf_int max = 0;
 	elf_int min = 0;
 	Array *arr = 0;

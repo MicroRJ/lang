@@ -11,6 +11,17 @@
 int main(int n, char **c) {
 	(void) n;
 
+	#if defined(PLATFORM_WEB)
+	printf("WEB!\n");
+	int *var = {0};
+	elf_varadd(var,1);
+	if (var[0] != 1) printf("FAILED: '%i': var.add!\n",var[0]);
+	if (elf_varlen(var) != 1) printf("FAILED: '%lli': var.len!\n",elf_varlen(var));
+	int arr[1] = {1};
+	if (arr[0] != 1) printf("FAILED: '%i': array!\n",arr[0]);
+	#endif
+
+	#if 1
 	elf_inimem();
 
 	elf_Module M = {0};
@@ -36,12 +47,24 @@ int main(int n, char **c) {
 	elf_CallFrame frame = {0};
 	frame.base = R.top;
 	R.frame = &frame;
-	elf_String *filename = elf_pushnewstr(&R,c[1]);
+
+	#if defined(PLATFORM_WEB)
+	// elf_String *contents = elf_pushnewstr(&R,"pf(\"Hello, World! - elf\")");
+	// elf_loadexpr(&R,contents,0,0);
+
+	elf_String *filename = elf_pushnewstr(&R,"/code/tests/fib.test.lang");
+	filename->obj.gccolor = GC_PINK;
+
+	elf_FileState fs = {0};
+	elf_loadfile(&R,&fs,filename,0,0);
+	#else
 	/* todo: mark this as trap to figure out why
 	gc is freeing this up! */
+	elf_String *filename = elf_pushnewstr(&R,c[1]);
 	filename->obj.gccolor = GC_PINK;
 	elf_FileState fs = {0};
 	elf_loadfile(&R,&fs,filename,0,0);
+	#endif
 
 	#if defined(_MSC_VER)
 	FILE *file;
@@ -51,6 +74,8 @@ int main(int n, char **c) {
 	#endif
 
 	printf("exited\n");
+
+	#endif
 	return 0;
 }
 

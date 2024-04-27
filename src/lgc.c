@@ -55,7 +55,7 @@ void *elf_newobj(elf_Runtime *R, ObjectType type, elf_int tell) {
 		obj->tailtrap = FLYTRAP;
 	);
 	if (R != 0) {
-		elf_arradd(R->gc,obj);
+		elf_varadd(R->gc,obj);
 		// LDODEBUG(elf_arrfori(R->gc) {
 		// 	if (R->gc[i]->headtrap != FLYTRAP) LNOBRANCH;
 		// 	if (R->gc[i]->tailtrap != FLYTRAP) LNOBRANCH;
@@ -68,7 +68,7 @@ void *elf_newobj(elf_Runtime *R, ObjectType type, elf_int tell) {
 void elf_remobj(elf_Runtime *fs, elf_int i) {
 	elf_Object **gc = fs->gc;
 	if (gc == 0) return;
-	elf_int n = elf_arrlen(gc);
+	elf_int n = elf_varlen(gc);
 	elf_assert(i >= 0 && i < n);
 	gc[i] = gc[n-1];
 	((Array*)(gc))[-1].min --;
@@ -148,13 +148,13 @@ void elf_collect(elf_Runtime *R) {
 
 #if defined(LLOGGING)
 	elf_int time_ = elf_clocktime();
-	elf_int ngc = elf_arrlen(R->gc);
+	elf_int ngc = elf_varlen(R->gc);
 	elf_int tbf = ngc-num;
 	elf_int nwo = 0;
 	elf_logdebug("tbf: %lli/%lli -> %lli",tbf,ngc,num);
 #endif
 
-	for (int i = 0; i < elf_arrlen(R->gc); i ++) {
+	for (int i = 0; i < elf_varlen(R->gc); i ++) {
 		elf_Object *it = R->gc[i];
 		LDODEBUG(
 			if (it->headtrap != FLYTRAP) LNOBRANCH;
