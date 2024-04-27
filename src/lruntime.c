@@ -120,8 +120,8 @@ int elf_loadexpr(elf_Runtime *R, elf_String *contents, llocalid rxy, int ny) {
 	fs.linenumber = 1;
 
 	/* kick start by lexing the first two tokens */
-	elf_yieldtk(&fs);
-	elf_yieldtk(&fs);
+	elf_lexone(&fs);
+	elf_lexone(&fs);
 
 	elf_FileFunc fn = {0};
 	elfY_beginfn(&fs,&fn,fs.tk.line);
@@ -171,8 +171,8 @@ int elf_loadcode(elf_Runtime *R, elf_FileState *fs, elf_String *filename, llocal
 	fs->linenumber = 1;
 
 	/* kick start by lexing the first two tokens */
-	elf_yieldtk(fs);
-	elf_yieldtk(fs);
+	elf_lexone(fs);
+	elf_lexone(fs);
 
 
 	elf_FileFunc fn = {0};

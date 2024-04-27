@@ -6,7 +6,7 @@
 
 
 
-elf_bool elfX_islineend(char x) {
+elf_bool elf_chriseol(char x) {
 	return x == '\r' || x == '\n' || x == '\0';
 }
 
@@ -16,7 +16,7 @@ void elfX_getlocinfo(char *q, char *loc, int *linenum, char **lineloc) {
 	char *c = q;
 	int n = 0;
 	while (q < loc) {
-		while (!elfX_islineend(*q) && q < loc) q ++;
+		while (!elf_chriseol(*q) && q < loc) q ++;
 		if (*q == 0) break;
 		if ((*q != '\n') || (c = ++ q, n ++, 1)) {
 			if ((*q == '\r') && (c = ++ q, n ++, 1)) {
@@ -154,18 +154,18 @@ ltokentype wordorkeyword(char *name) {
 }
 
 
-#define thischr() (file->thischar[0])
-#define thenchr() (file->thischar[1])
-#define movechr() (*(file->thischar++))
-#define movxchr(n) ((file->thischar += n))
-#define cmovchr(xx) ((thischr() == (xx)) ? movechr(), 1 : 0)
+#define elf_thischr() (file->thischar[0])
+#define elf_thenchr() (file->thischar[1])
+#define elf_movechr() (*(file->thischar++))
+#define elf_movxchr(n) ((file->thischar += n))
+#define elf_cmovchr(xx) ((elf_thischr() == (xx)) ? elf_movechr(), 1 : 0)
 
 
-int elfX_escapechr(elf_FileState *file) {
-	int tk = movechr();
+int elf_lexescchr(elf_FileState *file) {
+	int tk = elf_movechr();
 	if (tk != '\\') return tk;
 
-	tk = movechr();
+	tk = elf_movechr();
 	switch (tk) {
 		case '\\': return '\\';
 		case '\0': return '\0';
@@ -177,7 +177,8 @@ int elfX_escapechr(elf_FileState *file) {
 }
 
 
-ltoken elf_yieldtk(elf_FileState *file) {
+/* not the fastest thing out there */
+ltoken elf_lexone(elf_FileState *file) {
 
 	/* remove, not needed #todo */
 	elf_globaldecl char buffer[0x100];
@@ -189,13 +190,13 @@ ltoken elf_yieldtk(elf_FileState *file) {
 
 	/* we could put all of the ascii codes in the switch
 	statement, but that just makes it look incredibly silly  */
-	switch (thischr()) {
+	switch (elf_thischr()) {
 		default: {
-			if (elf_chrisletter(thischr()) || (thischr() == '_')) {
+			if (elf_chrisletter(elf_thischr()) || (elf_thischr() == '_')) {
 				int length = 0;
 				do {
-					buffer[length++] = movechr();
-				} while (elf_chrisalphanum(thischr()));
+					buffer[length++] = elf_movechr();
+				} while (elf_chrisalphanum(elf_thischr()));
 				buffer[length] = 0;
 
 				tk.type = wordorkeyword(buffer);
@@ -214,9 +215,9 @@ ltoken elf_yieldtk(elf_FileState *file) {
 			tk.type = TK_INTEGER;
 
 			elf_int base = 10;
-			if (thischr() == '0') {
-				if (thenchr() == 'x') {
-					movxchr(2);
+			if (elf_thischr() == '0') {
+				if (elf_thenchr() == 'x') {
+					elf_movxchr(2);
 					base = 16;
 				}
 			}
@@ -224,34 +225,34 @@ ltoken elf_yieldtk(elf_FileState *file) {
 			elf_int i = 0;
 			if (base == 10) {
 				do {
-					i = i * 10 + (movechr() - '0');
-				} while (elf_chrisdigit(thischr()));
+					i = i * 10 + (elf_movechr() - '0');
+				} while (elf_chrisdigit(elf_thischr()));
 			} else {
 				for (;;) {
-					if (thischr() >= 'A' && thischr() <= 'Z') {
-						i = i * base + 10 + (movechr() - 'A');
+					if (elf_thischr() >= 'A' && elf_thischr() <= 'Z') {
+						i = i * base + 10 + (elf_movechr() - 'A');
 					} else
-					if (thischr() >= 'a' && thischr() <= 'z') {
-						i = i * base + 10 + (movechr() - 'a');
+					if (elf_thischr() >= 'a' && elf_thischr() <= 'z') {
+						i = i * base + 10 + (elf_movechr() - 'a');
 					} else
-					if (thischr() >= '0' && thischr() <= '9') {
-						i = i * base + (movechr() - '0');
+					if (elf_thischr() >= '0' && elf_thischr() <= '9') {
+						i = i * base + (elf_movechr() - '0');
 					} else break;
 				}
 			}
-			if (thischr() == '.') {
+			if (elf_thischr() == '.') {
 				// x{..}
-				if (thenchr() != '.') {
-					movechr();
+				if (elf_thenchr() != '.') {
+					elf_movechr();
 					tk.type = TK_NUMBER;
 
 					elf_num p = 1;
 					elf_num n = 0;
-					if (elf_chrisdigit(thischr())) {
+					if (elf_chrisdigit(elf_thischr())) {
 						do  {
-							n = n * 10 + (movechr() - '0');
+							n = n * 10 + (elf_movechr() - '0');
 							p *= 10;
-						} while (elf_chrisdigit(thischr()));
+						} while (elf_chrisdigit(elf_thischr()));
 					}
 					tk.n = i + n / p;
 					// elf_loginfo("[%lli] = num(%f)",tk.value,n);
@@ -262,26 +263,24 @@ ltoken elf_yieldtk(elf_FileState *file) {
 			// elf_loginfo("[%lli] = int(%lli)",tk.value,integer);
 		} break;
 		case '\'': {
-			movechr();
+			elf_movechr();
 			tk.type = TK_LETTER;
 			do {
-				tk.i = movechr();
+				tk.i = elf_movechr();
 			} while(0);
 
-			if (!cmovchr('\'')) {
+			if (!elf_cmovchr('\'')) {
 				elf_lineerror(file,tk.line,"invalid character constant, expected \"'\"");
 			}
 		} break;
 		case '"': {
-			movechr();
-
+			elf_movechr();
 			int length = 0;
-			while (thischr() != '"') {
-				buffer[length ++] = elfX_escapechr(file);
+			while (elf_thischr() != 0 && elf_thischr() != '"') {
+				buffer[length ++] = elf_lexescchr(file);
 			}
 			buffer[length] = 0;
-
-			if (!cmovchr('"')) {
+			if (!elf_cmovchr('"')) {
 				elf_lineerror(file,tk.line,"invalid string");
 			}
 			tk.type = TK_STRING;
@@ -290,79 +289,79 @@ ltoken elf_yieldtk(elf_FileState *file) {
 			// elf_loginfo("string %s",tk.string);
 		} break;
 		case '.': {
-			movechr();
+			elf_movechr();
 			tk.type = TK_DOT;
-			if (cmovchr('.')) {
+			if (elf_cmovchr('.')) {
 				tk.type = TK_DOT_DOT;
 			} else
-			if (elf_chrisdigit(thischr())) {
+			if (elf_chrisdigit(elf_thischr())) {
 				tk.type = TK_NUMBER;
 				elf_num n = 0;
 				elf_num p = 1;
 				do {
-					n = n * 10 + (movechr() - '0');
+					n = n * 10 + (elf_movechr() - '0');
 					p *= 10;
-				} while (elf_chrisdigit(thischr()));
+				} while (elf_chrisdigit(elf_thischr()));
 				tk.n = n / p;
 				// elf_loginfo("[%lli] = num(%f)",tk.value,n);
 			}
 		} break;
 		case '#': {
-			movechr();
+			elf_movechr();
 		} goto retry;
 		case '\0': {
 			tk.type = TK_NONE;
 		} break;
 		case ' ':
 		case '\t': {
-			movechr();
+			elf_movechr();
 		} goto retry;
 		case '\n': {
-			movechr();
+			elf_movechr();
 			file->linechar = file->thischar;
 			file->linenumber += 1;
 		} goto retry;
 		case '\r': {
-			movechr();
-			cmovchr('\n');
+			elf_movechr();
+			elf_cmovchr('\n');
 			file->linechar = file->thischar;
 			file->linenumber += 1;
 		} goto retry;
 		case ';': {
-			movechr();
-			while (!elfX_islineend(thischr())) {
-				movechr();
+			elf_movechr();
+			while (elf_thischr() != 0 && !elf_chriseol(elf_thischr())) {
+				elf_movechr();
 			}
 			goto retry;
 		} break;
 
 
 		case '<': {
-			movechr();
+			elf_movechr();
 			tk.type = TK_LESS_THAN;
-			if (cmovchr('=')) {
+			if (elf_cmovchr('=')) {
 				tk.type = TK_LESS_THAN_EQUAL;
 			} else
-			if (cmovchr('<')) {
+			if (elf_cmovchr('<')) {
 				tk.type = TK_LEFT_SHIFT;
 			}
 		} break;
 		case '>': {
-			movechr();
+			elf_movechr();
 			tk.type = TK_GREATER_THAN;
-			if (cmovchr('=')) {
+			if (elf_cmovchr('=')) {
 				tk.type = TK_GREATER_THAN_EQUAL;
 			} else
-			if (cmovchr('>')) {
+			if (elf_cmovchr('>')) {
 				tk.type = TK_RIGHT_SHIFT;
 			}
 		} break;
 
 		#define TK_XCASE2(C0,T0,C1,T1) \
 		case C0: {                     \
-			movechr();                  \
+			elf_movechr();                  \
 			tk.type = T0;               \
-			if (cmovchr(C1)) {          \
+			if (elf_cmovchr(C1)) {          \
 				tk.type = T1;            \
 			}                           \
 		} break;
@@ -377,7 +376,7 @@ ltoken elf_yieldtk(elf_FileState *file) {
 
 		#define TK_XCASE1(C,T) \
 		case C: {              \
-			movechr();          \
+			elf_movechr();          \
 			tk.type = T;        \
 		} break
 
@@ -398,35 +397,35 @@ ltoken elf_yieldtk(elf_FileState *file) {
 		#undef TK_XCASE1
 
 		case '/': {
-			movechr();
+			elf_movechr();
 			tk.type = TK_DIV;
-			if (cmovchr('*')) {
+			if (elf_cmovchr('*')) {
 				for (;;) {
 					/* handle lines */
-					if (cmovchr('\n')) {
+					if (elf_cmovchr('\n')) {
 						file->linechar = file->thischar;
 						file->linenumber += 1;
 					} else
-					if (cmovchr('\r')) {
-						cmovchr('\n');
+					if (elf_cmovchr('\r')) {
+						elf_cmovchr('\n');
 						file->linechar = file->thischar;
 						file->linenumber += 1;
 					} else
-					if (cmovchr('*')) {
-						if (cmovchr('/')) {
+					if (elf_cmovchr('*')) {
+						if (elf_cmovchr('/')) {
 							/* end of comment */
 							break;
 						}
 					} else {
 						/* keep skipping! */
-						movechr();
+						elf_movechr();
 					}
 				}
 				goto retry;
 			} else
-			if (cmovchr('/')) {
-				while (!elfX_islineend(thischr())) {
-					movechr();
+			if (elf_cmovchr('/')) {
+				while (elf_thischr() != 0 && !elf_chriseol(elf_thischr())) {
+					elf_movechr();
 				}
 				goto retry;
 			}
@@ -443,15 +442,15 @@ ltoken elf_yieldtk(elf_FileState *file) {
 	where the parser sees fit (contextually)
 	it'll consult the flag to determine
 	whether to end the expression or not. */
-	while (thischr() == ' '
-	|| 	 thischr() == '\t') movechr();
+	while (elf_thischr() == ' '
+	|| 	 elf_thischr() == '\t') elf_movechr();
 
-	if ( thischr() == '/'
-	&& ( thenchr() == '/' || thenchr() == '*') ) {
+	if ( elf_thischr() == '/'
+	&& ( elf_thenchr() == '/' || elf_thenchr() == '*') ) {
 		tk.eol = ltrue;
 }
-if ( thischr() == ';'
-|| ( thischr() == '\n' || thischr() == '\r') ) {
+if ( elf_thischr() == ';'
+|| ( elf_thischr() == '\n' || elf_thischr() == '\r') ) {
 	tk.eol = ltrue;
 }
 

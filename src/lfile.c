@@ -42,7 +42,7 @@ elf_bool elfX_termeol(elf_FileState *fs) {
 ** returning whether it was a match or not.
 */
 elf_bool elf_picktk(elf_FileState *fs, ltokentype k) {
-	return elf_testtk(fs,k) && (elf_yieldtk(fs), ltrue);
+	return elf_testtk(fs,k) && (elf_lexone(fs), ltrue);
 }
 
 
@@ -50,7 +50,7 @@ elf_bool elf_picktk(elf_FileState *fs, ltokentype k) {
 ** Same as pick, only this time there are two possibilities.
 */
 elf_bool elf_choosetk(elf_FileState *fs, ltokentype x, ltokentype y) {
-	return (elf_testtk(fs,x) || elf_testtk(fs,y)) && (elf_yieldtk(fs), ltrue);
+	return (elf_testtk(fs,x) || elf_testtk(fs,y)) && (elf_lexone(fs), ltrue);
 }
 
 
@@ -312,7 +312,7 @@ lnodeid elfY_loadsubexpr(elf_FileState *fs, int rank) {
 		int thisrank = elfX_tokenintel[fs->tk.type].prec;
 		/* auto breaks when not a binary operator */
 		if (thisrank <= rank) break;
-		ltoken tk = elf_yieldtk(fs);
+		ltoken tk = elf_lexone(fs);
 		lnodeid y = elfY_loadsubexpr(fs,thisrank);
 		if (y == NO_NODE) break;
 		x = elf_nodebinary(fs,tk.line,tktonode(tk.type),NT_ANY,x,y);
@@ -482,7 +482,7 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 		/* elf is a reserved keyword used
 		for the core namespace */
 		case TK_ELF: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			char buf[MAX_PATH] = {"elf"};
 			if (elf_testtk(fs,TK_DOT)) {
 
@@ -499,7 +499,7 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 			} else elf_lineerror(fs,tk.line,"expected '.' after 'elf', incomplete name");
 		} break;
 		case TK_WORD: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			if (~fs->flags & NOTANENTITY) {
 				v = elf_fsfndentitynode(fs,tk.line,tk.s);
 		if (v == NO_NODE) {
@@ -523,19 +523,19 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 			}
 		} break;
 		case TK_SUB: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			v = elfY_loadsubexpr(fs,10000);
 			v = elf_nodebinary(fs,tk.line,NODE_SUB,NT_INT,elf_nodeint(fs,tk.line,0),v);
 		} break;
 		case TK_ADD: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			v = elfY_loadsubexpr(fs,10000);
 		} break;
 		case TK_CURLY_LEFT: {
 			v = elf_fsloadtable(fs);
 		} break;
 		case TK_PAREN_LEFT: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			v = elf_fsloadexpr(fs);
 			elf_taketk(fs,TK_PAREN_RIGHT);
 			/* allow for empty () */
@@ -547,32 +547,32 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 			v = elfY_loadfn(fs);
 		} break;
 		case TK_STKGET: case TK_STKLEN: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			lnodeid *z = elf_fsloadcallargs(fs);
 			v = elf_nodebuiltincall(fs,tk.line,tk.type,z);
 		} break;
 		case TK_LOAD: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			v = elf_fsloadexpr(fs);
 			v = elf_nodeloadfile(fs,tk.line,v);
 		} break;
-		case TK_THIS: { elf_yieldtk(fs);
+		case TK_THIS: { elf_lexone(fs);
 			v = elf_nodenullary(fs,tk.line,NODE_THIS,NT_ANY);
 		} break;
-		case TK_NIL: { elf_yieldtk(fs);
+		case TK_NIL: { elf_lexone(fs);
 			v = elf_nodenil(fs,tk.line);
 		} break;
 		/* todo: maybe use proper boolean node? */
-		case TK_TRUE: case TK_FALSE: { elf_yieldtk(fs);
+		case TK_TRUE: case TK_FALSE: { elf_lexone(fs);
 			v = elf_nodeint(fs,tk.line,tk.type == TK_TRUE);
 		} break;
-		case TK_LETTER: case TK_INTEGER: { elf_yieldtk(fs);
+		case TK_LETTER: case TK_INTEGER: { elf_lexone(fs);
 			v = elf_nodeint(fs,tk.line,tk.i);
 		} break;
-		case TK_NUMBER: { elf_yieldtk(fs);
+		case TK_NUMBER: { elf_lexone(fs);
 			v = elf_nodenum(fs,tk.line,tk.n);
 		} break;
-		case TK_STRING: { elf_yieldtk(fs);
+		case TK_STRING: { elf_lexone(fs);
 			v = elf_nodestr(fs,tk.line,tk.s);
 		} break;
 		default: {
@@ -584,7 +584,7 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 	while (!elfX_termeol(fs)) {
 		tk = fs->tk;
 		switch (tk.type) {
-			case TK_DOT: { elf_yieldtk(fs);
+			case TK_DOT: { elf_lexone(fs);
 				ltoken n = elf_taketk(fs,TK_WORD);
 				lnodeid i = elf_nodestr(fs,n.line,n.s);
 				v = elf_nodefield(fs,tk.line,v,i);
@@ -602,7 +602,7 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 					v = elf_nodeindex(fs,tk.line,v,i);
 				}
 			} break;
-			case TK_COLON: { elf_yieldtk(fs);
+			case TK_COLON: { elf_lexone(fs);
 				ltoken n = elf_taketk(fs,TK_WORD);
 				lnodeid y = elf_nodestr(fs,n.line,n.s);
 				v = elf_nodemetafield(fs,tk.line,v,y);
@@ -645,7 +645,7 @@ void elfY_loadstat(elf_FileState *fs) {
 	switch (tk.type) {
 		case TK_THEN: case TK_ELSE: case TK_ELIF: {
 		} break;
-		case TK_LEAVE: { elf_yieldtk(fs);
+		case TK_LEAVE: { elf_lexone(fs);
 			lnodeid x = elf_fsloadexpr(fs);
 			langL_yield(fs,tk.line,x);
 			elf_assert(fs->fn->xmemory == mem);
@@ -657,7 +657,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			langL_closedelayedblock(fs,tk.line,&bl);
 			elf_assert(fs->fn->xmemory == mem);
 		} break;
-		case TK_WHILE: { elf_yieldtk(fs);
+		case TK_WHILE: { elf_lexone(fs);
 			lnodeid x = elf_fsloadexpr(fs);
 			elf_taketk(fs,TK_QMARK);
 			Loop loop = {0};
@@ -666,7 +666,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			langL_closewhile(fs,tk.line,&loop);
 			elf_assert(fs->fn->xmemory == mem);
 		} break;
-		case TK_DO: { elf_yieldtk(fs);
+		case TK_DO: { elf_lexone(fs);
 			Loop loop = {0};
 			langL_begindowhile(fs,tk.line,&loop);
 			elfY_loadstat(fs);
@@ -675,7 +675,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			langL_closedowhile(fs,tk.line,&loop,x);
 			elf_assert(fs->fn->xmemory == mem);
 		} break;
-		case TK_IF: case TK_IFF: { elf_yieldtk(fs);
+		case TK_IF: case TK_IFF: { elf_lexone(fs);
 			lnodeid x = elf_fsloadexpr(fs);
 			elf_taketk(fs,TK_QMARK);
 			Select s = {0};
@@ -700,7 +700,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			langL_closeif(fs,fs->lasttk.line,&s);
 			elf_assert(fs->fn->xmemory == mem);
 		} break;
-		case TK_LET: case TK_LOCAL: { elf_yieldtk(fs);
+		case TK_LET: case TK_LOCAL: { elf_lexone(fs);
 			if (tk.type == TK_LOCAL) {
 				elf_lineerror(fs,tk.line,"consider using 'let' instead");
 			}
@@ -710,7 +710,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			/* allows for 'let enum' */
 			if (tk.type == TK_LET) {
 				if (elf_testtk(fs,TK_ENUM)) {
-					tk = elf_yieldtk(fs);
+					tk = elf_lexone(fs);
 				}
 			}
 			elf_bool enm = tk.type == TK_ENUM;
@@ -726,7 +726,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			}
 		} break;
 		case TK_FOREACH: case TK_FOR: {
-			elf_yieldtk(fs);
+			elf_lexone(fs);
 			elf_fsenterlevel(fs);
 			ltoken n = elf_taketk(fs,TK_WORD);
 			lnodeid i, x, y, lo, hi;
@@ -764,7 +764,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			elfY_leavelevel(fs,tk.line);
 			fs->fn->xmemory = mem;
 		} break;
-		case TK_CURLY_LEFT: { elf_yieldtk(fs);
+		case TK_CURLY_LEFT: { elf_lexone(fs);
 			elf_fsenterlevel(fs);
 			while (!elfX_term(fs,TK_CURLY_RIGHT)) {
 				elfY_loadstat(fs);
