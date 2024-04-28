@@ -1,12 +1,5 @@
 __logging(false)
 
-
-let list = listdir(".",fun(file,flags) ? {
-	pf(file)
-	leave true
-})
-
-
 fibtab = {}
 fibmem = fun (n) ? {
 	if n < 2 ? leave n

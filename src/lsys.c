@@ -95,7 +95,9 @@ elf_api void sys_sleep(elf_int ms) {
 
 
 elf_api elf_int sys_clockhz() {
-#if defined(PLATFORM_WIN32)
+#if defined(PLATFORM_WEB)
+	return 1000;
+#elif defined(PLATFORM_WIN32)
 	LARGE_INTEGER largeInt;
 	QueryPerformanceFrequency(&largeInt);
 	return largeInt.QuadPart;
@@ -110,6 +112,8 @@ elf_api elf_int sys_clocktime() {
 	LARGE_INTEGER largeInt;
 	QueryPerformanceCounter(&largeInt);
 	return largeInt.QuadPart;
+#elif defined(PLATFORM_WEB)
+	return emscripten_get_now();
 #else
 	return 0;
 #endif

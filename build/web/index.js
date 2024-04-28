@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\rodri\AppData\Local\Temp\tmptu2_mxit.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmpj30661fg.js
 
   if (!Module.expectedDataFileDownloads) {
     Module.expectedDataFileDownloads = 0;
@@ -217,25 +217,25 @@ Module['FS_createPath']("/code", "tests", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/code/tests/.module.ignore", "start": 0, "end": 2084}, {"filename": "/code/tests/bug1.elf", "start": 2084, "end": 2753}, {"filename": "/code/tests/bug1.elf.module.ignore", "start": 2753, "end": 3562}, {"filename": "/code/tests/bug2.elf", "start": 3562, "end": 4681}, {"filename": "/code/tests/bug2.elf.module.ignore", "start": 4681, "end": 5100}, {"filename": "/code/tests/bug3.elf", "start": 5100, "end": 5431}, {"filename": "/code/tests/bug3.elf.module.ignore", "start": 5431, "end": 6065}, {"filename": "/code/tests/fib.test.lang", "start": 6065, "end": 6925}, {"filename": "/code/tests/filefind.web2.ignore", "start": 6925, "end": 19213}, {"filename": "/code/tests/finally.test.lang", "start": 19213, "end": 19631}, {"filename": "/code/tests/find.lang", "start": 19631, "end": 20409}, {"filename": "/code/tests/for.test.lang", "start": 20409, "end": 20487}, {"filename": "/code/tests/fun.test.lang", "start": 20487, "end": 21033}, {"filename": "/code/tests/fun1.test.lang", "start": 21033, "end": 21150}, {"filename": "/code/tests/gc.f", "start": 21150, "end": 21528}, {"filename": "/code/tests/hash.lang", "start": 21528, "end": 22430}, {"filename": "/code/tests/if.test.lang", "start": 22430, "end": 23142}, {"filename": "/code/tests/inc.lang", "start": 23142, "end": 23251}, {"filename": "/code/tests/inv.lang", "start": 23251, "end": 23549}, {"filename": "/code/tests/j.f", "start": 23549, "end": 24325}, {"filename": "/code/tests/jit.lang", "start": 24325, "end": 25508}, {"filename": "/code/tests/load.lang", "start": 25508, "end": 25907}, {"filename": "/code/tests/match.test.lang", "start": 25907, "end": 26386}, {"filename": "/code/tests/meta.test.lang", "start": 26386, "end": 26441}, {"filename": "/code/tests/predict.lang", "start": 26441, "end": 26541}, {"filename": "/code/tests/question.lang", "start": 26541, "end": 26694}, {"filename": "/code/tests/simple.lang", "start": 26694, "end": 27637}, {"filename": "/code/tests/stack.test.lang", "start": 27637, "end": 27967}, {"filename": "/code/tests/test.lang", "start": 27967, "end": 28957}, {"filename": "/code/tests/test.lang.module.ignore", "start": 28957, "end": 55468}, {"filename": "/code/tests/tests.ignore", "start": 55468, "end": 55496}, {"filename": "/code/tests/unload.ignore", "start": 55496, "end": 55529}, {"filename": "/code/tests/unload.test.lang", "start": 55529, "end": 55741}, {"filename": "/code/tests/unload.test.lang.module.ignore", "start": 55741, "end": 57444}], "remote_package_size": 57444});
+    loadPackage({"files": [{"filename": "/code/tests/.module.ignore", "start": 0, "end": 2084}, {"filename": "/code/tests/bug1.elf", "start": 2084, "end": 2753}, {"filename": "/code/tests/bug1.elf.module.ignore", "start": 2753, "end": 3562}, {"filename": "/code/tests/bug2.elf", "start": 3562, "end": 4681}, {"filename": "/code/tests/bug2.elf.module.ignore", "start": 4681, "end": 5100}, {"filename": "/code/tests/bug3.elf", "start": 5100, "end": 5431}, {"filename": "/code/tests/bug3.elf.module.ignore", "start": 5431, "end": 6065}, {"filename": "/code/tests/fib.test.lang", "start": 6065, "end": 6847}, {"filename": "/code/tests/filefind.web2.ignore", "start": 6847, "end": 19135}, {"filename": "/code/tests/finally.test.lang", "start": 19135, "end": 19553}, {"filename": "/code/tests/find.lang", "start": 19553, "end": 20331}, {"filename": "/code/tests/for.test.lang", "start": 20331, "end": 20409}, {"filename": "/code/tests/fun.test.lang", "start": 20409, "end": 20955}, {"filename": "/code/tests/fun1.test.lang", "start": 20955, "end": 21072}, {"filename": "/code/tests/gc.f", "start": 21072, "end": 21450}, {"filename": "/code/tests/hash.lang", "start": 21450, "end": 22352}, {"filename": "/code/tests/if.test.lang", "start": 22352, "end": 23064}, {"filename": "/code/tests/inc.lang", "start": 23064, "end": 23173}, {"filename": "/code/tests/inv.lang", "start": 23173, "end": 23471}, {"filename": "/code/tests/j.f", "start": 23471, "end": 24247}, {"filename": "/code/tests/jit.lang", "start": 24247, "end": 25430}, {"filename": "/code/tests/load.lang", "start": 25430, "end": 25829}, {"filename": "/code/tests/match.test.lang", "start": 25829, "end": 26308}, {"filename": "/code/tests/meta.test.lang", "start": 26308, "end": 26363}, {"filename": "/code/tests/predict.lang", "start": 26363, "end": 26463}, {"filename": "/code/tests/question.lang", "start": 26463, "end": 26616}, {"filename": "/code/tests/simple.lang", "start": 26616, "end": 27559}, {"filename": "/code/tests/stack.test.lang", "start": 27559, "end": 27889}, {"filename": "/code/tests/test.lang", "start": 27889, "end": 28879}, {"filename": "/code/tests/test.lang.module.ignore", "start": 28879, "end": 55390}, {"filename": "/code/tests/tests.ignore", "start": 55390, "end": 55418}, {"filename": "/code/tests/unload.ignore", "start": 55418, "end": 55451}, {"filename": "/code/tests/unload.test.lang", "start": 55451, "end": 55663}, {"filename": "/code/tests/unload.test.lang.module.ignore", "start": 55663, "end": 57366}], "remote_package_size": 57366});
 
   })();
 
-// end include: C:\Users\rodri\AppData\Local\Temp\tmptu2_mxit.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmptanfck5y.js
+// end include: C:\Users\rodri\AppData\Local\Temp\tmpj30661fg.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmp4mecuuxs.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmptanfck5y.js
-// include: C:\Users\rodri\AppData\Local\Temp\tmpe0aqosmd.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmp4mecuuxs.js
+// include: C:\Users\rodri\AppData\Local\Temp\tmp95v3jpni.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach(function(task) {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\rodri\AppData\Local\Temp\tmpe0aqosmd.js
+  // end include: C:\Users\rodri\AppData\Local\Temp\tmp95v3jpni.js
 
 
 // Sometimes an existing Module object exists with properties
@@ -1205,16 +1205,164 @@ function dbg(...args) {
       }
     };
 
-  /** @suppress {duplicate } */
-  function syscallGetVarargI() {
-      assert(SYSCALLS.varargs != undefined);
-      // the `+` prepended here is necessary to convince the JSCompiler that varargs is indeed a number.
-      var ret = HEAP32[((+SYSCALLS.varargs)>>2)];
-      SYSCALLS.varargs += 4;
-      return ret;
-    }
-  var syscallGetVarargP = syscallGetVarargI;
   
+  var runtimeKeepaliveCounter = 0;
+  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
+  var _proc_exit = (code) => {
+      EXITSTATUS = code;
+      if (!keepRuntimeAlive()) {
+        Module['onExit']?.(code);
+        ABORT = true;
+      }
+      quit_(code, new ExitStatus(code));
+    };
+  
+  /** @param {boolean|number=} implicit */
+  var exitJS = (status, implicit) => {
+      EXITSTATUS = status;
+  
+      checkUnflushedContent();
+  
+      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
+      if (keepRuntimeAlive() && !implicit) {
+        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
+        err(msg);
+      }
+  
+      _proc_exit(status);
+    };
+
+  var handleException = (e) => {
+      // Certain exception types we do not treat as errors since they are used for
+      // internal control flow.
+      // 1. ExitStatus, which is thrown by exit()
+      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
+      //    that wish to return to JS event loop.
+      if (e instanceof ExitStatus || e == 'unwind') {
+        return EXITSTATUS;
+      }
+      checkStackCookie();
+      if (e instanceof WebAssembly.RuntimeError) {
+        if (_emscripten_stack_get_current() <= 0) {
+          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)');
+        }
+      }
+      quit_(1, e);
+    };
+
+  var lengthBytesUTF8 = (str) => {
+      var len = 0;
+      for (var i = 0; i < str.length; ++i) {
+        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
+        // unit, not a Unicode code point of the character! So decode
+        // UTF16->UTF32->UTF8.
+        // See http://unicode.org/faq/utf_bom.html#utf16-3
+        var c = str.charCodeAt(i); // possibly a lead surrogate
+        if (c <= 0x7F) {
+          len++;
+        } else if (c <= 0x7FF) {
+          len += 2;
+        } else if (c >= 0xD800 && c <= 0xDFFF) {
+          len += 4; ++i;
+        } else {
+          len += 3;
+        }
+      }
+      return len;
+    };
+  
+  var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
+      assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
+      // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
+      // undefined and false each don't write out any bytes.
+      if (!(maxBytesToWrite > 0))
+        return 0;
+  
+      var startIdx = outIdx;
+      var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
+      for (var i = 0; i < str.length; ++i) {
+        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
+        // unit, not a Unicode code point of the character! So decode
+        // UTF16->UTF32->UTF8.
+        // See http://unicode.org/faq/utf_bom.html#utf16-3
+        // For UTF8 byte structure, see http://en.wikipedia.org/wiki/UTF-8#Description
+        // and https://www.ietf.org/rfc/rfc2279.txt
+        // and https://tools.ietf.org/html/rfc3629
+        var u = str.charCodeAt(i); // possibly a lead surrogate
+        if (u >= 0xD800 && u <= 0xDFFF) {
+          var u1 = str.charCodeAt(++i);
+          u = 0x10000 + ((u & 0x3FF) << 10) | (u1 & 0x3FF);
+        }
+        if (u <= 0x7F) {
+          if (outIdx >= endIdx) break;
+          heap[outIdx++] = u;
+        } else if (u <= 0x7FF) {
+          if (outIdx + 1 >= endIdx) break;
+          heap[outIdx++] = 0xC0 | (u >> 6);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else if (u <= 0xFFFF) {
+          if (outIdx + 2 >= endIdx) break;
+          heap[outIdx++] = 0xE0 | (u >> 12);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else {
+          if (outIdx + 3 >= endIdx) break;
+          if (u > 0x10FFFF) warnOnce('Invalid Unicode code point ' + ptrToString(u) + ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).');
+          heap[outIdx++] = 0xF0 | (u >> 18);
+          heap[outIdx++] = 0x80 | ((u >> 12) & 63);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+        }
+      }
+      // Null-terminate the pointer to the buffer.
+      heap[outIdx] = 0;
+      return outIdx - startIdx;
+    };
+  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
+    };
+  
+  var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
+  var stringToUTF8OnStack = (str) => {
+      var size = lengthBytesUTF8(str) + 1;
+      var ret = stackAlloc(size);
+      stringToUTF8(str, ret, size);
+      return ret;
+    };
+
+  var initRandomFill = () => {
+      if (typeof crypto == 'object' && typeof crypto['getRandomValues'] == 'function') {
+        // for modern web browsers
+        return (view) => crypto.getRandomValues(view);
+      } else
+      if (ENVIRONMENT_IS_NODE) {
+        // for nodejs with or without crypto support included
+        try {
+          var crypto_module = require('crypto');
+          var randomFillSync = crypto_module['randomFillSync'];
+          if (randomFillSync) {
+            // nodejs with LTS crypto support
+            return (view) => crypto_module['randomFillSync'](view);
+          }
+          // very old nodejs with the original crypto API
+          var randomBytes = crypto_module['randomBytes'];
+          return (view) => (
+            view.set(randomBytes(view.byteLength)),
+            // Return the original view to match modern native implementations.
+            view
+          );
+        } catch (e) {
+          // nodejs doesn't have crypto support
+        }
+      }
+      // we couldn't find a proper implementation, as Math.random() is not suitable for /dev/random, see emscripten-core/emscripten/pull/7096
+      abort('no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: (array) => { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };');
+    };
+  var randomFill = (view) => {
+      // Lazily init on the first invocation.
+      return (randomFill = initRandomFill())(view);
+    };
   
   var PATH = {
   isAbs:(path) => path.charAt(0) === '/',
@@ -1284,40 +1432,6 @@ function dbg(...args) {
   join:(...paths) => PATH.normalize(paths.join('/')),
   join2:(l, r) => PATH.normalize(l + '/' + r),
   };
-  
-  var initRandomFill = () => {
-      if (typeof crypto == 'object' && typeof crypto['getRandomValues'] == 'function') {
-        // for modern web browsers
-        return (view) => crypto.getRandomValues(view);
-      } else
-      if (ENVIRONMENT_IS_NODE) {
-        // for nodejs with or without crypto support included
-        try {
-          var crypto_module = require('crypto');
-          var randomFillSync = crypto_module['randomFillSync'];
-          if (randomFillSync) {
-            // nodejs with LTS crypto support
-            return (view) => crypto_module['randomFillSync'](view);
-          }
-          // very old nodejs with the original crypto API
-          var randomBytes = crypto_module['randomBytes'];
-          return (view) => (
-            view.set(randomBytes(view.byteLength)),
-            // Return the original view to match modern native implementations.
-            view
-          );
-        } catch (e) {
-          // nodejs doesn't have crypto support
-        }
-      }
-      // we couldn't find a proper implementation, as Math.random() is not suitable for /dev/random, see emscripten-core/emscripten/pull/7096
-      abort('no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: (array) => { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };');
-    };
-  var randomFill = (view) => {
-      // Lazily init on the first invocation.
-      return (randomFill = initRandomFill())(view);
-    };
-  
   
   
   var PATH_FS = {
@@ -1431,74 +1545,7 @@ function dbg(...args) {
   
   var FS_stdin_getChar_buffer = [];
   
-  var lengthBytesUTF8 = (str) => {
-      var len = 0;
-      for (var i = 0; i < str.length; ++i) {
-        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
-        // unit, not a Unicode code point of the character! So decode
-        // UTF16->UTF32->UTF8.
-        // See http://unicode.org/faq/utf_bom.html#utf16-3
-        var c = str.charCodeAt(i); // possibly a lead surrogate
-        if (c <= 0x7F) {
-          len++;
-        } else if (c <= 0x7FF) {
-          len += 2;
-        } else if (c >= 0xD800 && c <= 0xDFFF) {
-          len += 4; ++i;
-        } else {
-          len += 3;
-        }
-      }
-      return len;
-    };
   
-  var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
-      assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
-      // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
-      // undefined and false each don't write out any bytes.
-      if (!(maxBytesToWrite > 0))
-        return 0;
-  
-      var startIdx = outIdx;
-      var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
-      for (var i = 0; i < str.length; ++i) {
-        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
-        // unit, not a Unicode code point of the character! So decode
-        // UTF16->UTF32->UTF8.
-        // See http://unicode.org/faq/utf_bom.html#utf16-3
-        // For UTF8 byte structure, see http://en.wikipedia.org/wiki/UTF-8#Description
-        // and https://www.ietf.org/rfc/rfc2279.txt
-        // and https://tools.ietf.org/html/rfc3629
-        var u = str.charCodeAt(i); // possibly a lead surrogate
-        if (u >= 0xD800 && u <= 0xDFFF) {
-          var u1 = str.charCodeAt(++i);
-          u = 0x10000 + ((u & 0x3FF) << 10) | (u1 & 0x3FF);
-        }
-        if (u <= 0x7F) {
-          if (outIdx >= endIdx) break;
-          heap[outIdx++] = u;
-        } else if (u <= 0x7FF) {
-          if (outIdx + 1 >= endIdx) break;
-          heap[outIdx++] = 0xC0 | (u >> 6);
-          heap[outIdx++] = 0x80 | (u & 63);
-        } else if (u <= 0xFFFF) {
-          if (outIdx + 2 >= endIdx) break;
-          heap[outIdx++] = 0xE0 | (u >> 12);
-          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
-          heap[outIdx++] = 0x80 | (u & 63);
-        } else {
-          if (outIdx + 3 >= endIdx) break;
-          if (u > 0x10FFFF) warnOnce('Invalid Unicode code point ' + ptrToString(u) + ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).');
-          heap[outIdx++] = 0xF0 | (u >> 18);
-          heap[outIdx++] = 0x80 | ((u >> 12) & 63);
-          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
-          heap[outIdx++] = 0x80 | (u & 63);
-        }
-      }
-      // Null-terminate the pointer to the buffer.
-      heap[outIdx] = 0;
-      return outIdx - startIdx;
-    };
   /** @type {function(string, boolean=, number=)} */
   function intArrayFromString(stringy, dontAddNull, length) {
     var len = length > 0 ? length : lengthBytesUTF8(stringy)+1;
@@ -3978,6 +4025,22 @@ function dbg(...args) {
         abort('FS.standardizePath has been removed; use PATH.normalize instead');
       },
   };
+
+  var getCFunc = (ident) => {
+      var func = Module['_' + ident]; // closure exported function
+      assert(func, 'Cannot call unknown function ' + ident + ', make sure it is exported');
+      return func;
+    };
+  
+  
+  var writeArrayToMemory = (array, buffer) => {
+      assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
+      HEAP8.set(array, buffer);
+    };
+  
+  
+  
+  
   
   
     /**
@@ -3999,1088 +4062,6 @@ function dbg(...args) {
       assert(typeof ptr == 'number', `UTF8ToString expects a number (got ${typeof ptr})`);
       return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
     };
-  var SYSCALLS = {
-  DEFAULT_POLLMASK:5,
-  calculateAt(dirfd, path, allowEmpty) {
-        if (PATH.isAbs(path)) {
-          return path;
-        }
-        // relative path
-        var dir;
-        if (dirfd === -100) {
-          dir = FS.cwd();
-        } else {
-          var dirstream = SYSCALLS.getStreamFromFD(dirfd);
-          dir = dirstream.path;
-        }
-        if (path.length == 0) {
-          if (!allowEmpty) {
-            throw new FS.ErrnoError(44);;
-          }
-          return dir;
-        }
-        return PATH.join2(dir, path);
-      },
-  doStat(func, path, buf) {
-        var stat = func(path);
-        HEAP32[((buf)>>2)] = stat.dev;
-        HEAP32[(((buf)+(4))>>2)] = stat.mode;
-        HEAPU32[(((buf)+(8))>>2)] = stat.nlink;
-        HEAP32[(((buf)+(12))>>2)] = stat.uid;
-        HEAP32[(((buf)+(16))>>2)] = stat.gid;
-        HEAP32[(((buf)+(20))>>2)] = stat.rdev;
-        (tempI64 = [stat.size>>>0,(tempDouble = stat.size,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(24))>>2)] = tempI64[0],HEAP32[(((buf)+(28))>>2)] = tempI64[1]);
-        HEAP32[(((buf)+(32))>>2)] = 4096;
-        HEAP32[(((buf)+(36))>>2)] = stat.blocks;
-        var atime = stat.atime.getTime();
-        var mtime = stat.mtime.getTime();
-        var ctime = stat.ctime.getTime();
-        (tempI64 = [Math.floor(atime / 1000)>>>0,(tempDouble = Math.floor(atime / 1000),(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(40))>>2)] = tempI64[0],HEAP32[(((buf)+(44))>>2)] = tempI64[1]);
-        HEAPU32[(((buf)+(48))>>2)] = (atime % 1000) * 1000;
-        (tempI64 = [Math.floor(mtime / 1000)>>>0,(tempDouble = Math.floor(mtime / 1000),(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(56))>>2)] = tempI64[0],HEAP32[(((buf)+(60))>>2)] = tempI64[1]);
-        HEAPU32[(((buf)+(64))>>2)] = (mtime % 1000) * 1000;
-        (tempI64 = [Math.floor(ctime / 1000)>>>0,(tempDouble = Math.floor(ctime / 1000),(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(72))>>2)] = tempI64[0],HEAP32[(((buf)+(76))>>2)] = tempI64[1]);
-        HEAPU32[(((buf)+(80))>>2)] = (ctime % 1000) * 1000;
-        (tempI64 = [stat.ino>>>0,(tempDouble = stat.ino,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(88))>>2)] = tempI64[0],HEAP32[(((buf)+(92))>>2)] = tempI64[1]);
-        return 0;
-      },
-  doMsync(addr, stream, len, flags, offset) {
-        if (!FS.isFile(stream.node.mode)) {
-          throw new FS.ErrnoError(43);
-        }
-        if (flags & 2) {
-          // MAP_PRIVATE calls need not to be synced back to underlying fs
-          return 0;
-        }
-        var buffer = HEAPU8.slice(addr, addr + len);
-        FS.msync(stream, buffer, offset, len, flags);
-      },
-  getStreamFromFD(fd) {
-        var stream = FS.getStreamChecked(fd);
-        return stream;
-      },
-  varargs:undefined,
-  getStr(ptr) {
-        var ret = UTF8ToString(ptr);
-        return ret;
-      },
-  };
-  function ___syscall_fcntl64(fd, cmd, varargs) {
-  SYSCALLS.varargs = varargs;
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      switch (cmd) {
-        case 0: {
-          var arg = syscallGetVarargI();
-          if (arg < 0) {
-            return -28;
-          }
-          while (FS.streams[arg]) {
-            arg++;
-          }
-          var newStream;
-          newStream = FS.dupStream(stream, arg);
-          return newStream.fd;
-        }
-        case 1:
-        case 2:
-          return 0;  // FD_CLOEXEC makes no sense for a single process.
-        case 3:
-          return stream.flags;
-        case 4: {
-          var arg = syscallGetVarargI();
-          stream.flags |= arg;
-          return 0;
-        }
-        case 12: {
-          var arg = syscallGetVarargP();
-          var offset = 0;
-          // We're always unlocked.
-          HEAP16[(((arg)+(offset))>>1)] = 2;
-          return 0;
-        }
-        case 13:
-        case 14:
-          return 0; // Pretend that the locking is successful.
-      }
-      return -28;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return -e.errno;
-  }
-  }
-
-  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
-      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
-      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
-    };
-  
-  function ___syscall_getdents64(fd, dirp, count) {
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd)
-      stream.getdents ||= FS.readdir(stream.path);
-  
-      var struct_size = 280;
-      var pos = 0;
-      var off = FS.llseek(stream, 0, 1);
-  
-      var idx = Math.floor(off / struct_size);
-  
-      while (idx < stream.getdents.length && pos + struct_size <= count) {
-        var id;
-        var type;
-        var name = stream.getdents[idx];
-        if (name === '.') {
-          id = stream.node.id;
-          type = 4; // DT_DIR
-        }
-        else if (name === '..') {
-          var lookup = FS.lookupPath(stream.path, { parent: true });
-          id = lookup.node.id;
-          type = 4; // DT_DIR
-        }
-        else {
-          var child = FS.lookupNode(stream.node, name);
-          id = child.id;
-          type = FS.isChrdev(child.mode) ? 2 :  // DT_CHR, character device.
-                 FS.isDir(child.mode) ? 4 :     // DT_DIR, directory.
-                 FS.isLink(child.mode) ? 10 :   // DT_LNK, symbolic link.
-                 8;                             // DT_REG, regular file.
-        }
-        assert(id);
-        (tempI64 = [id>>>0,(tempDouble = id,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[((dirp + pos)>>2)] = tempI64[0],HEAP32[(((dirp + pos)+(4))>>2)] = tempI64[1]);
-        (tempI64 = [(idx + 1) * struct_size>>>0,(tempDouble = (idx + 1) * struct_size,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((dirp + pos)+(8))>>2)] = tempI64[0],HEAP32[(((dirp + pos)+(12))>>2)] = tempI64[1]);
-        HEAP16[(((dirp + pos)+(16))>>1)] = 280;
-        HEAP8[(dirp + pos)+(18)] = type;
-        stringToUTF8(name, dirp + pos + 19, 256);
-        pos += struct_size;
-        idx += 1;
-      }
-      FS.llseek(stream, idx * struct_size, 0);
-      return pos;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return -e.errno;
-  }
-  }
-
-  
-  function ___syscall_ioctl(fd, op, varargs) {
-  SYSCALLS.varargs = varargs;
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      switch (op) {
-        case 21509: {
-          if (!stream.tty) return -59;
-          return 0;
-        }
-        case 21505: {
-          if (!stream.tty) return -59;
-          if (stream.tty.ops.ioctl_tcgets) {
-            var termios = stream.tty.ops.ioctl_tcgets(stream);
-            var argp = syscallGetVarargP();
-            HEAP32[((argp)>>2)] = termios.c_iflag || 0;
-            HEAP32[(((argp)+(4))>>2)] = termios.c_oflag || 0;
-            HEAP32[(((argp)+(8))>>2)] = termios.c_cflag || 0;
-            HEAP32[(((argp)+(12))>>2)] = termios.c_lflag || 0;
-            for (var i = 0; i < 32; i++) {
-              HEAP8[(argp + i)+(17)] = termios.c_cc[i] || 0;
-            }
-            return 0;
-          }
-          return 0;
-        }
-        case 21510:
-        case 21511:
-        case 21512: {
-          if (!stream.tty) return -59;
-          return 0; // no-op, not actually adjusting terminal settings
-        }
-        case 21506:
-        case 21507:
-        case 21508: {
-          if (!stream.tty) return -59;
-          if (stream.tty.ops.ioctl_tcsets) {
-            var argp = syscallGetVarargP();
-            var c_iflag = HEAP32[((argp)>>2)];
-            var c_oflag = HEAP32[(((argp)+(4))>>2)];
-            var c_cflag = HEAP32[(((argp)+(8))>>2)];
-            var c_lflag = HEAP32[(((argp)+(12))>>2)];
-            var c_cc = []
-            for (var i = 0; i < 32; i++) {
-              c_cc.push(HEAP8[(argp + i)+(17)]);
-            }
-            return stream.tty.ops.ioctl_tcsets(stream.tty, op, { c_iflag, c_oflag, c_cflag, c_lflag, c_cc });
-          }
-          return 0; // no-op, not actually adjusting terminal settings
-        }
-        case 21519: {
-          if (!stream.tty) return -59;
-          var argp = syscallGetVarargP();
-          HEAP32[((argp)>>2)] = 0;
-          return 0;
-        }
-        case 21520: {
-          if (!stream.tty) return -59;
-          return -28; // not supported
-        }
-        case 21531: {
-          var argp = syscallGetVarargP();
-          return FS.ioctl(stream, op, argp);
-        }
-        case 21523: {
-          // TODO: in theory we should write to the winsize struct that gets
-          // passed in, but for now musl doesn't read anything on it
-          if (!stream.tty) return -59;
-          if (stream.tty.ops.ioctl_tiocgwinsz) {
-            var winsize = stream.tty.ops.ioctl_tiocgwinsz(stream.tty);
-            var argp = syscallGetVarargP();
-            HEAP16[((argp)>>1)] = winsize[0];
-            HEAP16[(((argp)+(2))>>1)] = winsize[1];
-          }
-          return 0;
-        }
-        case 21524: {
-          // TODO: technically, this ioctl call should change the window size.
-          // but, since emscripten doesn't have any concept of a terminal window
-          // yet, we'll just silently throw it away as we do TIOCGWINSZ
-          if (!stream.tty) return -59;
-          return 0;
-        }
-        case 21515: {
-          if (!stream.tty) return -59;
-          return 0;
-        }
-        default: return -28; // not supported
-      }
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return -e.errno;
-  }
-  }
-
-  
-  function ___syscall_openat(dirfd, path, flags, varargs) {
-  SYSCALLS.varargs = varargs;
-  try {
-  
-      path = SYSCALLS.getStr(path);
-      path = SYSCALLS.calculateAt(dirfd, path);
-      var mode = varargs ? syscallGetVarargI() : 0;
-      return FS.open(path, flags, mode).fd;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return -e.errno;
-  }
-  }
-
-  function ___syscall_unlinkat(dirfd, path, flags) {
-  try {
-  
-      path = SYSCALLS.getStr(path);
-      path = SYSCALLS.calculateAt(dirfd, path);
-      if (flags === 0) {
-        FS.unlink(path);
-      } else if (flags === 512) {
-        FS.rmdir(path);
-      } else {
-        abort('Invalid flags passed to unlinkat');
-      }
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return -e.errno;
-  }
-  }
-
-  var nowIsMonotonic = 1;
-  var __emscripten_get_now_is_monotonic = () => nowIsMonotonic;
-
-  var __emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
-
-  var _abort = () => {
-      abort('native code called abort()');
-    };
-
-  var _emscripten_date_now = () => Date.now();
-
-  function _emscripten_debugger() { debugger }
-
-  var _emscripten_get_now;
-      // Modern environment where performance.now() is supported:
-      // N.B. a shorter form "_emscripten_get_now = performance.now;" is
-      // unfortunately not allowed even in current browsers (e.g. FF Nightly 75).
-      _emscripten_get_now = () => performance.now();
-  ;
-
-  var reallyNegative = (x) => x < 0 || (x === 0 && (1/x) === -Infinity);
-  
-  var convertI32PairToI53 = (lo, hi) => {
-      // This function should not be getting called with too large unsigned numbers
-      // in high part (if hi >= 0x7FFFFFFFF, one should have been calling
-      // convertU32PairToI53())
-      assert(hi === (hi|0));
-      return (lo >>> 0) + hi * 4294967296;
-    };
-  
-  var convertU32PairToI53 = (lo, hi) => {
-      return (lo >>> 0) + (hi >>> 0) * 4294967296;
-    };
-  
-  var reSign = (value, bits) => {
-      if (value <= 0) {
-        return value;
-      }
-      var half = bits <= 32 ? Math.abs(1 << (bits-1)) // abs is needed if bits == 32
-                            : Math.pow(2, bits-1);
-      // for huge values, we can hit the precision limit and always get true here.
-      // so don't do that but, in general there is no perfect solution here. With
-      // 64-bit ints, we get rounding and errors
-      // TODO: In i64 mode 1, resign the two parts separately and safely
-      if (value >= half && (bits <= 32 || value > half)) {
-        // Cannot bitshift half, as it may be at the limit of the bits JS uses in
-        // bitshifts
-        value = -2*half + value;
-      }
-      return value;
-    };
-  
-  var unSign = (value, bits) => {
-      if (value >= 0) {
-        return value;
-      }
-      // Need some trickery, since if bits == 32, we are right at the limit of the
-      // bits JS uses in bitshifts
-      return bits <= 32 ? 2*Math.abs(1 << (bits-1)) + value
-                        : Math.pow(2, bits)         + value;
-    };
-  
-  var strLen = (ptr) => {
-      var end = ptr;
-      while (HEAPU8[end]) ++end;
-      return end - ptr;
-    };
-  
-  var formatString = (format, varargs) => {
-      assert((varargs & 3) === 0);
-      var textIndex = format;
-      var argIndex = varargs;
-      // This must be called before reading a double or i64 vararg. It will bump the pointer properly.
-      // It also does an assert on i32 values, so it's nice to call it before all varargs calls.
-      function prepVararg(ptr, type) {
-        if (type === 'double' || type === 'i64') {
-          // move so the load is aligned
-          if (ptr & 7) {
-            assert((ptr & 7) === 4);
-            ptr += 4;
-          }
-        } else {
-          assert((ptr & 3) === 0);
-        }
-        return ptr;
-      }
-      function getNextArg(type) {
-        // NOTE: Explicitly ignoring type safety. Otherwise this fails:
-        //       int x = 4; printf("%c\n", (char)x);
-        var ret;
-        argIndex = prepVararg(argIndex, type);
-        if (type === 'double') {
-          ret = HEAPF64[((argIndex)>>3)];
-          argIndex += 8;
-        } else if (type == 'i64') {
-          ret = [HEAP32[((argIndex)>>2)],
-                 HEAP32[(((argIndex)+(4))>>2)]];
-          argIndex += 8;
-        } else {
-          assert((argIndex & 3) === 0);
-          type = 'i32'; // varargs are always i32, i64, or double
-          ret = HEAP32[((argIndex)>>2)];
-          argIndex += 4;
-        }
-        return ret;
-      }
-  
-      var ret = [];
-      var curr, next, currArg;
-      while (1) {
-        var startTextIndex = textIndex;
-        curr = HEAP8[textIndex];
-        if (curr === 0) break;
-        next = HEAP8[textIndex+1];
-        if (curr == 37) {
-          // Handle flags.
-          var flagAlwaysSigned = false;
-          var flagLeftAlign = false;
-          var flagAlternative = false;
-          var flagZeroPad = false;
-          var flagPadSign = false;
-          flagsLoop: while (1) {
-            switch (next) {
-              case 43:
-                flagAlwaysSigned = true;
-                break;
-              case 45:
-                flagLeftAlign = true;
-                break;
-              case 35:
-                flagAlternative = true;
-                break;
-              case 48:
-                if (flagZeroPad) {
-                  break flagsLoop;
-                } else {
-                  flagZeroPad = true;
-                  break;
-                }
-              case 32:
-                flagPadSign = true;
-                break;
-              default:
-                break flagsLoop;
-            }
-            textIndex++;
-            next = HEAP8[textIndex+1];
-          }
-  
-          // Handle width.
-          var width = 0;
-          if (next == 42) {
-            width = getNextArg('i32');
-            textIndex++;
-            next = HEAP8[textIndex+1];
-          } else {
-            while (next >= 48 && next <= 57) {
-              width = width * 10 + (next - 48);
-              textIndex++;
-              next = HEAP8[textIndex+1];
-            }
-          }
-  
-          // Handle precision.
-          var precisionSet = false, precision = -1;
-          if (next == 46) {
-            precision = 0;
-            precisionSet = true;
-            textIndex++;
-            next = HEAP8[textIndex+1];
-            if (next == 42) {
-              precision = getNextArg('i32');
-              textIndex++;
-            } else {
-              while (1) {
-                var precisionChr = HEAP8[textIndex+1];
-                if (precisionChr < 48 ||
-                    precisionChr > 57) break;
-                precision = precision * 10 + (precisionChr - 48);
-                textIndex++;
-              }
-            }
-            next = HEAP8[textIndex+1];
-          }
-          if (precision < 0) {
-            precision = 6; // Standard default.
-            precisionSet = false;
-          }
-  
-          // Handle integer sizes. WARNING: These assume a 32-bit architecture!
-          var argSize;
-          switch (String.fromCharCode(next)) {
-            case 'h':
-              var nextNext = HEAP8[textIndex+2];
-              if (nextNext == 104) {
-                textIndex++;
-                argSize = 1; // char (actually i32 in varargs)
-              } else {
-                argSize = 2; // short (actually i32 in varargs)
-              }
-              break;
-            case 'l':
-              var nextNext = HEAP8[textIndex+2];
-              if (nextNext == 108) {
-                textIndex++;
-                argSize = 8; // long long
-              } else {
-                argSize = 4; // long
-              }
-              break;
-            case 'L': // long long
-            case 'q': // int64_t
-            case 'j': // intmax_t
-              argSize = 8;
-              break;
-            case 'z': // size_t
-            case 't': // ptrdiff_t
-            case 'I': // signed ptrdiff_t or unsigned size_t
-              argSize = 4;
-              break;
-            default:
-              argSize = null;
-          }
-          if (argSize) textIndex++;
-          next = HEAP8[textIndex+1];
-  
-          // Handle type specifier.
-          switch (String.fromCharCode(next)) {
-            case 'd': case 'i': case 'u': case 'o': case 'x': case 'X': case 'p': {
-              // Integer.
-              var signed = next == 100 || next == 105;
-              argSize = argSize || 4;
-              currArg = getNextArg('i' + (argSize * 8));
-              var argText;
-              // Flatten i64-1 [low, high] into a (slightly rounded) double
-              if (argSize == 8) {
-                currArg = next == 117 ? convertU32PairToI53(currArg[0], currArg[1]) : convertI32PairToI53(currArg[0], currArg[1]);
-              }
-              // Truncate to requested size.
-              if (argSize <= 4) {
-                var limit = Math.pow(256, argSize) - 1;
-                currArg = (signed ? reSign : unSign)(currArg & limit, argSize * 8);
-              }
-              // Format the number.
-              var currAbsArg = Math.abs(currArg);
-              var prefix = '';
-              if (next == 100 || next == 105) {
-                argText = reSign(currArg, 8 * argSize).toString(10);
-              } else if (next == 117) {
-                argText = unSign(currArg, 8 * argSize).toString(10);
-                currArg = Math.abs(currArg);
-              } else if (next == 111) {
-                argText = (flagAlternative ? '0' : '') + currAbsArg.toString(8);
-              } else if (next == 120 || next == 88) {
-                prefix = (flagAlternative && currArg != 0) ? '0x' : '';
-                if (currArg < 0) {
-                  // Represent negative numbers in hex as 2's complement.
-                  currArg = -currArg;
-                  argText = (currAbsArg - 1).toString(16);
-                  var buffer = [];
-                  for (var i = 0; i < argText.length; i++) {
-                    buffer.push((0xF - parseInt(argText[i], 16)).toString(16));
-                  }
-                  argText = buffer.join('');
-                  while (argText.length < argSize * 2) argText = 'f' + argText;
-                } else {
-                  argText = currAbsArg.toString(16);
-                }
-                if (next == 88) {
-                  prefix = prefix.toUpperCase();
-                  argText = argText.toUpperCase();
-                }
-              } else if (next == 112) {
-                if (currAbsArg === 0) {
-                  argText = '(nil)';
-                } else {
-                  prefix = '0x';
-                  argText = currAbsArg.toString(16);
-                }
-              }
-              if (precisionSet) {
-                while (argText.length < precision) {
-                  argText = '0' + argText;
-                }
-              }
-  
-              // Add sign if needed
-              if (currArg >= 0) {
-                if (flagAlwaysSigned) {
-                  prefix = '+' + prefix;
-                } else if (flagPadSign) {
-                  prefix = ' ' + prefix;
-                }
-              }
-  
-              // Move sign to prefix so we zero-pad after the sign
-              if (argText.charAt(0) == '-') {
-                prefix = '-' + prefix;
-                argText = argText.substr(1);
-              }
-  
-              // Add padding.
-              while (prefix.length + argText.length < width) {
-                if (flagLeftAlign) {
-                  argText += ' ';
-                } else {
-                  if (flagZeroPad) {
-                    argText = '0' + argText;
-                  } else {
-                    prefix = ' ' + prefix;
-                  }
-                }
-              }
-  
-              // Insert the result into the buffer.
-              argText = prefix + argText;
-              argText.split('').forEach(function(chr) {
-                ret.push(chr.charCodeAt(0));
-              });
-              break;
-            }
-            case 'f': case 'F': case 'e': case 'E': case 'g': case 'G': {
-              // Float.
-              currArg = getNextArg('double');
-              var argText;
-              if (isNaN(currArg)) {
-                argText = 'nan';
-                flagZeroPad = false;
-              } else if (!isFinite(currArg)) {
-                argText = (currArg < 0 ? '-' : '') + 'inf';
-                flagZeroPad = false;
-              } else {
-                var isGeneral = false;
-                var effectivePrecision = Math.min(precision, 20);
-  
-                // Convert g/G to f/F or e/E, as per:
-                // http://pubs.opengroup.org/onlinepubs/9699919799/functions/printf.html
-                if (next == 103 || next == 71) {
-                  isGeneral = true;
-                  precision = precision || 1;
-                  var exponent = parseInt(currArg.toExponential(effectivePrecision).split('e')[1], 10);
-                  if (precision > exponent && exponent >= -4) {
-                    next = ((next == 103) ? 'f' : 'F').charCodeAt(0);
-                    precision -= exponent + 1;
-                  } else {
-                    next = ((next == 103) ? 'e' : 'E').charCodeAt(0);
-                    precision--;
-                  }
-                  effectivePrecision = Math.min(precision, 20);
-                }
-  
-                if (next == 101 || next == 69) {
-                  argText = currArg.toExponential(effectivePrecision);
-                  // Make sure the exponent has at least 2 digits.
-                  if (/[eE][-+]\d$/.test(argText)) {
-                    argText = argText.slice(0, -1) + '0' + argText.slice(-1);
-                  }
-                } else if (next == 102 || next == 70) {
-                  argText = currArg.toFixed(effectivePrecision);
-                  if (currArg === 0 && reallyNegative(currArg)) {
-                    argText = '-' + argText;
-                  }
-                }
-  
-                var parts = argText.split('e');
-                if (isGeneral && !flagAlternative) {
-                  // Discard trailing zeros and periods.
-                  while (parts[0].length > 1 && parts[0].includes('.') &&
-                         (parts[0].slice(-1) == '0' || parts[0].slice(-1) == '.')) {
-                    parts[0] = parts[0].slice(0, -1);
-                  }
-                } else {
-                  // Make sure we have a period in alternative mode.
-                  if (flagAlternative && argText.indexOf('.') == -1) parts[0] += '.';
-                  // Zero pad until required precision.
-                  while (precision > effectivePrecision++) parts[0] += '0';
-                }
-                argText = parts[0] + (parts.length > 1 ? 'e' + parts[1] : '');
-  
-                // Capitalize 'E' if needed.
-                if (next == 69) argText = argText.toUpperCase();
-  
-                // Add sign.
-                if (currArg >= 0) {
-                  if (flagAlwaysSigned) {
-                    argText = '+' + argText;
-                  } else if (flagPadSign) {
-                    argText = ' ' + argText;
-                  }
-                }
-              }
-  
-              // Add padding.
-              while (argText.length < width) {
-                if (flagLeftAlign) {
-                  argText += ' ';
-                } else {
-                  if (flagZeroPad && (argText[0] == '-' || argText[0] == '+')) {
-                    argText = argText[0] + '0' + argText.slice(1);
-                  } else {
-                    argText = (flagZeroPad ? '0' : ' ') + argText;
-                  }
-                }
-              }
-  
-              // Adjust case.
-              if (next < 97) argText = argText.toUpperCase();
-  
-              // Insert the result into the buffer.
-              argText.split('').forEach(function(chr) {
-                ret.push(chr.charCodeAt(0));
-              });
-              break;
-            }
-            case 's': {
-              // String.
-              var arg = getNextArg('i8*');
-              var argLength = arg ? strLen(arg) : '(null)'.length;
-              if (precisionSet) argLength = Math.min(argLength, precision);
-              if (!flagLeftAlign) {
-                while (argLength < width--) {
-                  ret.push(32);
-                }
-              }
-              if (arg) {
-                for (var i = 0; i < argLength; i++) {
-                  ret.push(HEAPU8[arg++]);
-                }
-              } else {
-                ret = ret.concat(intArrayFromString('(null)'.substr(0, argLength), true));
-              }
-              if (flagLeftAlign) {
-                while (argLength < width--) {
-                  ret.push(32);
-                }
-              }
-              break;
-            }
-            case 'c': {
-              // Character.
-              if (flagLeftAlign) ret.push(getNextArg('i8'));
-              while (--width > 0) {
-                ret.push(32);
-              }
-              if (!flagLeftAlign) ret.push(getNextArg('i8'));
-              break;
-            }
-            case 'n': {
-              // Write the length written so far to the next parameter.
-              var ptr = getNextArg('i32*');
-              HEAP32[((ptr)>>2)] = ret.length;
-              break;
-            }
-            case '%': {
-              // Literal percent sign.
-              ret.push(curr);
-              break;
-            }
-            default: {
-              // Unknown specifiers remain untouched.
-              for (var i = startTextIndex; i < textIndex + 2; i++) {
-                ret.push(HEAP8[i]);
-              }
-            }
-          }
-          textIndex += 2;
-          // TODO: Support a/A (hex float) and m (last error) specifiers.
-          // TODO: Support %1${specifier} for arg selection.
-        } else {
-          ret.push(curr);
-          textIndex += 1;
-        }
-      }
-      return ret;
-    };
-  
-  function jsStackTrace() {
-      return new Error().stack.toString();
-    }
-  
-  /** @param {number=} flags */
-  function getCallstack(flags) {
-      var callstack = jsStackTrace();
-  
-      // Find the symbols in the callstack that corresponds to the functions that
-      // report callstack information, and remove everything up to these from the
-      // output.
-      var iThisFunc = callstack.lastIndexOf('_emscripten_log');
-      var iThisFunc2 = callstack.lastIndexOf('_emscripten_get_callstack');
-      var iNextLine = callstack.indexOf('\n', Math.max(iThisFunc, iThisFunc2))+1;
-      callstack = callstack.slice(iNextLine);
-  
-      // If user requested to see the original source stack, but no source map
-      // information is available, just fall back to showing the JS stack.
-      if (flags & 8 && typeof emscripten_source_map == 'undefined') {
-        warnOnce('Source map information is not available, emscripten_log with EM_LOG_C_STACK will be ignored. Build with "--pre-js $EMSCRIPTEN/src/emscripten-source-map.min.js" linker flag to add source map loading to code.');
-        flags ^= 8;
-        flags |= 16;
-      }
-  
-      // Process all lines:
-      var lines = callstack.split('\n');
-      callstack = '';
-      // New FF30 with column info: extract components of form:
-      // '       Object._main@http://server.com:4324:12'
-      var newFirefoxRe = new RegExp('\\s*(.*?)@(.*?):([0-9]+):([0-9]+)');
-      // Old FF without column info: extract components of form:
-      // '       Object._main@http://server.com:4324'
-      var firefoxRe = new RegExp('\\s*(.*?)@(.*):(.*)(:(.*))?');
-      // Extract components of form:
-      // '    at Object._main (http://server.com/file.html:4324:12)'
-      var chromeRe = new RegExp('\\s*at (.*?) \\\((.*):(.*):(.*)\\\)');
-  
-      for (var l in lines) {
-        var line = lines[l];
-  
-        var symbolName = '';
-        var file = '';
-        var lineno = 0;
-        var column = 0;
-  
-        var parts = chromeRe.exec(line);
-        if (parts && parts.length == 5) {
-          symbolName = parts[1];
-          file = parts[2];
-          lineno = parts[3];
-          column = parts[4];
-        } else {
-          parts = newFirefoxRe.exec(line);
-          if (!parts) parts = firefoxRe.exec(line);
-          if (parts && parts.length >= 4) {
-            symbolName = parts[1];
-            file = parts[2];
-            lineno = parts[3];
-            // Old Firefox doesn't carry column information, but in new FF30, it
-            // is present. See https://bugzilla.mozilla.org/show_bug.cgi?id=762556
-            column = parts[4]|0;
-          } else {
-            // Was not able to extract this line for demangling/sourcemapping
-            // purposes. Output it as-is.
-            callstack += line + '\n';
-            continue;
-          }
-        }
-  
-        var haveSourceMap = false;
-  
-        if (flags & 8) {
-          var orig = emscripten_source_map.originalPositionFor({line: lineno, column: column});
-          haveSourceMap = orig?.source;
-          if (haveSourceMap) {
-            if (flags & 64) {
-              orig.source = orig.source.substring(orig.source.replace(/\\/g, "/").lastIndexOf('/')+1);
-            }
-            callstack += `    at ${symbolName} (${orig.source}:${orig.line}:${orig.column})\n`;
-          }
-        }
-        if ((flags & 16) || !haveSourceMap) {
-          if (flags & 64) {
-            file = file.substring(file.replace(/\\/g, "/").lastIndexOf('/')+1);
-          }
-          callstack += (haveSourceMap ? (`     = ${symbolName}`) : (`    at ${symbolName}`)) + ` (${file}:${lineno}:${column})\n`;
-        }
-      }
-      // Trim extra whitespace at the end of the output.
-      callstack = callstack.replace(/\s+$/, '');
-      return callstack;
-    }
-  var emscriptenLog = (flags, str) => {
-      if (flags & 24) {
-        str = str.replace(/\s+$/, ''); // Ensure the message and the callstack are joined cleanly with exactly one newline.
-        str += (str.length > 0 ? '\n' : '') + getCallstack(flags);
-      }
-  
-      if (flags & 1) {
-        if (flags & 4) {
-          console.error(str);
-        } else if (flags & 2) {
-          console.warn(str);
-        } else if (flags & 512) {
-          console.info(str);
-        } else if (flags & 256) {
-          console.debug(str);
-        } else {
-          console.log(str);
-        }
-      } else if (flags & 6) {
-        err(str);
-      } else {
-        out(str);
-      }
-    };
-  var _emscripten_log = (flags, format, varargs) => {
-      var result = formatString(format, varargs);
-      var str = UTF8ArrayToString(result, 0);
-      emscriptenLog(flags, str);
-    };
-
-  var getHeapMax = () =>
-      HEAPU8.length;
-  
-  var abortOnCannotGrowMemory = (requestedSize) => {
-      abort(`Cannot enlarge memory arrays to size ${requestedSize} bytes (OOM). Either (1) compile with -sINITIAL_MEMORY=X with X higher than the current value ${HEAP8.length}, (2) compile with -sALLOW_MEMORY_GROWTH which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with -sABORTING_MALLOC=0`);
-    };
-  var _emscripten_resize_heap = (requestedSize) => {
-      var oldSize = HEAPU8.length;
-      // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
-      requestedSize >>>= 0;
-      abortOnCannotGrowMemory(requestedSize);
-    };
-
-  var _emscripten_sleep = () => {
-      throw 'Please compile your program with async support in order to use asynchronous operations like emscripten_sleep';
-    };
-
-  function _fd_close(fd) {
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      FS.close(stream);
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return e.errno;
-  }
-  }
-
-  /** @param {number=} offset */
-  var doReadv = (stream, iov, iovcnt, offset) => {
-      var ret = 0;
-      for (var i = 0; i < iovcnt; i++) {
-        var ptr = HEAPU32[((iov)>>2)];
-        var len = HEAPU32[(((iov)+(4))>>2)];
-        iov += 8;
-        var curr = FS.read(stream, HEAP8, ptr, len, offset);
-        if (curr < 0) return -1;
-        ret += curr;
-        if (curr < len) break; // nothing more to read
-        if (typeof offset != 'undefined') {
-          offset += curr;
-        }
-      }
-      return ret;
-    };
-  
-  function _fd_read(fd, iov, iovcnt, pnum) {
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      var num = doReadv(stream, iov, iovcnt);
-      HEAPU32[((pnum)>>2)] = num;
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return e.errno;
-  }
-  }
-
-  
-  var convertI32PairToI53Checked = (lo, hi) => {
-      assert(lo == (lo >>> 0) || lo == (lo|0)); // lo should either be a i32 or a u32
-      assert(hi === (hi|0));                    // hi should be a i32
-      return ((hi + 0x200000) >>> 0 < 0x400001 - !!lo) ? (lo >>> 0) + hi * 4294967296 : NaN;
-    };
-  function _fd_seek(fd,offset_low, offset_high,whence,newOffset) {
-    var offset = convertI32PairToI53Checked(offset_low, offset_high);
-  
-    
-  try {
-  
-      if (isNaN(offset)) return 61;
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      FS.llseek(stream, offset, whence);
-      (tempI64 = [stream.position>>>0,(tempDouble = stream.position,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[((newOffset)>>2)] = tempI64[0],HEAP32[(((newOffset)+(4))>>2)] = tempI64[1]);
-      if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null; // reset readdir state
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return e.errno;
-  }
-  ;
-  }
-
-  /** @param {number=} offset */
-  var doWritev = (stream, iov, iovcnt, offset) => {
-      var ret = 0;
-      for (var i = 0; i < iovcnt; i++) {
-        var ptr = HEAPU32[((iov)>>2)];
-        var len = HEAPU32[(((iov)+(4))>>2)];
-        iov += 8;
-        var curr = FS.write(stream, HEAP8, ptr, len, offset);
-        if (curr < 0) return -1;
-        ret += curr;
-        if (typeof offset != 'undefined') {
-          offset += curr;
-        }
-      }
-      return ret;
-    };
-  
-  function _fd_write(fd, iov, iovcnt, pnum) {
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      var num = doWritev(stream, iov, iovcnt);
-      HEAPU32[((pnum)>>2)] = num;
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return e.errno;
-  }
-  }
-
-  
-  var runtimeKeepaliveCounter = 0;
-  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
-  var _proc_exit = (code) => {
-      EXITSTATUS = code;
-      if (!keepRuntimeAlive()) {
-        Module['onExit']?.(code);
-        ABORT = true;
-      }
-      quit_(code, new ExitStatus(code));
-    };
-  
-  /** @param {boolean|number=} implicit */
-  var exitJS = (status, implicit) => {
-      EXITSTATUS = status;
-  
-      checkUnflushedContent();
-  
-      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
-      if (keepRuntimeAlive() && !implicit) {
-        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
-        err(msg);
-      }
-  
-      _proc_exit(status);
-    };
-
-  var handleException = (e) => {
-      // Certain exception types we do not treat as errors since they are used for
-      // internal control flow.
-      // 1. ExitStatus, which is thrown by exit()
-      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
-      //    that wish to return to JS event loop.
-      if (e instanceof ExitStatus || e == 'unwind') {
-        return EXITSTATUS;
-      }
-      checkStackCookie();
-      if (e instanceof WebAssembly.RuntimeError) {
-        if (_emscripten_stack_get_current() <= 0) {
-          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)');
-        }
-      }
-      quit_(1, e);
-    };
-
-  
-  
-  var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
-  var stringToUTF8OnStack = (str) => {
-      var size = lengthBytesUTF8(str) + 1;
-      var ret = stackAlloc(size);
-      stringToUTF8(str, ret, size);
-      return ret;
-    };
-
-
-  var getCFunc = (ident) => {
-      var func = Module['_' + ident]; // closure exported function
-      assert(func, 'Cannot call unknown function ' + ident + ', make sure it is exported');
-      return func;
-    };
-  
-  
-  var writeArrayToMemory = (array, buffer) => {
-      assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
-      HEAP8.set(array, buffer);
-    };
-  
-  
-  
-  
-  
   
     /**
      * @param {string|null=} returnType
@@ -5159,124 +4140,10 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var wasmImports = {
-  /** @export */
-  __syscall_fcntl64: ___syscall_fcntl64,
-  /** @export */
-  __syscall_getdents64: ___syscall_getdents64,
-  /** @export */
-  __syscall_ioctl: ___syscall_ioctl,
-  /** @export */
-  __syscall_openat: ___syscall_openat,
-  /** @export */
-  __syscall_unlinkat: ___syscall_unlinkat,
-  /** @export */
-  _emscripten_get_now_is_monotonic: __emscripten_get_now_is_monotonic,
-  /** @export */
-  _emscripten_memcpy_js: __emscripten_memcpy_js,
-  /** @export */
-  abort: _abort,
-  /** @export */
-  emscripten_date_now: _emscripten_date_now,
-  /** @export */
-  emscripten_debugger: _emscripten_debugger,
-  /** @export */
-  emscripten_get_now: _emscripten_get_now,
-  /** @export */
-  emscripten_log: _emscripten_log,
-  /** @export */
-  emscripten_resize_heap: _emscripten_resize_heap,
-  /** @export */
-  emscripten_sleep: _emscripten_sleep,
-  /** @export */
-  fd_close: _fd_close,
-  /** @export */
-  fd_read: _fd_read,
-  /** @export */
-  fd_seek: _fd_seek,
-  /** @export */
-  fd_write: _fd_write
+  
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
-var _sys_debugger = Module['_sys_debugger'] = createExportWrapper('sys_debugger', 0);
-var _lang_T = Module['_lang_T'] = createExportWrapper('lang_T', 2);
-var _lang_C = Module['_lang_C'] = createExportWrapper('lang_C', 2);
-var _lang_H = Module['_lang_H'] = createExportWrapper('lang_H', 2);
-var _lang_S = Module['_lang_S'] = createExportWrapper('lang_S', 2);
-var _lang_F = Module['_lang_F'] = createExportWrapper('lang_F', 2);
-var _lang_I = Module['_lang_I'] = createExportWrapper('lang_I', 3);
-var _lang_N = Module['_lang_N'] = createExportWrapper('lang_N', 2);
-var _sys_consolelog = Module['_sys_consolelog'] = createExportWrapper('sys_consolelog', 2);
-var _sys_getlasterror = Module['_sys_getlasterror'] = createExportWrapper('sys_getlasterror', 0);
-var _sys_geterrormsg = Module['_sys_geterrormsg'] = createExportWrapper('sys_geterrormsg', 3);
-var _sys_valloc = Module['_sys_valloc'] = createExportWrapper('sys_valloc', 2);
-var _sys_sleep = Module['_sys_sleep'] = createExportWrapper('sys_sleep', 2);
-var _sys_clockhz = Module['_sys_clockhz'] = createExportWrapper('sys_clockhz', 0);
-var _sys_clocktime = Module['_sys_clocktime'] = createExportWrapper('sys_clocktime', 0);
-var _sys_getmyname = Module['_sys_getmyname'] = createExportWrapper('sys_getmyname', 2);
-var _sys_getmypid = Module['_sys_getmypid'] = createExportWrapper('sys_getmypid', 0);
-var _sys_pwd = Module['_sys_pwd'] = createExportWrapper('sys_pwd', 2);
-var _sys_setpwd = Module['_sys_setpwd'] = createExportWrapper('sys_setpwd', 1);
-var _sys_loadlib = Module['_sys_loadlib'] = createExportWrapper('sys_loadlib', 1);
-var _sys_libfn = Module['_sys_libfn'] = createExportWrapper('sys_libfn', 2);
-var _sys_loadfilebytes = Module['_sys_loadfilebytes'] = createExportWrapper('sys_loadfilebytes', 3);
-var _langM_alloc_ = Module['_langM_alloc_'] = createExportWrapper('langM_alloc_', 4);
-var _sys_savefilebytes = Module['_sys_savefilebytes'] = createExportWrapper('sys_savefilebytes', 4);
-var _langM_dealloc_ = Module['_langM_dealloc_'] = createExportWrapper('langM_dealloc_', 3);
-var _langM_realloc_ = Module['_langM_realloc_'] = createExportWrapper('langM_realloc_', 5);
-var _langM_clearalloc_ = Module['_langM_clearalloc_'] = createExportWrapper('langM_clearalloc_', 4);
-var _langM_defglobalallocfn = Module['_langM_defglobalallocfn'] = createExportWrapper('langM_defglobalallocfn', 8);
-var _langM_deftlocalallocfn = Module['_langM_deftlocalallocfn'] = createExportWrapper('langM_deftlocalallocfn', 8);
-var _elf_log_ = Module['_elf_log_'] = createExportWrapper('elf_log_', 4);
-var _elf_putnewtab = Module['_elf_putnewtab'] = createExportWrapper('elf_putnewtab', 1);
-var _elf_puttab = Module['_elf_puttab'] = createExportWrapper('elf_puttab', 2);
-var _elf_putint = Module['_elf_putint'] = createExportWrapper('elf_putint', 3);
-var _elf_getthis = Module['_elf_getthis'] = createExportWrapper('elf_getthis', 1);
-var _elf_getstr = Module['_elf_getstr'] = createExportWrapper('elf_getstr', 2);
-var _elf_getval = Module['_elf_getval'] = createExportWrapper('elf_getval', 3);
-var _elf_putstr = Module['_elf_putstr'] = createExportWrapper('elf_putstr', 2);
-var _elf_putval = Module['_elf_putval'] = createExportWrapper('elf_putval', 2);
-var _elf_checkcl = Module['_elf_checkcl'] = createExportWrapper('elf_checkcl', 2);
-var _elf_stkput = Module['_elf_stkput'] = createExportWrapper('elf_stkput', 2);
-var _elf_callex = Module['_elf_callex'] = createExportWrapper('elf_callex', 6);
-var _elf_getsys = Module['_elf_getsys'] = createExportWrapper('elf_getsys', 2);
-var _elf_getint = Module['_elf_getint'] = createExportWrapper('elf_getint', 2);
-var _elf_run = Module['_elf_run'] = createExportWrapper('elf_run', 1);
-var _elf_newcl = Module['_elf_newcl'] = createExportWrapper('elf_newcl', 2);
-var _elf_gettab = Module['_elf_gettab'] = createExportWrapper('elf_gettab', 2);
-var _elf_getobj = Module['_elf_getobj'] = createExportWrapper('elf_getobj', 2);
-var _elf_getcls = Module['_elf_getcls'] = createExportWrapper('elf_getcls', 2);
-var _elf_putnewstr = Module['_elf_putnewstr'] = createExportWrapper('elf_putnewstr', 2);
-var _elf_putnum = Module['_elf_putnum'] = createExportWrapper('elf_putnum', 2);
-var _elf_loadexpr = Module['_elf_loadexpr'] = createExportWrapper('elf_loadexpr', 4);
-var _elf_callfn = Module['_elf_callfn'] = createExportWrapper('elf_callfn', 4);
-var _elf_checkstr = Module['_elf_checkstr'] = createExportWrapper('elf_checkstr', 2);
-var _elf_putbinding = Module['_elf_putbinding'] = createExportWrapper('elf_putbinding', 2);
-var _elf_putnil = Module['_elf_putnil'] = createExportWrapper('elf_putnil', 1);
-var _elf_putsys = Module['_elf_putsys'] = createExportWrapper('elf_putsys', 2);
-var _syslib_sleep = Module['_syslib_sleep'] = createExportWrapper('syslib_sleep', 1);
-var _syslib_clocktime = Module['_syslib_clocktime'] = createExportWrapper('syslib_clocktime', 1);
-var _syslib_timediffs = Module['_syslib_timediffs'] = createExportWrapper('syslib_timediffs', 1);
-var _elf_putcls = Module['_elf_putcls'] = createExportWrapper('elf_putcls', 2);
-var _syslib_listdir = Module['_syslib_listdir'] = createExportWrapper('syslib_listdir', 1);
-var _syslib_load = Module['_syslib_load'] = createExportWrapper('syslib_load', 1);
-var _elf_getnum = Module['_elf_getnum'] = createExportWrapper('elf_getnum', 2);
-var _crtlib_load = Module['_crtlib_load'] = createExportWrapper('crtlib_load', 1);
-var _netlib_init = Module['_netlib_init'] = createExportWrapper('netlib_init', 1);
-var _netlib_close = Module['_netlib_close'] = createExportWrapper('netlib_close', 1);
-var _netlib_listen = Module['_netlib_listen'] = createExportWrapper('netlib_listen', 1);
-var _netlib_accept = Module['_netlib_accept'] = createExportWrapper('netlib_accept', 1);
-var _netlib_pollclient = Module['_netlib_pollclient'] = createExportWrapper('netlib_pollclient', 1);
-var _netlib_tcpserver = Module['_netlib_tcpserver'] = createExportWrapper('netlib_tcpserver', 1);
-var _netlib_tcpclient = Module['_netlib_tcpclient'] = createExportWrapper('netlib_tcpclient', 1);
-var _netlib_send = Module['_netlib_send'] = createExportWrapper('netlib_send', 1);
-var _netlib_ioctl = Module['_netlib_ioctl'] = createExportWrapper('netlib_ioctl', 1);
-var _netlib_recv = Module['_netlib_recv'] = createExportWrapper('netlib_recv', 1);
-var _netlib_load = Module['_netlib_load'] = createExportWrapper('netlib_load', 1);
-var _elf_stklen = Module['_elf_stklen'] = createExportWrapper('elf_stklen', 1);
-var _elf_putnewcls = Module['_elf_putnewcls'] = createExportWrapper('elf_putnewcls', 2);
-var _elfweb_ini = Module['_elfweb_ini'] = createExportWrapper('elfweb_ini', 0);
-var _elfweb_loadcode = Module['_elfweb_loadcode'] = createExportWrapper('elfweb_loadcode', 2);
 var _main = Module['_main'] = createExportWrapper('__main_argc_argv', 2);
 var _fflush = createExportWrapper('fflush', 1);
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
@@ -5286,8 +4153,6 @@ var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['
 var __emscripten_stack_restore = (a0) => (__emscripten_stack_restore = wasmExports['_emscripten_stack_restore'])(a0);
 var __emscripten_stack_alloc = (a0) => (__emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'])(a0);
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
-var dynCall_iiijjii = Module['dynCall_iiijjii'] = createExportWrapper('dynCall_iiijjii', 9);
-var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji', 5);
 
 
 // include: postamble.js
@@ -5311,8 +4176,13 @@ var missingLibrarySymbols = [
   'writeI53ToU64Signaling',
   'readI53FromI64',
   'readI53FromU64',
+  'convertI32PairToI53',
+  'convertI32PairToI53Checked',
+  'convertU32PairToI53',
   'getTempRet0',
   'setTempRet0',
+  'getHeapMax',
+  'abortOnCannotGrowMemory',
   'growMemory',
   'isLeapYear',
   'ydayFromDate',
@@ -5324,6 +4194,7 @@ var missingLibrarySymbols = [
   'inetNtop6',
   'readSockaddr',
   'writeSockaddr',
+  'emscriptenLog',
   'readEmAsmArgs',
   'jstoi_q',
   'getExecutableName',
@@ -5352,6 +4223,11 @@ var missingLibrarySymbols = [
   'getFunctionAddress',
   'addFunction',
   'removeFunction',
+  'reallyNegative',
+  'unSign',
+  'strLen',
+  'reSign',
+  'formatString',
   'intArrayToString',
   'AsciiToString',
   'stringToAscii',
@@ -5403,9 +4279,13 @@ var missingLibrarySymbols = [
   'registerBatteryEventCallback',
   'setCanvasElementSize',
   'getCanvasElementSize',
+  'jsStackTrace',
+  'getCallstack',
   'convertPCtoSourceLocation',
   'getEnvStrings',
   'checkWasiClock',
+  'doReadv',
+  'doWritev',
   'wasiRightsToMuslOFlags',
   'wasiOFlagsToMuslOFlags',
   'createDyncallWrapper',
@@ -5473,17 +4353,12 @@ var unexportedSymbols = [
   'wasmMemory',
   'writeStackCookie',
   'checkStackCookie',
-  'convertI32PairToI53',
-  'convertI32PairToI53Checked',
-  'convertU32PairToI53',
   'stackSave',
   'stackRestore',
   'stackAlloc',
   'ptrToString',
   'zeroMemory',
   'exitJS',
-  'getHeapMax',
-  'abortOnCannotGrowMemory',
   'ENV',
   'MONTH_DAYS_REGULAR',
   'MONTH_DAYS_LEAP',
@@ -5498,7 +4373,6 @@ var unexportedSymbols = [
   'randomFill',
   'timers',
   'warnOnce',
-  'emscriptenLog',
   'readEmAsmArgsArray',
   'jstoi_s',
   'handleException',
@@ -5512,11 +4386,6 @@ var unexportedSymbols = [
   'ccall',
   'freeTableIndexes',
   'functionsInTableMap',
-  'reallyNegative',
-  'unSign',
-  'strLen',
-  'reSign',
-  'formatString',
   'setValue',
   'getValue',
   'PATH',
@@ -5536,12 +4405,8 @@ var unexportedSymbols = [
   'findCanvasEventTarget',
   'currentFullscreenStrategy',
   'restoreOldWindowedStyle',
-  'jsStackTrace',
-  'getCallstack',
   'UNWIND_CACHE',
   'ExitStatus',
-  'doReadv',
-  'doWritev',
   'promiseMap',
   'uncaughtExceptionCount',
   'exceptionLast',

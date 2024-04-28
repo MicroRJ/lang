@@ -5,7 +5,7 @@
 */
 
 
-#include "elf.h"
+#include <elf.h>
 
 
 int main(int n, char **c) {

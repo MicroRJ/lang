@@ -18,6 +18,7 @@
 @SET ELFBUILDWEB_ONCE="YES"
 @SETLOCAL
 @SET MYSHELL=shell.html
+@SET MYSHELL=shell2.html
 @SET MYDATAP=code/tests
 
 @REM -Os -g -S

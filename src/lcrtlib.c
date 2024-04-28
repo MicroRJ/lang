@@ -63,6 +63,17 @@ int crtlib_exit(elf_Runtime *rt) {
 }
 
 
+int crtlib__chdir(elf_Runtime *rt) {
+	elf_String *name = elf_getstr(rt,0);
+#if defined(PLATFORM_WEB)
+	elf_putint(rt,chdir(name->c));
+#else
+	elf_putint(rt,_chdir(name->c));
+#endif
+	return 1;
+}
+
+
 int crtlib_fopen(elf_Runtime *c) {
 	elf_String *name = elf_getstr(c,0);
 	elf_String *flags = elf_getstr(c,1);
@@ -83,6 +94,13 @@ int crtlib_fclose(elf_Runtime *c) {
 	return 0;
 }
 
+
+int crtlib_fsize(elf_Runtime *c) {
+	elf_Handle file = elf_getsys(c,0);
+	fseek(file,0,SEEK_END);
+	elf_putint(c,ftell(file));
+	return 1;
+}
 
 
 #if defined(_MSC_VER)
@@ -127,14 +145,6 @@ int crtlib__strtime(elf_Runtime *rt) {
 }
 
 
-int crtlib_fsize(elf_Runtime *c) {
-	elf_Handle file = elf_getsys(c,0);
-	fseek(file,0,SEEK_END);
-	elf_putint(c,ftell(file));
-	return 1;
-}
-
-
 int crtlib__unlink(elf_Runtime *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_putint(rt,_unlink(name->c));
@@ -167,13 +177,6 @@ int crtlib__close(elf_Runtime *rt) {
 int crtlib__commit(elf_Runtime *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	elf_putint(rt,_commit((int)(elf_int)file));
-	return 1;
-}
-
-
-int crtlib__chdir(elf_Runtime *rt) {
-	elf_String *name = elf_getstr(rt,0);
-	elf_putint(rt,_chdir(name->c));
 	return 1;
 }
 
@@ -219,13 +222,11 @@ DEFSTUB(crtlib_time)
 DEFSTUB(crtlib_clock)
 DEFSTUB(crtlib__strdate)
 DEFSTUB(crtlib__strtime)
-DEFSTUB(crtlib_fsize)
 DEFSTUB(crtlib__unlink)
 DEFSTUB(crtlib__unlock_file)
 DEFSTUB(crtlib__write)
 DEFSTUB(crtlib__close)
 DEFSTUB(crtlib__commit)
-DEFSTUB(crtlib__chdir)
 DEFSTUB(crtlib__chdrive)
 DEFSTUB(crtlib__chmode)
 DEFSTUB(crtlib__execl)

@@ -38,12 +38,6 @@
 #endif
 
 
-/* em knows where this is at */
-#if defined(PLATFORM_WEB)
-#include <emscripten.h>
-#endif
-
-
 /* todo: remove deps */
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,6 +49,14 @@
 #if defined(_MSC_VER)
 #include <crtdbg.h>
 #endif
+
+
+/* em knows where this is at */
+#if defined(PLATFORM_WEB)
+#include <emscripten.h>
+#include <unistd.h>
+#endif
+
 
 #ifndef STB_SPRINTF_IMPLEMENTATION
 #define STB_SPRINTF_IMPLEMENTATION
@@ -79,15 +81,14 @@
 
 #define elf_globaldecl static
 
-#if defined(_MSC_VER)
-	#define elf_api static
-	#define elf_libfundecl __declspec(dllexport)
-	#define elf_threaddecl static __declspec(thread)
-#elif defined(PLATFORM_WEB)
+#if defined(PLATFORM_WEB)
 	#define elf_api EMSCRIPTEN_KEEPALIVE
 	#define elf_libfundecl EMSCRIPTEN_KEEPALIVE
 	#define elf_threaddecl static
 #else
+	#define elf_api static
+	#define elf_libfundecl __declspec(dllexport)
+	#define elf_threaddecl static __declspec(thread)
 #endif
 
 
