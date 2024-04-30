@@ -1,4 +1,5 @@
 
+
 log ?= elf.pf
 if load "code/ray.elf" != true ? {
 	leave false
