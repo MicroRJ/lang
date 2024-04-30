@@ -1,0 +1,14 @@
+log ?= pf
+raylib ?= elf.loadlib("raylib.dll")
+if raylib == nil ? {
+	log("could not load raylib...")
+	leave false
+}
+log("loading ray...")
+let enum _time = clocktime()
+finally log(" loaded ray, took: ",timediffs(_time))
+
+raylib_load = elf.libfn(raylib,"raylib_load")
+raylib_load()
+
+leave true

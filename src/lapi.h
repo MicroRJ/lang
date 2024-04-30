@@ -93,7 +93,7 @@ elf_api llocalid elf_putcls(elf_Runtime *, elf_Closure *f);
 elf_api void elf_putstr(elf_Runtime *, elf_String *s);
 
 
-elf_api elf_Table *elf_putnewtab(elf_Runtime *);
-elf_api elf_String *elf_putnewstr(elf_Runtime *, char const *c);
-elf_api llocalid elf_putnewcls(elf_Runtime *, elf_Proto fn);
+elf_api elf_Table *elf_locnewtab(elf_Runtime *);
+elf_api elf_String *elf_locnewstr(elf_Runtime *, char *c);
+elf_api llocalid elf_locnewcls(elf_Runtime *, elf_Proto fn);
 

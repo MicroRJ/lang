@@ -76,7 +76,7 @@ elf_api elf_Handle elf_getsys(elf_Runtime *R, llocalid x) {
 
 
 elf_api elf_String *elf_checkstr(elf_Runtime *R, llocalid x) {
-	elf_assert(R->call->locals[x].tag == TAG_STR);
+	elf_ensure(R->call->locals[x].tag == TAG_STR);
 	return R->call->locals[x].s;
 }
 
@@ -86,7 +86,7 @@ elf_api elf_int elf_getint(elf_Runtime *R, int x) {
 	if (v.tag == TAG_NUM) {
 		return (elf_int) v.n;
 	}
-	elf_assert(v.tag == TAG_INT);
+	elf_ensure(v.tag == TAG_INT);
 	return v.i;
 }
 
@@ -116,38 +116,43 @@ llocalid elf_putval(elf_Runtime *R, elf_val v) {
 	return elf_stkput(R,1);
 }
 
+#define _INC_TOP do {\
+	llocalid __i = R->top ++ - R->stk;\
+	elf_ensure(__i < R->stklen);\
+} while(0)
 
 void elf_putnil(elf_Runtime *R) {
 	R->top->tag = TAG_NIL;
-	++ R->top;
+	_INC_TOP;
 }
 
 
 void elf_putint(elf_Runtime *R, elf_int i) {
 	R->top->tag = TAG_INT;
 	R->top->i = i;
-	++ R->top;
+	_INC_TOP;
 }
 
 
 void elf_putnum(elf_Runtime *R, elf_num n) {
 	R->top->tag = TAG_NUM;
 	R->top->n = n;
-	++ R->top;
+	_INC_TOP;
 }
 
 
 void elf_putsys(elf_Runtime *R, elf_Handle h) {
 	R->top->tag = TAG_SYS;
 	R->top->h = h;
-	++ R->top;
+	_INC_TOP;
 }
 
 
 void elf_putstr(elf_Runtime *R, elf_String *s) {
 	R->top->tag = TAG_STR;
 	R->top->s = s;
-	++ R->top;
+	// if (s->obj.gccolor == GC_BLACK) s->obj.gccolor = GC_WHITE;
+	_INC_TOP;
 }
 
 
@@ -164,41 +169,45 @@ void elf_settop(elf_Runtime *R, elf_val *top) {
 llocalid elf_putcls(elf_Runtime *R, elf_Closure *cl) {
 	R->top->tag = TAG_CLS;
 	R->top->f   = cl;
-	return R->top ++ - R->call->locals;
+	// if (cl->obj.gccolor == GC_BLACK) cl->obj.gccolor = GC_WHITE;
+	llocalid id = R->top - R->call->locals;
+	_INC_TOP;
+	return id;
 }
 
 
 void elf_puttab(elf_Runtime *R, elf_Table *t) {
 	R->top->tag = TAG_TAB;
 	R->top->t = t;
-	++ R->top;
+	// if (t->obj.gccolor == GC_BLACK) t->obj.gccolor = GC_WHITE;
+	_INC_TOP;
 }
 
 
 void elf_putbinding(elf_Runtime *R, lBinding b) {
 	R->top->tag = TAG_BID;
 	R->top->c = b;
-	++ R->top;
+	_INC_TOP;
 }
 
 
-elf_Table *elf_putnewtab(elf_Runtime *R) {
+elf_Table *elf_locnewtab(elf_Runtime *R) {
 	elf_Table *t = elf_newtab(R);
 	elf_puttab(R,t);
 	return t;
 }
 
 
-elf_String *elf_putnewstr(elf_Runtime *R, char const *junk) {
+elf_String *elf_locnewstr(elf_Runtime *R, char *junk) {
 	elf_String *s = elf_newstr(R,junk);
 	elf_putstr(R,s);
 	return s;
 }
 
 
-llocalid elf_putnewcls(elf_Runtime *R, elf_Proto fn) {
-	elf_Closure *cl = elf_newcl(R,fn);
-	elf_assert(elf_stklen(R) >= fn.ncaches);
+llocalid elf_locnewcls(elf_Runtime *R, elf_Proto fn) {
+	elf_Closure *cl = elf_newcls(R,fn);
+	elf_ensure(elf_stklen(R) >= fn.ncaches);
 	R->top -= fn.ncaches;
 	int i;
 	for (i=0; i<fn.ncaches; ++i) {

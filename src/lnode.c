@@ -172,10 +172,10 @@ elf_val elf_nodetolitval(elf_FileState *fs, lnodeid id) {
 	lNode nd = fs->nodes[id];
 	switch (nd.k) {
 		case NODE_INTEGER: {
-			return lang_I(nd.lit.i);
+			return elf_valint(nd.lit.i);
 		}
 		case NODE_NUMBER: {
-			return lang_N(nd.lit.n);
+			return elf_valnum(nd.lit.n);
 		}
 		case NODE_TABLE: {
 			elf_Table *tab = elf_newtab(fs->R);

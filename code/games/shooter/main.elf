@@ -1,162 +1,35 @@
+
 log ?= elf.pf
-load "code/games/lgi.elf"
+if load "code/ray.elf" != true ? {
+	leave false
+}
+
 if _chdir("code/games/shooter") ? {
 	log("invalid pwd: ", pwd())
 	leave false
 }
+
 load "vec.elf"
 load "rnd.lang"
 
 
+UP    = vec3( 0, 1, 0)
 LEFT  = vec3(-1, 0, 0)
 RIGHT = vec3( 1, 0, 0)
-UP    = vec3( 0, 1, 0)
 DOWN  = vec3( 0,-1, 0)
-/* these are world directions, named as what
-they look to the user */
-NW = vec3(0,1,0)
-NE = vec3(1,0,0)
-SW = vec3(-1,0,0)
-SE = vec3(0,-1,0)
 
-camera = {
-	"targetxyz" = vec3(0,0,0),
-	"xyz" = vec3(0,0,0)
-}
-
-
-lgi_initWindowed(1024,720, "shooter")
-
-loadassets = fun() ? {
-	let time_ = clocktime()
-	finally log("loaded assets, took => ", timediffs(time_))
-	log("loading assets... ")
-	textures = {
-		"player" = lgi_loadtexture("assets/Atlas.png"),
-		"background" = lgi_loadtexture("assets/background.png"),
-	}
-	for i in 0..textures:length() ? {
-		lgi_setsampler(textures:idx(i),"point")
-	}
-}
-loadassets()
-
-
-plot3 = fun(xyz) ? plot(xyz.x,xyz.y,xyz.z)
-plot = fun(x,y,z) ? {
-	let xx = iton(x - camera.xyz.x)
-	let yy = iton(y - camera.xyz.y)
-	let zz = 1. ; iton(z - camera.xyz.z)
-	; if zz == 0. ? zz = 1.
-	let wx = (xx / zz) + lgi_getSizeX()*.5
-	let wy = (yy / zz) + lgi_getSizeY()*.5
-	leave vec3(wx,wy,0)
-}
-unplot = fun (xyz) ? {
-	let cxyz = camera.xyz
-	let cx = cxyz.x
-	let cy = cxyz.y
-	let cz = cxyz.z
-	let wx = (xyz.x-lgi_getSizeX()*.5)// * (xyz.z + cz)
-	let wy = (xyz.y-lgi_getSizeY()*.5)// * (xyz.z + cz)
-	leave vec3(wx,wy,wz)
-}
-plotline = fun(x0,y0,x1,y1) ? {
-	let xy0 = plot(x0,y0,0)
-	let xy1 = plot(x1,y1,0)
-	lgi_drawline(lgi_YELLOW,1,xy0.x,xy0.y,xy1.x,xy1.y)
-}
-plotline3 = fun(color,x0,y0,z0,x1,y1,z1) ? {
-	let p0 = plot(x0,y0,z0)
-	let p1 = plot(x1,y1,z1)
-	lgi_drawline(color,1,p0.x,p0.y,p1.x,p1.y)
-}
-plottileoutline = fun(xyz) ? {
-	let x = xyz.x
-	let y = xyz.y
-	let z = xyz.z
-	plotline3(lgi_BLUE,x+0,y+0,z,x+1,y+0,z)
-	plotline3(lgi_BLUE,x+0,y+0,z,x+0,y+1,z)
-	plotline3(lgi_BLUE,x+1,y+1,z,x+1,y+0,z)
-	plotline3(lgi_BLUE,x+0,y+1,z,x+1,y+1,z)
-}
-transform = fun(x,y,p) ? {
-	leave vec3(p.x * x.x + p.y * x.y,
-	           p.x * y.x + p.y * y.y,0.)
-}
-canvas = {
-	"xyz" = vec3(0,0,0),
-	"ybasis" = UP,
-	"xbasis" = RIGHT,
-	"color" = lgi_WHITE,
-	"u0" = 0,
-	"v0" = 0,
-	"u1" = 1,
-	"v1" = 1,
-}
-lgi_vertex2d = fun(x,y,u,v) ? {
-	let xyz = transform(canvas.ybasis,canvas.xbasis,vec2(x,y))
-	let p = plot3(canvas.xyz:add(xyz))
-	lgi_attrxyuv(p.x,p.y,u,v)
-	lgi_pushvertex()
-}
-fxsettex = fun(tex,u0,v0,u1,v1) ? {
-	canvas.texture = tex
-	if tex != nil ? {
-		let width = lgi_gettexturewidth(tex)
-		let height = lgi_gettextureheight(tex)
-		canvas.u0 = iton(u0) / width
-		canvas.v0 = iton(v0) / height
-		canvas.u1 = iton(u1) / width
-		canvas.v1 = iton(v1) / height
-	}
-}
-fxaddquad = fun(x0,y0,x1,y1) ? {
-	let texture = canvas.texture
-	let u0 = canvas.u0
-	let v0 = canvas.v0
-	let u1 = canvas.u1
-	let v1 = canvas.v1
-	if texture != nil ? {
-		lgi_bindtexture(texture)
-	} else lgi_binddeftex()
-
-	lgi_beginvertices(6,4)
-	let color = canvas.color
-	lgi_attrrgba(color.r,color.g,color.b,color.a)
-	lgi_addnidx(0,1,2, 0,2,3)
-	lgi_vertex2d(x0,y0,u0,v1)
-	lgi_vertex2d(x0,y1,u0,v0)
-	lgi_vertex2d(x1,y1,u1,v0)
-	lgi_vertex2d(x1,y0,u1,v1)
-	lgi_closevertices()
-}
-Particles = {}
-fire = fun(entity) ? {
-	let firerate = entity.firerate
-	let lastfire = entity.lastfire
-	if timediffs(lastfire) > (1./(firerate/60.)) ? {
-		entity.lastfire = clocktime()
-		Particles:add({
-			"from" = entity,
-			"pos" = entity.xyz:clone(),
-			"vel" = entity.facing:mul1(3000),
-		})
-	}
-}
-/* entities */
-playercontroller = fun(entity) ? {
+PlayerController = fun(entity) ? {
 	let move = vec3(0,0,0)
-	if lgi_iskeydown('W') ? move = move:add(UP)
-	if lgi_iskeydown('A') ? move = move:add(LEFT)
-	if lgi_iskeydown('S') ? move = move:add(DOWN)
-	if lgi_iskeydown('D') ? move = move:add(RIGHT)
+	if elf.ray.IsKeyDown('W') ? move = move:add(DOWN)
+	if elf.ray.IsKeyDown('A') ? move = move:add(LEFT)
+	if elf.ray.IsKeyDown('S') ? move = move:add(UP)
+	if elf.ray.IsKeyDown('D') ? move = move:add(RIGHT)
 	/* todo: */
-	entity.xyz = entity.xyz:add(move:norm():mul1(2))
+	entity.pos = entity.pos:add(move:norm():mul1(4))
 }
-enemycontroller = fun(entity) ? {
-	let pos = entity.xyz
-	let diftoplayer = player.xyz:sub(pos)
+EnemyController = fun(entity) ? {
+	let pos = entity.pos
+	let diftoplayer = Player.pos:sub(pos)
 	let distoplayer = diftoplayer:len()
 	let facing = diftoplayer:norm()
 	let target = diftoplayer:sub(facing:mul(64.))
@@ -165,34 +38,23 @@ enemycontroller = fun(entity) ? {
 		let imp = rnddir2(-PI,+PI,target:norm())
 		entity.vel = entity.vel:add(imp:mul1(10))
 	}
-	entity.xyz = pos:add(entity.vel)
+	entity.pos = pos:add(entity.vel)
 	entity.vel = entity.vel:mul1(.9)
-	entity.tofacing = facing:clone()
+	entity.facing = facing:clone()
 	/* only fire if we are facing the player, and we can see it */
 	entity.firing = ntoi(distoplayer < 512)
 }
-bosscontroller = fun(entity) ? {
-	let diftoplayer = player.xyz:sub(pos)
-	let distoplayer = diftoplayer:len()
-	let facing = diftoplayer:norm()
-	entity.facing = facing
-	if timediffs(entity.ulttimer) > 4.5 ? {
-		entity.ulttimer = clocktime()
-		for i in 0..8 ? {
-			Particles:add({
-				"from" = entity,
-				"pos" = entity.xyz:clone(),
-				"vel" = rnddir2(-PI*.25,+PI*.25,facing):mul1(500),
-			})
-		}
-	}
-}
-newentity = fun(pos,fr) ? {
-	fr ?= 50
+
+
+Entities = {}
+
+
+NewEntity = fun(pos,fr) ? {
 	/* firerate rps, rounds per minute */
-	leave ({
-		controller = enemycontroller,
-		xyz = pos,
+	fr ?= 50
+	let entity = ({
+		controller = EnemyController,
+		pos = pos,
 		vel = vec(),
 		facing = UP,
 		tofacing = UP,
@@ -204,158 +66,138 @@ newentity = fun(pos,fr) ? {
 		muscleflashduration = .032,
 		lastimpulse = clocktime(),
 	})
+	Entities:add(entity)
+	leave entity
 }
-
-player = newentity(vec3(0,0,1),500)
-boss = newentity(vec3(0,0,1),500)
-boss.controller = bosscontroller
-player.controller = playercontroller
-
-Entities = {player,boss}
-for i in 2..2+2 ? {
-	Entities[i] = newentity(vec3(rnd(-128,128),rnd(-128,128),1))
-}
-
-plotentity = fun(entity) ? {
+DrawEntity = fun(entity) ? {
 	let firerate = entity.firerate
-	/* todo instead maybe we can use sine or something
-	to fade out */
+	/* todo: little bloom or fadein/out effect? */
 	let firing = entity.firing
 	if firing == true ? {
 		let muscleflashduration = entity.muscleflashduration
-		fire(entity)
+		Fire(entity)
 		firing = timediffs(entity.lastfire) < muscleflashduration
 	}
-
-	/* todo: we need something fancier for this */
-	entity.facing = entity.facing:mix(entity.tofacing,.1):norm()
-
-	let facing = entity.facing
-	let ybasis = facing
-	let xbasis = ybasis:perp2d()
-	canvas.xbasis = xbasis
-	canvas.ybasis = ybasis:clone()
-	canvas.xyz = entity.xyz:clone()
-	fxsettex(textures.player,48*firing,0,48+48*firing,48)
-	fxaddquad(-64,-64,+64,+64)
-
-	canvas.xbasis = UP
-	canvas.ybasis = RIGHT
-	canvas.color = lgi_RED;
-	fxsettex(nil,0,0,0,0)
-	fxaddquad(-16,-4,+16,+4)
-	canvas.color = lgi_GREEN;
-	fxaddquad(-16,-4,remix(iton(entity.health),0.,100.,-16.,16.),+4)
-
-	canvas.color = lgi_WHITE;
+	let facingangle = 90 - todeg(entity.facing:angle())
+	elf.ray.SetShapesTexture(Textures.Player,firing*48,0,48,48)
+	elf.ray.DrawRectanglePro(entity.pos.x,entity.pos.y,128,128,64,64,facingangle,elf.ray.WHITE)
 }
-plotgame = fun() ? {
-	let delta = lgi_deltatime()
-	canvas.xbasis = RIGHT
-	canvas.ybasis = UP
-	fxsettex(textures.background,0,0,64,64)
-	for y in 0..4 ? {
-		for x in 0..4 ? {
-			canvas.xyz = vec2(128.*x,128.*y)
-			fxaddquad(-64,-64,+64,+64)
+Player = NewEntity(vec2(0,0),700)
+Player.controller = PlayerController
+for i in 0..3 ? {
+	NewEntity(vec2(rnd(-20,+20),rnd(-20,+128)))
+}
+Particles = {}
+Fire = fun(entity) ? {
+	let firerate = entity.firerate
+	let lastfire = entity.lastfire
+	if timediffs(lastfire) > (1./(firerate/60.)) ? {
+		entity.lastfire = clocktime()
+		Particles:add({
+			"from" = entity,
+			"pos" = entity.pos:clone(),
+			"vel" = entity.facing:mul1(3000),
+		})
+	}
+}
+
+
+
+elf.ray.InitWindow(1024,720,"shooter")
+finally elf.ray.CloseWindow()
+
+log("Loading Assets: ...")
+Textures = {
+	Player = elf.ray.LoadTexture("assets/Atlas.png"),
+	Background = elf.ray.LoadTexture("assets/background.png"),
+}
+log("Done")
+
+
+Camera = {
+	offset = vec2(512,360),
+	target = vec(),
+	targetpos = vec(),
+	rotation = 0.,
+	zoom = 1.,
+}
+
+
+ShakeCamera = fun (mag) ? {
+	let jitter = vec3(rnd(-1.,2.),rnd(-1.,2.),0.):norm():mul1(mag)
+	/* todo: maybe add a feature like this := which
+	removes this redundancy */
+	Camera.targetpos = Camera.targetpos:add(jitter)
+}
+
+elf.ray.SetTargetFPS(60);
+
+/* Main Loop */
+while elf.ray.WindowShouldClose() == false ? {
+	let delta = elf.ray.GetFrameTime()
+
+	let cursor = vec2(elf.ray.GetMouseX(),elf.ray.GetMouseY())
+	let playeronscreen = elf.ray.GetWorldToScreen2D(Camera,Player.pos)
+	Player.facing = cursor:sub(playeronscreen):norm()
+	if elf.ray.IsMouseButtonDown(0) ? {
+		Player.firing = true
+		ShakeCamera(50.)
+	} else Player.firing = false
+
+	for i in Entities:length() ? {
+		let entity = Entities:idx(i)
+		if entity != nil ? {
+			entity.controller(entity)
 		}
 	}
 
+	/* Update camera */
+	if true ? {
+		let diff = Player.pos:sub(Camera.targetpos)
+		Camera.targetpos = Camera.targetpos:add(diff:mul1(.5))
+	}
+	Camera.target = Camera.target:lerp(Camera.targetpos,.1)
+
+	/* update particles */
 	for i in Particles:length() ? {
 		let bullet = Particles:idx(i)
 		if bullet != nil ? {
 			let bulpos = bullet.pos:add(bullet.vel:mul1(delta))
 			bullet.vel = bullet.vel:mul1(0.999)
 			bullet.pos = bulpos
-			if bulpos:sub(bullet.from.xyz):len() > 1024 ? {
-				Particles:xrem(i) i = i - 1
-			} else for j in Entities:length() ? {
-				/* todo: make this faster */
-				let entity = Entities[j]
-				if entity != nil ? {
-					if bullet.from != entity ? {
-						let entpos = entity.xyz
-						let dif = bulpos:sub(entpos)
-						if dif:len() < 32 ? {
-							if entity.health > 1 ? {
-								entity.health = entity.health - 1
-							}
-							let imp = dif:norm():mul1(10)
-							entity.vel = entity.vel:add(imp)
-							// Entities[j] = nil
+			// if bulpos:sub(bullet.from.xyz):len() > 1024 ? {
+			// 	Particles:xrem(i) i = i - 1
+			// }
+		}
+	}
 
-							Particles:xrem(i) i = i - 1
-							/* todo: breaks! */
-							j = 100000000
-						}
-					}
+
+	elf.ray.BeginDrawing()
+		elf.ray.ClearBackground(elf.ray.DARKGRAY)
+		elf.ray.BeginMode2D(Camera)
+			/* draw all the particles */
+			elf.ray.SetShapesTexture(Textures.Player,8*16,4*16,16,16)
+			for i in Particles:length() ? {
+				let bullet = Particles:idx(i)
+				if bullet != nil ? {
+					elf.ray.DrawRectangle(bullet.pos.x-16,bullet.pos.y-16,32,32,elf.ray.WHITE)
 				}
 			}
-		}
-	}
-	/* todo: restore previous fx state */
-	for i in Entities:length() ? {
-		let entity = Entities[i]
-		if entity != nil ? {
-			entity.controller(entity)
-			plotentity(entity)
-		}
-	}
-	fxsettex(textures.player,8*16,4*16,9*16,5*16)
-	for i in Particles:length() ? {
-		let bullet = Particles:idx(i)
-		if bullet != nil ? {
-			canvas.xyz = bullet.pos:clone()
-			fxaddquad(-16,-16,+16,+16)
-		}
-	}
+			for i in Entities:length() ? {
+				let entity = Entities:idx(i)
+				if entity != nil ? {
+					DrawEntity(entity)
+				}
+			}
+			let buf = ftemp()
+			fpf(buf,"fps: ", elf.ray.GetFPS(), " ngc: ", elf.GCN(), " mgc: ", elf.GCM()/1024/1024)
+			elf.ray.DrawText(freadall(buf),0,0,20,elf.ray.RED);
+			fclose(buf)
+		elf.ray.EndMode2D()
+	elf.ray.EndDrawing()
 }
 
-
-
-showgrid = false
-trackplayer = true
-editormode = false
-shake = fun (mag) ? {
-	let jitter = vec3(rnd(-1.,2.),rnd(-1.,2.),0.):norm():mul1(mag)
-	/* todo: maybe add a feature like this := which
-	removes this redundancy */
-	camera.targetxyz = camera.targetxyz:add(jitter)
-}
-
-do {
-	let width = lgi_getSizeX()
-	let height = lgi_getSizeY()
-	let xcursor = lgi_getcursorx()
-	let ycursor = lgi_getcursory()
-	/* todo: fix this */
-	let cursor = vec3(xcursor,ycursor,0)
-	player.facing = cursor:sub(plot3(player.xyz)):norm()
-
-	if trackplayer ? {
-		let diff = player.xyz:sub(camera.targetxyz)
-		camera.targetxyz = camera.targetxyz:add(diff:mul1(.5))
-	}
-
-
-	camera.xyz = camera.xyz:lerp(camera.targetxyz,.1)
-	camera.xyz.z = 1
-
-	if (lgi_isbuttondown(0) || lgi_iskeydown(' ')) ? {
-		player.firing = true
-		shake(50.)
-	} else player.firing = false
-
-	lgi_clearBackground();
-
-	plotgame()
-
-	// let temp = ftemp()
-	// fpf(temp,"fps: ",1./lgi_deltatime())
-	// let fps = freadall(temp)
-	// fclose(temp)
-	// plottext(0,0,fps)
-} while lgi_tick()
+leave 0
 
 
 // elf.audio.play("welcome.mp3")

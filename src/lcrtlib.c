@@ -132,7 +132,7 @@ int crtlib_clock(elf_Runtime *rt) {
 int crtlib__strdate(elf_Runtime *rt) {
 	char buf[128];
 	_strdate_s(buf,sizeof(buf));
-	elf_putnewstr(rt,buf);
+	elf_locnewstr(rt,buf);
 	return 1;
 }
 
@@ -140,7 +140,7 @@ int crtlib__strdate(elf_Runtime *rt) {
 int crtlib__strtime(elf_Runtime *rt) {
 	char buf[128];
 	_strtime_s(buf,sizeof(buf));
-	elf_putnewstr(rt,buf);
+	elf_locnewstr(rt,buf);
 	return 1;
 }
 
@@ -236,36 +236,36 @@ DEFSTUB(crtlib_system)
 elf_api void crtlib_load(elf_Runtime *rt) {
 	elf_Module *md = rt->md;
 
-	lang_addglobal(md,elf_putnewstr(rt,"floor"),lang_C(crtlib_floor));
-	lang_addglobal(md,elf_putnewstr(rt,"sqrt"),lang_C(crtlib_sqrt));
-	lang_addglobal(md,elf_putnewstr(rt,"sin"),lang_C(crtlib_sin));
-	lang_addglobal(md,elf_putnewstr(rt,"cos"),lang_C(crtlib_cos));
-	lang_addglobal(md,elf_putnewstr(rt,"tan"),lang_C(crtlib_tan));
-	lang_addglobal(md,elf_putnewstr(rt,"atan2"),lang_C(crtlib_atan2));
+	lang_addglobal(md,elf_locnewstr(rt,"floor"),lang_C(crtlib_floor));
+	lang_addglobal(md,elf_locnewstr(rt,"sqrt"),lang_C(crtlib_sqrt));
+	lang_addglobal(md,elf_locnewstr(rt,"sin"),lang_C(crtlib_sin));
+	lang_addglobal(md,elf_locnewstr(rt,"cos"),lang_C(crtlib_cos));
+	lang_addglobal(md,elf_locnewstr(rt,"tan"),lang_C(crtlib_tan));
+	lang_addglobal(md,elf_locnewstr(rt,"atan2"),lang_C(crtlib_atan2));
 
-	lang_addglobal(md,elf_putnewstr(rt,"stderr"),lang_H(stderr));
-	lang_addglobal(md,elf_putnewstr(rt,"stdout"),lang_H(stdout));
-	lang_addglobal(md,elf_putnewstr(rt,"stdin"),lang_H(stdin));
+	lang_addglobal(md,elf_locnewstr(rt,"stderr"),lang_H(stderr));
+	lang_addglobal(md,elf_locnewstr(rt,"stdout"),lang_H(stdout));
+	lang_addglobal(md,elf_locnewstr(rt,"stdin"),lang_H(stdin));
 
 
-	lang_addglobal(md,elf_putnewstr(rt,"abort"),lang_C(crtlib_abort));
-	lang_addglobal(md,elf_putnewstr(rt,"_execl"),lang_C(crtlib__execl));
-	lang_addglobal(md,elf_putnewstr(rt,"system"),lang_C(crtlib_system));
-	lang_addglobal(md,elf_putnewstr(rt,"_getch"),lang_C(crtlib__getch));
-	lang_addglobal(md,elf_putnewstr(rt,"time"),lang_C(crtlib_time));
-	lang_addglobal(md,elf_putnewstr(rt,"_getpid"),lang_C(crtlib__getpid));
-	lang_addglobal(md,elf_putnewstr(rt,"_strdate"),lang_C(crtlib__strdate));
-	lang_addglobal(md,elf_putnewstr(rt,"_strtime"),lang_C(crtlib__strtime));
+	lang_addglobal(md,elf_locnewstr(rt,"abort"),lang_C(crtlib_abort));
+	lang_addglobal(md,elf_locnewstr(rt,"_execl"),lang_C(crtlib__execl));
+	lang_addglobal(md,elf_locnewstr(rt,"system"),lang_C(crtlib_system));
+	lang_addglobal(md,elf_locnewstr(rt,"_getch"),lang_C(crtlib__getch));
+	lang_addglobal(md,elf_locnewstr(rt,"time"),lang_C(crtlib_time));
+	lang_addglobal(md,elf_locnewstr(rt,"_getpid"),lang_C(crtlib__getpid));
+	lang_addglobal(md,elf_locnewstr(rt,"_strdate"),lang_C(crtlib__strdate));
+	lang_addglobal(md,elf_locnewstr(rt,"_strtime"),lang_C(crtlib__strtime));
 
-	lang_addglobal(md,elf_putnewstr(rt,"fopen"),lang_C(crtlib_fopen));
-	lang_addglobal(md,elf_putnewstr(rt,"fclose"),lang_C(crtlib_fclose));
-	lang_addglobal(md,elf_putnewstr(rt,"fsize"),lang_C(crtlib_fsize));
-	lang_addglobal(md,elf_putnewstr(rt,"_unlink"),lang_C(crtlib__unlink));
-	lang_addglobal(md,elf_putnewstr(rt,"_unlock_file"),lang_C(crtlib__unlock_file));
-	lang_addglobal(md,elf_putnewstr(rt,"_write"),lang_C(crtlib__write));
-	lang_addglobal(md,elf_putnewstr(rt,"_commit"),lang_C(crtlib__commit));
-	lang_addglobal(md,elf_putnewstr(rt,"_close"),lang_C(crtlib__close));
-	lang_addglobal(md,elf_putnewstr(rt,"_chdir"),lang_C(crtlib__chdir));
-	lang_addglobal(md,elf_putnewstr(rt,"_chdrive"),lang_C(crtlib__chdrive));
-	lang_addglobal(md,elf_putnewstr(rt,"clock"),lang_C(crtlib_clock));
+	lang_addglobal(md,elf_locnewstr(rt,"fopen"),lang_C(crtlib_fopen));
+	lang_addglobal(md,elf_locnewstr(rt,"fclose"),lang_C(crtlib_fclose));
+	lang_addglobal(md,elf_locnewstr(rt,"fsize"),lang_C(crtlib_fsize));
+	lang_addglobal(md,elf_locnewstr(rt,"_unlink"),lang_C(crtlib__unlink));
+	lang_addglobal(md,elf_locnewstr(rt,"_unlock_file"),lang_C(crtlib__unlock_file));
+	lang_addglobal(md,elf_locnewstr(rt,"_write"),lang_C(crtlib__write));
+	lang_addglobal(md,elf_locnewstr(rt,"_commit"),lang_C(crtlib__commit));
+	lang_addglobal(md,elf_locnewstr(rt,"_close"),lang_C(crtlib__close));
+	lang_addglobal(md,elf_locnewstr(rt,"_chdir"),lang_C(crtlib__chdir));
+	lang_addglobal(md,elf_locnewstr(rt,"_chdrive"),lang_C(crtlib__chdrive));
+	lang_addglobal(md,elf_locnewstr(rt,"clock"),lang_C(crtlib_clock));
 }

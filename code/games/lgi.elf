@@ -11,8 +11,13 @@ log("loading lgi...")
 let enum _time = clocktime()
 finally log(" loaded lgi, took: ",timediffs(_time))
 
+/* todo: don't specify .dll */
 lgi ?= {}
-lgi.lib ?= loadlib("build/lgilib.exe")
+lgi.lib ?= loadlib("build/lgilib.dll")
+if lgi.lib == nil ? {
+	pf("failed to load lgilib.dll")
+	leave false
+}
 
 let enum lgilib = lgi.lib
 let lgifn = fun(name) ? {

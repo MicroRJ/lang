@@ -59,7 +59,7 @@ elf_api void *langM_clearalloc_(Alloc *allocator, elf_int size, ldebugloc loca);
 
 
 elf_api ALLOCFN(langM_deftlocalallocfn);
-elf_api ALLOCFN(langM_defglobalallocfn);
+elf_api ALLOCFN(elf_defglobalallocfn);
 
 
 /* todo: better names */

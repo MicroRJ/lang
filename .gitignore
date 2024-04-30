@@ -6,3 +6,4 @@
 *.asm
 *.txt
 *.ignore
+raylib/*

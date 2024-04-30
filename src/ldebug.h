@@ -25,9 +25,9 @@ void lang_assertfn(ldebugloc ind, char const *name, elf_bool expr);
 
 
 #if defined(_DEBUG)
-	#define elf_assert(xx) LASSERTALWAYS(xx)
+	#define elf_ensure(xx) LASSERTALWAYS(xx)
 #else
-	#define elf_assert(xx)
+	#define elf_ensure(xx)
 #endif
 
 
@@ -39,10 +39,7 @@ void lang_assertfn(ldebugloc ind, char const *name, elf_bool expr);
 
 
 #if !defined(LNOBRANCH)
-	#define LNOBRANCH do {\
-		printf("%s[%i] %s(): You've Hit A Roadblock\n",__FILE__,__LINE__,__func__);\
-		elf_debugger();\
-	} while (0)
+	#define LNOBRANCH elf_debugger("internal error: unexpected code branch")
 #endif
 
 

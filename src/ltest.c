@@ -14,11 +14,8 @@ int testlib___of(elf_Runtime *R) {
 }
 
 
-
-
-
-void sets(elf_Runtime *c, elf_Table *table, char const *k) {
-	elf_tabset(table,lang_S(elf_newstr(c,k)),* -- c->v);
+void sets(elf_Runtime *c, elf_Table *table, char *k) {
+	elf_tabset(table,elf_valstr(elf_newstr(c,k)),* -- c->v);
 }
 
 
@@ -78,7 +75,7 @@ int testlib_disasm(elf_Runtime *c) {
 			} break;
 		}
 	}
-	elf_putnewstr(c,file);
+	elf_locnewstr(c,file);
 	return 1;
 }
 
@@ -136,7 +133,7 @@ int _gtable(elf_Runtime *c) {
 }
 
 
-char *gccolor2s(GCColor c) {
+char *gccolor2s(elf_gccolor c) {
 	return
 	c == GC_BLACK ? "black" :
 	c == GC_WHITE ? "white" :
@@ -148,18 +145,18 @@ char *gccolor2s(GCColor c) {
 void tstlib_load(elf_Runtime *rt) {
 	elf_Module *md = rt->md;
 	/* todo: ugly */
-	lang_addglobal(md,elf_putnewstr(rt,"__of"),lang_C(testlib___of));
+	lang_addglobal(md,elf_locnewstr(rt,"__of"),lang_C(testlib___of));
 
-	lang_addglobal(md,elf_putnewstr(rt,"__gc"),lang_C(testlib_gc));
-	lang_addglobal(md,elf_putnewstr(rt,"__gcpause"),lang_C(testlib_gcpause));
-	lang_addglobal(md,elf_putnewstr(rt,"__gcunpause"),lang_C(testlib_gcunpause));
-	lang_addglobal(md,elf_putnewstr(rt,"__disasm"),lang_C(testlib_disasm));
-	lang_addglobal(md,elf_putnewstr(rt,"__logging"),lang_C(testlib_logging));
-	lang_addglobal(md,elf_putnewstr(rt,"__globallogging"),lang_C(testlib_globallogging));
+	lang_addglobal(md,elf_locnewstr(rt,"__gc"),lang_C(testlib_gc));
+	lang_addglobal(md,elf_locnewstr(rt,"__gcpause"),lang_C(testlib_gcpause));
+	lang_addglobal(md,elf_locnewstr(rt,"__gcunpause"),lang_C(testlib_gcunpause));
+	lang_addglobal(md,elf_locnewstr(rt,"__disasm"),lang_C(testlib_disasm));
+	lang_addglobal(md,elf_locnewstr(rt,"__logging"),lang_C(testlib_logging));
+	lang_addglobal(md,elf_locnewstr(rt,"__globallogging"),lang_C(testlib_globallogging));
 
-	lang_addglobal(md,elf_putnewstr(rt,"__debugbreak"),lang_C(testlib_debugbreak));
-	lang_addglobal(md,elf_putnewstr(rt,"absslotid"),lang_C(testlib_absslotid));
-	lang_addglobal(md,elf_putnewstr(rt,"absslot"),lang_C(testlib_absslot));
-	lang_addglobal(md,elf_putnewstr(rt,"pc"),lang_C(testlib_pc));
-	lang_addglobal(md,elf_putnewstr(rt,"_gtable"),lang_C(_gtable));
+	lang_addglobal(md,elf_locnewstr(rt,"__debugbreak"),lang_C(testlib_debugbreak));
+	lang_addglobal(md,elf_locnewstr(rt,"absslotid"),lang_C(testlib_absslotid));
+	lang_addglobal(md,elf_locnewstr(rt,"absslot"),lang_C(testlib_absslot));
+	lang_addglobal(md,elf_locnewstr(rt,"pc"),lang_C(testlib_pc));
+	lang_addglobal(md,elf_locnewstr(rt,"_gtable"),lang_C(_gtable));
 }

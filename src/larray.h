@@ -47,13 +47,13 @@ typedef struct Array {
 #define elf_varaddn(var,num) ((var) + elf_varaddi(var,num))
 #define elf_varlen langA_varmin
 
-#if !defined(PLATFORM_WEB)
-/* em struggles to compile this properly */
+#if 0
+/* seems that only msvc compiles this properly */
 #define elf_varadd(var,t) ((void)(elf_varaddn(var,1)[0] = t))
 #else
 #define elf_varadd(var,val) do {\
-	int i = elf_varaddi(var,1);\
-	var[i] = val;\
+	int ___i___ = elf_varaddi(var,1);\
+	var[___i___] = val;\
 } while(0)
 #endif
 

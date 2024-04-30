@@ -7,34 +7,41 @@
 #ifndef _elf_
 #define _elf_
 
-#if defined(_WIN32)
-	#define PLATFORM_WIN32
-#elif defined(PLATFORM_WEB)
-	#if !defined(PLATFORM_WEB)
-		#define PLATFORM_WEB
-	#endif
+
+#if !defined(PLATFORM_DESKTOP) && !defined(PLATFORM_WEB)
+#error ELF: No Platform Defined
 #endif
 
 
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable:4100)
-#pragma warning(disable:4245)
-#pragma warning(disable:4057)
-#pragma warning(disable:4189)
-#pragma warning(disable:4201)
-#pragma warning(disable:4244)
-#pragma warning(disable:4267)
-#pragma warning(disable:4389)
-#pragma warning(disable:4996)
-#elif defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-braces"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wnon-literal-null-conversion"
-#pragma GCC diagnostic ignored "-Wparentheses-equality"
-#pragma GCC diagnostic ignored "-Wmissing-braces"
-#pragma GCC diagnostic ignored "-Wunused-function"
+# if !defined(ELF_KEEPWARNINGS)
+#  pragma warning(push)
+# endif
+# pragma warning(disable:4100)
+# pragma warning(disable:4245)
+# pragma warning(disable:4057)
+# pragma warning(disable:4189)
+# pragma warning(disable:4201)
+# pragma warning(disable:4244)
+# pragma warning(disable:4267)
+# pragma warning(disable:4389)
+# pragma warning(disable:4996)
+#endif
+
+#if defined(__clang__)
+# if !defined(ELF_KEEPWARNINGS)
+#  pragma clang diagnostic push
+# endif
+# pragma clang diagnostic ignored "-Wparentheses-equality"
+# pragma clang diagnostic ignored "-Wnon-literal-null-conversion"
+# pragma clang diagnostic ignored "-Wmissing-braces"
+# pragma clang diagnostic ignored "-Wunused-variable"
+# pragma clang diagnostic ignored "-Wmissing-braces"
+# pragma clang diagnostic ignored "-Wunused-function"
+# pragma clang diagnostic ignored "-Wmissing-field-initializers"
+# pragma clang diagnostic ignored "-Wsign-compare"
+# pragma clang diagnostic ignored "-Wpointer-sign"
+# pragma clang diagnostic ignored "-Wunused-function"
 #endif
 
 
@@ -81,7 +88,7 @@
 
 #define elf_globaldecl static
 
-#if defined(PLATFORM_WEB)
+#if defined(__EMSCRIPTEN__)
 	#define elf_api EMSCRIPTEN_KEEPALIVE
 	#define elf_libfundecl EMSCRIPTEN_KEEPALIVE
 	#define elf_threaddecl static
@@ -118,25 +125,30 @@ typedef struct elf_Closure elf_Closure;
 #include "src/lerror.h"
 #include "src/ldebug.h"
 #include "src/lmem.h"
-#include "src/lsys.h"
+#include "src/elf-sys.h"
+#include "src/llog.h"
 
-void elf_debugger() {
+
+void elf_debugger(char *message) {
+	sys_consolelog(ELF_LOGDBUG,"debugger: ");
+	sys_consolelog(ELF_LOGDBUG,message);
+	sys_consolelog(ELF_LOGDBUG,"end");
 	sys_debugger();
 }
 
-#include "src/lobject.h"
+
+#include "src/elf-obj.h"
 #include "src/lapi.h"
-#include "src/llog.h"
 #include "src/ltoken.h"
 #include "src/lbyte.h"
 #include "src/lmodule.h"
-#include "src/lruntime.h"
+#include "src/elf-run.h"
 
 void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b);
 
-#include "src/lstring.h"
+#include "src/elf-str.h"
 #include "src/larray.h"
-#include "src/ltable.h"
+#include "src/elf-tab.h"
 #include "src/lnode.h"
 #include "src/lcode.h"
 #include "src/lfile.h"
@@ -145,38 +157,50 @@ elf_int elf_clocktime();
 elf_num elf_timediffs(elf_int begin);
 void elf_register(elf_Runtime *, char *, lBinding fn);
 
-#include "src/lsys.c"
+
+elf_num elf_iton(elf_val v) {
+	return v.tag == TAG_INT ? (elf_num) v.i : v.n;
+}
+
+
+elf_int elf_ntoi(elf_val v) {
+	return v.tag == TAG_NUM ? (elf_int) v.n : v.i;
+}
+
+
+#include "src/elf-sys.c"
 #include "src/lmem.c"
 #include "src/ldebug.c"
 #include "src/llog.c"
+#include "src/elf-obj.c"
 #include "src/lgc.c"
 #include "src/lmodule.c"
-#include "src/lstring.c"
+#include "src/elf-str.c"
 #include "src/larray.c"
-#include "src/ltable.c"
+#include "src/elf-tab.c"
 #include "src/lfunc.c"
 #include "src/llexer.c"
 #include "src/lnode.c"
 #include "src/lcode.c"
 #include "src/lfile.c"
-#include "src/ltest.c"
-#include "src/lelflib.c"
-#include "src/lcrtlib.c"
-#include "src/lnetlib.c"
-#include "src/lruntime.c"
+
+#include "src/elf-run.c"
 #include "src/lapi.c"
-#if defined(PLATFORM_WEB)
-#include "src/lwebapi.c"
-#endif
+
+
+
+void elf_registerint(elf_Runtime *R, char *name, int val) {
+	lang_addglobal(R->M,elf_locnewstr(R,name),elf_valint(val));
+}
 
 
 void elf_register(elf_Runtime *R, char *name, lBinding fn) {
-	lang_addglobal(R->M,elf_putnewstr(R,name),lang_C(fn));
+	lang_addglobal(R->M,elf_locnewstr(R,name),lang_C(fn));
 }
 
 
 void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b) {
-	elf_tabset(obj,lang_S(elf_newstr(R,name)),lang_C(b));
+	elf_tabset(obj,elf_valstr(elf_newstr(R,name)),lang_C(b));
 }
 
 
@@ -191,14 +215,26 @@ elf_num elf_timediffs(elf_int begin) {
 }
 
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#elif defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
+#if !defined(ELF_NOIMPL)
+# include "src/ltest.c"
+# include "src/elf-lib.c"
+# include "src/elf-web.c"
+# include "src/lcrtlib.c"
+# include "src/lnetlib.c"
+#endif
+
+
+#if !defined(ELF_KEEPWARNINGS)
+# if defined(_MSC_VER)
+#  pragma warning(pop)
+# if defined(__clang__)
+#  pragma clang diagnostic pop
+# endif
 #endif
 
 #endif
 
+#endif
 /*
 ** Copyright (C) 2023-2024 Dayan Rodriguez
 **

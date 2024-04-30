@@ -152,23 +152,24 @@
     };
 
    Module.onRuntimeInitialized = async () => {
-		const elfweb_ini = Module.cwrap('elfweb_ini');
+		var elfweb_ini = Module.cwrap('elfweb_ini');
 		if (elfweb_ini == null) {
 			err("elfweb_ini: function not found")
 		}
 		elfweb_ini()
-		const elfweb_loadcode = Module.cwrap('elfweb_loadcode', 'number', ['string','string']);
+		var elfweb_loadcode = Module.cwrap('elfweb_loadcode', 'number', ['string','string'], {async:true});
 		if (elfweb_loadcode == null) {
 			err("elfweb_loadcode: function not found")
 		}
 
-		let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+		var editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
 	     	lineNumbers: true,
 	     	mode: "javascript",
 	    	extraKeys: {
 		"Alt-Enter": function(cm) {
-			console.log("elf: loading...")
+			console.log("editor: loading...")
 			elfweb_loadcode("unnamed",editor.getValue())
+			console.log("editor: done")
 		}
 	      }
 	 	});

@@ -7,7 +7,7 @@
 
 /* todo: can we do this some other way? */
 elf_globaldecl Alloc langM_tlocalalloc = {"default-temp-allocator",langM_deftlocalallocfn};
-elf_globaldecl Alloc langM_globalalloc = {"default-heap-allocator",langM_defglobalallocfn};
+elf_globaldecl Alloc langM_globalalloc = {"default-heap-allocator",elf_defglobalallocfn};
 
 
 
@@ -35,14 +35,14 @@ void *langM_copy(void *target, void const *source, elf_int length) {
 
 void langM_dealloc_(Alloc *c, const void *memory, ldebugloc loca) {
 	Error error = c->fn(c,0,0,0,(void **)&memory,loca);
-	elf_assert(LPASSED(error));
+	elf_ensure(LPASSED(error));
 }
 
 
 void *langM_alloc_(Alloc *c, elf_int length, ldebugloc loca) {
 	void *memory = 0;
 	Error error = c->fn(c,0,0,length,&memory,loca);
-	elf_assert(LPASSED(error));
+	elf_ensure(LPASSED(error));
 	return memory;
 }
 
@@ -50,7 +50,7 @@ void *langM_alloc_(Alloc *c, elf_int length, ldebugloc loca) {
 void *langM_realloc_(Alloc *c, elf_int length, void *memory, ldebugloc loca) {
 
 	Error error = c->fn(c,0,0,length,&memory,loca);
-	elf_assert(LPASSED(error));
+	elf_ensure(LPASSED(error));
 	return memory;
 }
 
@@ -80,7 +80,7 @@ unsigned char *M_memory;
 #endif
 
 
-ALLOCFN(langM_defglobalallocfn) {
+ALLOCFN(elf_defglobalallocfn) {
 	if (oldAndNewMemory == 0) {
 		return Error_InvalidArguments;
 	}
@@ -106,7 +106,7 @@ ALLOCFN(langM_defglobalallocfn) {
 		}
 
 		if (*oldAndNewMemory == 0) {
-			elf_debugger();
+			elf_debugger("fatal error: out of memory");
 			return Error_OutOfMemory;
 		}
 	}
@@ -173,7 +173,7 @@ void langM_checkmemptr(void *mem) {
 	elf_int contentssize = file->contentssize;
 	elf_int chunkcatedsize = CHUNKCATE(contentssize,CHUNKSIZE);
 	for (int i = contentssize; i < chunkcatedsize; ++i) {
-		elf_assert(((unsigned char *)mem)[i] == (FLYTRAP & 0xFF));
+		elf_ensure(((unsigned char *)mem)[i] == (FLYTRAP & 0xFF));
 	}
 
 }
@@ -203,12 +203,12 @@ void *langM_debugalloc(elf_int contentssize, ldebugloc loca) {
 	#endif
 
 	elf_int chunkcatedsize = CHUNKCATE(contentssize+256,CHUNKSIZE);
-	elf_assert(chunkcatedsize >= 512);
+	elf_ensure(chunkcatedsize >= 512);
 	// elf_loginfo("alloc %lli",contentssize);
 
 	elf_int totalsize = sizeof(MemBlock)+chunkcatedsize;
 
-	elf_assert(M_cursor + totalsize <= M_length);
+	elf_ensure(M_cursor + totalsize <= M_length);
 
 	MemBlock *block = (MemBlock *) (M_memory + M_cursor);
 

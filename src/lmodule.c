@@ -10,7 +10,7 @@ lglobalid lang_addsymbol(elf_Module *md, elf_String *name) {
 	if (name == 0) {
 		return elf_varaddi(md->g->v,1);
 	}
-	lglobalid id = elf_tabtake(md->g,lang_S(name));
+	lglobalid id = elf_tabtake(md->g,elf_valstr(name));
 	// elf_logdebug("global '%s' -> %i",name->c,id);
 	return id;
 }
@@ -42,7 +42,7 @@ int linelen(char *p, int m) {
 }
 
 
-int syslib_fpfv_(FILE *file, elf_val v, elf_bool quotes);
+int elf_valfpf(FILE *file, elf_val v, elf_bool quotes);
 void elf_bytefpf(elf_Module *md, FILE *file, lbyteid id, lBytecode b) {
 	fprintf(file,"%04i\t%s"
 	,	id, lang_bytename(b.k));
@@ -65,7 +65,7 @@ void elf_bytefpf(elf_Module *md, FILE *file, lbyteid id, lBytecode b) {
 	} else
 	if (b.k == BC_LOADGLOBAL) {
 		fprintf(file,"  // ");
-		syslib_fpfv_(file,md->g->v[b.y],ltrue);
+		elf_valfpf(file,md->g->v[b.y],ltrue);
 	}
 	fprintf(file,"\n");
 }
@@ -80,7 +80,7 @@ void lang_dumpmodule(elf_Module *md, elf_Handle file) {
 	fprintf(file,"Globals:\n");
 	elf_arrfori(md->g->v) {
 		fprintf(file,"%04llX: ", i);
-		syslib_fpfv_(file,md->g->v[i],ltrue);
+		elf_valfpf(file,md->g->v[i],ltrue);
 		fprintf(file,"\n");
 	}
 #endif

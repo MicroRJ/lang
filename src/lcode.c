@@ -14,7 +14,7 @@ lbyteid langL_getlabel(elf_FileState *fs) {
 
 
 llocalid langL_localalloc(elf_FileState *fs, llocalid n) {
-	elf_assert(n > NO_SLOT);
+	elf_ensure(n > NO_SLOT);
 
 	elf_FileFunc *fn = fs->fn;
 
@@ -29,11 +29,11 @@ llocalid langL_localalloc(elf_FileState *fs, llocalid n) {
 
 
 void langL_localdealloc(elf_FileState *fs, llocalid x) {
-	elf_assert(x > NO_SLOT);
+	elf_ensure(x > NO_SLOT);
 
 	elf_FileFunc *fn = fs->fn;
 
-	elf_assert(x == fn->xmemory-1);
+	elf_ensure(x == fn->xmemory-1);
 	fn->xmemory = x;
 }
 
@@ -320,11 +320,11 @@ void langL_emit(elf_FileState *fs, llineid line, lnodeid id) {
 ** no side effects.
 */
 void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid x, llocalid y, lnodeid id) {
-	elf_assert(x > NO_SLOT);
-	elf_assert(x < fs->fn->xmemory);
+	elf_ensure(x > NO_SLOT);
+	elf_ensure(x < fs->fn->xmemory);
 
 	lNode v = fs->nodes[id];
-	elf_assert(v.level <= fs->level);
+	elf_ensure(v.level <= fs->level);
 
 	if (line == 0) line = v.line;
 
@@ -340,8 +340,8 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 		if (v.r <= mem) goto leave;
 		v.r = NO_SLOT;
 	}
-	elf_assert((v.r < mem));
-	elf_assert((v.k != NODE_LOCAL) || (v.r == v.x));
+	elf_ensure((v.r < mem));
+	elf_ensure((v.k != NODE_LOCAL) || (v.r == v.x));
 
 
 	fs->nodes[id].r = x;
@@ -391,12 +391,12 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 		case NODE_STRING: {
 			if (y == 0) goto leave;
 			/* -- todo: allocate this in constant pool */
-			int g = lang_addglobal(fs->md,0,lang_S(elf_newstr(fs->rt,v.lit.s)));
+			int g = lang_addglobal(fs->md,0,elf_valstr(elf_newstr(fs->rt,v.lit.s)));
 			elf_emitbytexy(fs,line,BC_LOADGLOBAL,x,g);
 		} break;
 		case NODE_TABLE: {
 			if (y == 0) goto leave;
-			elf_assert(v.line != 0);
+			elf_ensure(v.line != 0);
 			elf_emitbytexy(fs,line,BC_TABLE,x,0);
 			elf_arrfori(v.z) langL_emit(fs,line,v.z[i]);
 		} break;
@@ -550,9 +550,9 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 
 void langL_moveto(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
 	lNode v = fs->nodes[x];
-	elf_assert(v.level <= fs->level);
-	elf_assert(x >= 0);
-	elf_assert(y >= 0);
+	elf_ensure(v.level <= fs->level);
+	elf_ensure(x >= 0);
+	elf_ensure(y >= 0);
 	if (line == 0) line = v.line;
 
 	/* keep local state, finally free any temporary locals */
@@ -610,13 +610,13 @@ void langL_beginif(elf_FileState *fs, llineid line, Select *s, lnodeid x, int z)
 	// if  0 = jz
 	// iff 1 = jnz
 	if (z == L_IF) {
-		elf_assert(js.f != 0);
+		elf_ensure(js.f != 0);
 		langL_tieloosejs(fs,js.t);
 		elf_delvar(js.t);
 		js.t = 0;
 		s->jz = js.f;
 	} else {
-		elf_assert(js.t != 0);
+		elf_ensure(js.t != 0);
 		langL_tieloosejs(fs,js.f);
 		elf_delvar(js.f);
 		js.f = 0;
@@ -631,7 +631,7 @@ void langL_beginif(elf_FileState *fs, llineid line, Select *s, lnodeid x, int z)
 ** list to enter this block.
 */
 void langL_addelse(elf_FileState *fs, llineid line, Select *s) {
-	elf_assert(s->jz != 0);
+	elf_ensure(s->jz != 0);
 	int j = langL_jump(fs,line,-1);
 	elf_varadd(s->j,j);
 
@@ -717,7 +717,7 @@ lnodeid elf_nodeilessthan(elf_FileState *fs, llineid line, lnodeid x, lnodeid y)
 
 
 void langL_beginrangedloop(elf_FileState *fs, llineid line, Loop *loop, lnodeid x, lnodeid lo, lnodeid hi) {
-	elf_assert(x != NO_NODE);
+	elf_ensure(x != NO_NODE);
 	loop->x = x;
 	loop->r = langL_localize(fs,line,x);
 	langL_localload(fs,line,ltrue,loop->r,1,lo);
@@ -733,7 +733,7 @@ void langL_beginrangedloop(elf_FileState *fs, llineid line, Loop *loop, lnodeid 
 
 
 void langL_closerangedloop(elf_FileState *fs, llineid line, Loop *loop) {
-	elf_assert(loop->r == fs->nodes[loop->x].r);
+	elf_ensure(loop->r == fs->nodes[loop->x].r);
 	int x = loop->x;
 	int k = elf_nodebinary(fs,NO_LINE,NODE_ADD,NT_INT,x,elf_nodeint(fs,NO_LINE,1));
 	langL_moveto(fs,line,x,k);

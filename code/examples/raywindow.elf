@@ -1,0 +1,16 @@
+
+if load "code/ray.elf" == false ? leave 0
+
+elf.ray.InitWindow(720,720,"Hello, World!")
+elf.ray.SetTargetFPS(60)
+
+while elf.ray.WindowShouldClose() != true ? {
+	elf.ray.BeginDrawing()
+	elf.ray.ClearBackground(elf.ray.WHITE)
+	// pf(elf.ray.GetMouseX(), ", ", elf.ray.GetMouseY())
+	elf.ray.DrawText("Hello, World",0,0,20,elf.ray.RED)
+	elf.ray.EndDrawing()
+}
+
+elf.ray.CloseWindow()
+

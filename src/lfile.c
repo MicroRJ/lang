@@ -117,7 +117,7 @@ void elfY_leavelevel(elf_FileState *fs, llineid line) {
 	fs->nnodes -= elfY_numnodesinlev(fs);
 	fs->fn->xmemory -= 0; /* todo: deallocate leftover locals */
 	/* ensure that we don't deallocate more than we can */
-	elf_assert(fs->nentities >= fs->fn->entities);
+	elf_ensure(fs->nentities >= fs->fn->entities);
 	-- fs->level;
 }
 
@@ -160,7 +160,7 @@ int elfY_indexofentityincache(elf_FileFunc *fn, lentityid id) {
 */
 void elf_fscapent(elf_FileState *fs, elf_FileFunc *fn, lentityid id) {
 	/* ensure the entity should actually be captured */
-	elf_assert(id.x < fn->entities);
+	elf_ensure(id.x < fn->entities);
 	elf_arrfori(fn->captures) {
 		if (fn->captures[i].x == id.x) return;
 	}
@@ -258,7 +258,7 @@ void elfY_closefn(elf_FileState *fs) {
 	elfY_leavelevel(fs,fs->lasttk.line);
 	/* ensure all locals were deallocated
 	properly */
-	elf_assert(fs->nentities == fs->fn->entities);
+	elf_ensure(fs->nentities == fs->fn->entities);
 	fs->fn = fs->fn->enclosing;
 }
 
@@ -378,8 +378,7 @@ lnodeid elfY_loadfn(elf_FileState *fs) {
 	/* todo: */
 	lnodeid *z = lnil;
 	elf_arrfori(fn.captures) {
-		elf_varadd(z
-		,	elf_nodelocal(fs,tk.line,fs->entities[fn.captures[i].x].slot));
+		elf_varadd(z,elf_nodelocal(fs,tk.line,fs->entities[fn.captures[i].x].slot));
 	}
 
 	return elf_nodecls(fs,tk.line,f,z);
@@ -419,7 +418,7 @@ void elfY_maybeassign(elf_FileState *fs, lnodeid x) {
 		langL_localload(fs,NO_LINE,lfalse,r,0,x);
 		fs->fn->xmemory = mem;
 	}
-	elf_assert(fs->fn->xmemory == mem);
+	elf_ensure(fs->fn->xmemory == mem);
 }
 
 
@@ -553,7 +552,7 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 		} break;
 		case TK_LOAD: {
 			elf_lexone(fs);
-			v = elf_fsloadexpr(fs);
+			v = elf_fsloadunary(fs);
 			v = elf_nodeloadfile(fs,tk.line,v);
 		} break;
 		case TK_THIS: { elf_lexone(fs);
@@ -648,14 +647,14 @@ void elfY_loadstat(elf_FileState *fs) {
 		case TK_LEAVE: { elf_lexone(fs);
 			lnodeid x = elf_fsloadexpr(fs);
 			langL_yield(fs,tk.line,x);
-			elf_assert(fs->fn->xmemory == mem);
+			elf_ensure(fs->fn->xmemory == mem);
 		} break;
 		case TK_FINALLY: { elf_taketk(fs,TK_FINALLY);
 			FileBlock bl = {0};
 			langL_begindelayedblock(fs,tk.line,&bl);
 			elfY_loadstat(fs);
 			langL_closedelayedblock(fs,tk.line,&bl);
-			elf_assert(fs->fn->xmemory == mem);
+			elf_ensure(fs->fn->xmemory == mem);
 		} break;
 		case TK_WHILE: { elf_lexone(fs);
 			lnodeid x = elf_fsloadexpr(fs);
@@ -664,7 +663,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			langL_beginwhile(fs,tk.line,&loop,x);
 			elfY_loadstat(fs);
 			langL_closewhile(fs,tk.line,&loop);
-			elf_assert(fs->fn->xmemory == mem);
+			elf_ensure(fs->fn->xmemory == mem);
 		} break;
 		case TK_DO: { elf_lexone(fs);
 			Loop loop = {0};
@@ -673,7 +672,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			elf_taketk(fs,TK_WHILE);
 			lnodeid x = elf_fsloadexpr(fs);
 			langL_closedowhile(fs,tk.line,&loop,x);
-			elf_assert(fs->fn->xmemory == mem);
+			elf_ensure(fs->fn->xmemory == mem);
 		} break;
 		case TK_IF: case TK_IFF: { elf_lexone(fs);
 			lnodeid x = elf_fsloadexpr(fs);
@@ -698,7 +697,7 @@ void elfY_loadstat(elf_FileState *fs) {
 				} else break;
 			}
 			langL_closeif(fs,fs->lasttk.line,&s);
-			elf_assert(fs->fn->xmemory == mem);
+			elf_ensure(fs->fn->xmemory == mem);
 		} break;
 		case TK_LET: case TK_LOCAL: { elf_lexone(fs);
 			if (tk.type == TK_LOCAL) {
@@ -776,7 +775,7 @@ void elfY_loadstat(elf_FileState *fs) {
 		default: {
 			lnodeid x = elf_fsloadexpr(fs);
 			elfY_maybeassign(fs,x);
-			elf_assert(fs->fn->xmemory == mem);
+			elf_ensure(fs->fn->xmemory == mem);
 		} break;
 	}
 }

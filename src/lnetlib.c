@@ -7,8 +7,10 @@
 
 /* this is just to get some basic games going on */
 
-#if defined(_WIN32)
+#if !defined(PLATFORM_WEB)
+
 # pragma comment(lib,"Ws2_32")
+
 #include "Winsock2.h"
 #include "ws2tcpip.h"
 #include   "ws2def.h"
@@ -57,7 +59,7 @@ elf_api int netlib_pollclient(elf_Runtime *R) {
 	int result = select(0,&ready,NULL,NULL,&timeout);
    if (FD_ISSET(handle,&ready)) {
       SOCKET client = accept(handle,NULL,NULL);
-      elf_assert(client != INVALID_SOCKET);
+      elf_ensure(client != INVALID_SOCKET);
 		elf_putsys(R,(elf_Handle)client);
    } else elf_putnil(R);
 	return 1;
@@ -157,7 +159,7 @@ elf_api int netlib_recv(elf_Runtime *R) {
 					/* connection closed gracefully, simply break */
 					break;
 				} else {
-					elf_assert(result > 0);
+					elf_ensure(result > 0);
 					length -= result;
 					cursor += result;
 				}
@@ -183,16 +185,16 @@ elf_api int netlib_recv(elf_Runtime *R) { return 0; };
 
 elf_api void netlib_load(elf_Runtime *R) {
 	elf_Module *md = R->md;
-	lang_addglobal(md,elf_putnewstr(R,"listen"),lang_C(netlib_listen));
-	lang_addglobal(md,elf_putnewstr(R,"accept"),lang_C(netlib_accept));
-	lang_addglobal(md,elf_putnewstr(R,"pollclient"),lang_C(netlib_pollclient));
-	lang_addglobal(md,elf_putnewstr(R,"tcpserver"),lang_C(netlib_tcpserver));
-	lang_addglobal(md,elf_putnewstr(R,"tcpclient"),lang_C(netlib_tcpclient));
-	lang_addglobal(md,elf_putnewstr(R,"netlib_init"),lang_C(netlib_init));
-	lang_addglobal(md,elf_putnewstr(R,"netlib_close"),lang_C(netlib_close));
-	lang_addglobal(md,elf_putnewstr(R,"send"),lang_C(netlib_send));
-	lang_addglobal(md,elf_putnewstr(R,"recv"),lang_C(netlib_recv));
-	lang_addglobal(md,elf_putnewstr(R,"ioctl"),lang_C(netlib_ioctl));
+	lang_addglobal(md,elf_locnewstr(R,"listen"),lang_C(netlib_listen));
+	lang_addglobal(md,elf_locnewstr(R,"accept"),lang_C(netlib_accept));
+	lang_addglobal(md,elf_locnewstr(R,"pollclient"),lang_C(netlib_pollclient));
+	lang_addglobal(md,elf_locnewstr(R,"tcpserver"),lang_C(netlib_tcpserver));
+	lang_addglobal(md,elf_locnewstr(R,"tcpclient"),lang_C(netlib_tcpclient));
+	lang_addglobal(md,elf_locnewstr(R,"netlib_init"),lang_C(netlib_init));
+	lang_addglobal(md,elf_locnewstr(R,"netlib_close"),lang_C(netlib_close));
+	lang_addglobal(md,elf_locnewstr(R,"send"),lang_C(netlib_send));
+	lang_addglobal(md,elf_locnewstr(R,"recv"),lang_C(netlib_recv));
+	lang_addglobal(md,elf_locnewstr(R,"ioctl"),lang_C(netlib_ioctl));
 }
 
 

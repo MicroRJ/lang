@@ -12,8 +12,8 @@ of objects, so that's something we have to
 take into account, and most of the time you
 make small allocations tightly, so that's where
 most of the spikes occur */
-#define L_GC_THRESHOLD_MIN (elf_int) MEGABYTES(2)
-#define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(4)
+#define L_GC_THRESHOLD_MIN (elf_int) MEGABYTES(1)
+#define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(16)
 
 
 void elf_collect(elf_Runtime *fs);
@@ -29,7 +29,7 @@ void elf_gcresume(elf_Runtime *fs) {
 }
 
 
-void *elf_newobj(elf_Runtime *R, ObjectType type, elf_int tell) {
+void *elf_newobj(elf_Runtime *R, elf_objty type, elf_int tell) {
 	/* this is temporary! */
 	if (R != 0) {
 		R->gcmemory += tell;
@@ -48,6 +48,7 @@ void *elf_newobj(elf_Runtime *R, ObjectType type, elf_int tell) {
 	}
 
 	elf_Object *obj = elf_clearalloc(lHEAP,tell);
+ 	elf_ensure(obj->gccolor == GC_BLACK);
 	obj->type = type;
 	obj->tell = tell;
 	LDODEBUG(
@@ -69,7 +70,7 @@ void elf_remobj(elf_Runtime *fs, elf_int i) {
 	elf_Object **gc = fs->gc;
 	if (gc == 0) return;
 	elf_int n = elf_varlen(gc);
-	elf_assert(i >= 0 && i < n);
+	elf_ensure(i >= 0 && i < n);
 	gc[i] = gc[n-1];
 	((Array*)(gc))[-1].min --;
 }
@@ -78,9 +79,9 @@ void elf_remobj(elf_Runtime *fs, elf_int i) {
 void elf_delobj(elf_Runtime *R, elf_Object *obj) {
 	if (obj != lnil) {
 		R->gcmemory -= obj->tell;
-	if (obj->type == OBJ_TAB) {
-		elf_deltab((elf_Table*)obj);
-	}
+		if (obj->type == OBJ_TAB) {
+			elf_deltab((elf_Table*)obj);
+		}
 		elf_delmem(lHEAP,obj);
 	}
 }
@@ -117,7 +118,9 @@ elf_int elf_marktab(elf_Table *table) {
 
 
 elf_bool elf_markobj(elf_Object *obj) {
-	if (obj == lnil || obj->gccolor != GC_WHITE) return 0;
+	if (obj == lnil || obj->gccolor != GC_WHITE) {
+		return obj->gccolor == GC_BLACK;
+	}
 	obj->gccolor = GC_BLACK;
 	if (obj->type == OBJ_CLOSURE) {
 		return 1 + elf_markcl((elf_Closure*)obj);
@@ -145,7 +148,6 @@ elf_int elf_markall(elf_Runtime *R) {
 
 void elf_collect(elf_Runtime *R) {
 	elf_int num = elf_markall(R);
-
 #if defined(LLOGGING)
 	elf_int time_ = elf_clocktime();
 	elf_int ngc = elf_varlen(R->gc);
@@ -163,8 +165,7 @@ void elf_collect(elf_Runtime *R) {
 
 		if (it == lnil) continue;
 		if (it->gccolor == GC_RED) {
-			elf_logerror("internal error: gc failed");
-			elf_debugger();
+			elf_debugger("internal error: gc failed");
 		}
 		if (it->gccolor == GC_BLACK) {
 	#if defined(LLOGGING)
@@ -173,9 +174,8 @@ void elf_collect(elf_Runtime *R) {
 			it->gccolor = GC_WHITE;
 		} else
 		if (it->gccolor == GC_WHITE) {
-	if (it == (elf_Object*) R->M->g) {
-		elf_logerror("internal error: gc failed");
-		elf_debugger();
+	if (it == (elf_Object*) R->M->globals) {
+		elf_debugger("internal error: gc failed");
 	}
 			it->gccolor = GC_RED;
 	#if defined(LLOGGING)
