@@ -6,7 +6,7 @@
 
 
 elf_Table *elf_newstrmetatab(elf_Runtime *R) {
-	elf_Table *tab = elf_locnewtab(R);
+	elf_Table *tab = elf_newloctab(R);
 	elf_tabmfld(R,tab,"length",langS_length_);
 	elf_tabmfld(R,tab,"match",langS_match_);
 	elf_tabmfld(R,tab,"hash",langS_hash_);
@@ -91,7 +91,7 @@ char *S_copy(Alloc *allocator, char const *string) {
 
 
 int langS_length_(elf_Runtime *c) {
-	elf_putint(c,((elf_String*)c->f->obj)->length);
+	elf_locint(c,((elf_String*)c->f->obj)->length);
 	return 1;
 }
 
@@ -101,7 +101,7 @@ int langS_append_(elf_Runtime *R) {
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_INT) {
 		elf_String *r = elf_newstrlen(R,s->length+1);
-		elf_putstr(R,r);
+		elf_locstr(R,r);
 		memcpy(r->c,s->c,s->length);
 		r->c[r->length-1] = v.i;
 		r->hash = elf_tabhashstr(r->c);
@@ -113,14 +113,14 @@ int langS_append_(elf_Runtime *R) {
 int langS_match_(elf_Runtime *R) {
 	elf_String *s = (elf_String*) elf_getthis(R);
 	elf_String *p = elf_getstr(R,0);
-	elf_putint(R,S_match(p->string,s->string));
+	elf_locint(R,S_match(p->string,s->string));
 	return 1;
 }
 
 
 int langS_hash_(elf_Runtime *c) {
 	elf_String *s = (elf_String*) c->f->obj;
-	elf_putint(c,s->hash);
+	elf_locint(c,s->hash);
 	return 1;
 }
 

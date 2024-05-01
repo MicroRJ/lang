@@ -14,39 +14,39 @@
 
 
 elf_libfundecl int lgilib_wasButtonDown(elf_Runtime *R) {
-	elf_putint(R,lgi_wasButtonDown((int) elf_getint(R,0)));
+	elf_locint(R,lgi_wasButtonDown((int) elf_getint(R,0)));
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_isButtonDown(elf_Runtime *R) {
-	elf_putint(R,lgi_isButtonDown((int) elf_getint(R,0)));
+	elf_locint(R,lgi_isButtonDown((int) elf_getint(R,0)));
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_isButtonReleased(elf_Runtime *R) {
-	elf_putint(R,lgi_isButtonReleased((int) elf_getint(R,0)));
+	elf_locint(R,lgi_isButtonReleased((int) elf_getint(R,0)));
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_isButtonPressed(elf_Runtime *R) {
-	elf_putint(R,lgi_isButtonPressed((int) elf_getint(R,0)));
+	elf_locint(R,lgi_isButtonPressed((int) elf_getint(R,0)));
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_time(elf_Runtime *rt) {
 	elf_num time = lgi.Time.totalSeconds;
-	elf_putnum(rt,time);
+	elf_locnum(rt,time);
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_deltatime(elf_Runtime *rt) {
 	elf_num time = lgi.Time.deltaSeconds;
-	elf_putnum(rt,time);
+	elf_locnum(rt,time);
 	return 1;
 }
 
@@ -70,21 +70,21 @@ elf_libfundecl int lgilib_binddeftex(elf_Runtime *R) {
 elf_libfundecl int lgilib_loadtexture(elf_Runtime *R) {
 	elf_String *filename = elf_getstr(R,0);
 	lgi_Texture *texture = lgi_loadTexture(filename->c);
-	elf_putsys(R,(elf_Handle)texture);
+	elf_locsys(R,(elf_Handle)texture);
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_gettexturewidth(elf_Runtime *R) {
 	lgi_Texture *texture = (lgi_Texture *) elf_getsys(R,0);
-	elf_putint(R,texture->size_x);
+	elf_locint(R,texture->size_x);
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_gettextureheight(elf_Runtime *R) {
 	lgi_Texture *texture = (lgi_Texture *) elf_getsys(R,0);
-	elf_putint(R,texture->size_y);
+	elf_locint(R,texture->size_y);
 	return 1;
 }
 
@@ -116,7 +116,7 @@ elf_libfundecl int lgilib_addnidx(elf_Runtime *R) {
 	int num = R->call->x;
 	lgi_ASSERT(lgi.State.index_tally + num < lgi_DEFAULT_INDEX_BUFFER_LENGTH);
 	for(int i=0; i<num; i+=1) {
-		lgi_Index index = (lgi_Index) elf_ntoi(R->call->locals[i]);
+		lgi_Index index = (lgi_Index) elf_toint(R->call->locals[i]);
 		lgi.State.index_array[
 		lgi.State.index_tally] = lgi.State.index_offset + index;
 		lgi.State.index_tally += 1;
@@ -184,7 +184,7 @@ elf_libfundecl int lgilib_setsampler(elf_Runtime *R) {
 
 elf_libfundecl int lgilib_tick(elf_Runtime *rt) {
 	int r = lgi_tick();
-	elf_putint(rt,r);
+	elf_locint(rt,r);
 	return 1;
 }
 
@@ -246,41 +246,41 @@ elf_libfundecl int lgilib_clearBackground(elf_Runtime *rt) {
 
 elf_libfundecl int lgilib_testKey(elf_Runtime *R) {
 	int key = (int) elf_getint(R,0);
-	elf_putint(R,lgi_testKey(key));
+	elf_locint(R,lgi_testKey(key));
 	return 1;
 }
 
 elf_libfundecl int lgilib_iskeydown(elf_Runtime *R) {
 	int key = (int) elf_getint(R,0);
-	elf_putint(R,GetKeyState(key)>>15);
+	elf_locint(R,GetKeyState(key)>>15);
 	return 1;
 }
 
 elf_libfundecl int lgilib_isshiftdown(elf_Runtime *R) {
-	elf_putint(R,lgi.Input.Keyboard.is_shft);
+	elf_locint(R,lgi.Input.Keyboard.is_shft);
 	return 1;
 }
 
 elf_libfundecl int lgilib_getcursorx(elf_Runtime *rt) {
-	elf_putint(rt,lgi.Input.Mice.xcursor);
+	elf_locint(rt,lgi.Input.Mice.xcursor);
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_getcursory(elf_Runtime *rt) {
-	elf_putint(rt,lgi.Input.Mice.ycursor);
+	elf_locint(rt,lgi.Input.Mice.ycursor);
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_getSizeX(elf_Runtime *rt) {
-	elf_putint(rt,lgi.Window.size_x);
+	elf_locint(rt,lgi.Window.size_x);
 	return 1;
 }
 
 
 elf_libfundecl int lgilib_getSizeY(elf_Runtime *rt) {
-	elf_putint(rt,lgi.Window.size_y);
+	elf_locint(rt,lgi.Window.size_y);
 	return 1;
 }
 

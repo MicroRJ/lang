@@ -40,7 +40,7 @@ typedef struct Array {
 #define langA_varmax(var) ((var != 0) ? ((Array*)(var))[-1].max : 0)
 #define langA_varmin(var) ((var != 0) ? ((Array*)(var))[-1].min : 0)
 
-#define elf_arrdecmin(var) ( (var) != lnil ? -- ((Array*)(var))[-1].min : 0 )
+#define elf_arrdecmin(var) ( (var) != lnil ? (-- ((Array*)(var))[-1].min) : 0 )
 
 #define elf_varaddx(var,res,com) ((var) + elf_varaddxx((void**)&(var),sizeof(*var),res,com))
 #define elf_varaddi(var,num) (elf_varaddxx((void**)&(var),sizeof(*var),num,num))

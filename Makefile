@@ -17,9 +17,9 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
 	CFLAGS += -O3 -Wall
 else ifeq ($(PLATFORM),PLATFORM_DESKTOP)
 	CFLAGS += -TC -Z7 -W4
-	CFLAGS += -Od -MTd -D_DEBUG
+	CFLAGS += -Od -MTd
+	CFLAGS += -D_DEBUG
 endif
-
 SRC = \
 src/elf-audio.c \
 src/elf-video.h \
@@ -29,11 +29,11 @@ src/elf-obj.h \
 src/elf-tab.c \
 src/elf-tab.h \
 src/elf-web.c \
-src/lapi.c \
-src/lapi.h \
+src/elf-api.c \
+src/elf-api.h \
 src/larray.c \
 src/larray.h \
-src/lbyte.h \
+src/elf-byte.h \
 src/lcode.c \
 src/lcode.h \
 src/lcrtlib.c \
@@ -52,8 +52,8 @@ src/llog.c \
 src/llog.h \
 src/lmem.c \
 src/lmem.h \
-src/lmodule.c \
-src/lmodule.h \
+src/elf-mod.c \
+src/elf-mod.h \
 src/lnetlib.c \
 src/lnode.c \
 src/lnode.h \
@@ -79,15 +79,14 @@ build/elf_web.exe: elf-web.c $(SRC)
 	$(CC) $(CFLAGS) -o $(OUT)/index.html elf-web.c -Isrc --shell-file $(MYSHELL) $(MYDATA) -sEXPORTED_RUNTIME_METHODS="['ccall','cwrap','wasmExports']" -sMAIN_MODULE -sASYNCIFY -sUSE_GLFW=3 -sALLOW_MEMORY_GROWTH
 else
 all: build/elf.exe build/lgilib.dll build/raylib.dll tests/web_emul.exe
-build/elf.exe: $(SRC)
+build/elf.exe: elf.h elf.c $(SRC)
 	$(CC) $(CFLAGS) elf.c -o build/elf.exe -I.
-build/raylib.dll: $(SRC) elf-ray/raylib.c
-	$(CC) $(CFLAGS) elf-ray/raylib.c -o $(OUT)/raylib.dll -I. -Ielf-ray/raylib/src /link /DLL winmm.lib shell32.lib Gdi32.lib elf-ray/libraylib.lib
-build/lgilib.dll: $(SRC)
+# winmm.lib
+build/raylib.dll: elf.h $(SRC) elf-ray/raylib.c
+	$(CC) $(CFLAGS) elf-ray/raylib.c -o $(OUT)/raylib.dll -I. -Ielf-ray/raylib/src /link /DLL shell32.lib Gdi32.lib elf-ray/libraylib.lib
+build/lgilib.dll: elf.h $(SRC)
 	$(CC) $(CFLAGS) elf-lgi/lgilib.c -o build/lgilib.dll -I. -Ielf-lgi/lgi /link /DLL
-
-
-tests/web_emul.exe: tests/web_emul.c elf-web.c $(SRC)
+tests/web_emul.exe: elf.h tests/web_emul.c elf-web.c $(SRC)
 	$(CC) $(CFLAGS) tests/web_emul.c -o tests/web_emul.exe -I. -I..
 endif
 clean:

@@ -90,10 +90,10 @@ typedef struct elf_Closure {
 } elf_Closure;
 
 
-elf_api elf_val lang_T(elf_Table *t);
-elf_api elf_val lang_C(lBinding c);
-elf_api elf_val elf_valstr(elf_String *s);
-elf_api elf_val lang_F(elf_Closure *f);
+elf_api elf_val elf_valtab(elf_Table *);
+elf_api elf_val elf_valbid(lBinding);
+elf_api elf_val elf_valstr(elf_String *);
+elf_api elf_val elf_valcls(elf_Closure *);
 elf_api elf_val elf_valint(elf_int i);
 elf_api elf_val elf_valnum(elf_num n);
 

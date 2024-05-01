@@ -353,7 +353,7 @@ lnodeid elfY_loadfn(elf_FileState *fs) {
 	if (elf_testtk(fs,TK_CURLY_LEFT)) {
 		elf_taketk(fs,TK_CURLY_LEFT);
 		while (!elfX_term(fs,TK_CURLY_RIGHT)) {
-			elfY_loadstat(fs);
+			elf_fsloadstat(fs);
 		}
 		elf_taketk(fs,TK_CURLY_RIGHT);
 	} else {
@@ -491,7 +491,7 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 			strcat(buf,fs->lasttk.s);
 		}
 
-				lglobalid x = lang_addsymbol(fs->M,elf_newstr(fs->R,buf));
+				lglobalid x = elf_setsym(fs->M,elf_newstr(fs->R,buf));
 				v = elf_nodeglobal(fs,tk.line,x);
 
 			/* for all intended purposes, this is an error */
@@ -509,7 +509,7 @@ lnodeid elf_fsloadunary(elf_FileState *fs) {
 			with, we deallocate it, since the file
 			is a closure of sorts, this should be
 			pretty straight forward... */
-			lglobalid x = lang_addsymbol(fs->M,elf_newstr(fs->R,tk.s));
+			lglobalid x = elf_setsym(fs->M,elf_newstr(fs->R,tk.s));
 			if (x != NO_NODE) {
 				v = elf_nodeglobal(fs,tk.line,x);
 			}
@@ -638,7 +638,7 @@ void elfY_loadenumlist(elf_FileState *fs) {
 }
 
 
-void elfY_loadstat(elf_FileState *fs) {
+void elf_fsloadstat(elf_FileState *fs) {
 	llocalid mem = fs->fn->xmemory;
 	ltoken tk = fs->tk;
 	switch (tk.type) {
@@ -652,7 +652,7 @@ void elfY_loadstat(elf_FileState *fs) {
 		case TK_FINALLY: { elf_taketk(fs,TK_FINALLY);
 			FileBlock bl = {0};
 			langL_begindelayedblock(fs,tk.line,&bl);
-			elfY_loadstat(fs);
+			elf_fsloadstat(fs);
 			langL_closedelayedblock(fs,tk.line,&bl);
 			elf_ensure(fs->fn->xmemory == mem);
 		} break;
@@ -661,14 +661,14 @@ void elfY_loadstat(elf_FileState *fs) {
 			elf_taketk(fs,TK_QMARK);
 			Loop loop = {0};
 			langL_beginwhile(fs,tk.line,&loop,x);
-			elfY_loadstat(fs);
+			elf_fsloadstat(fs);
 			langL_closewhile(fs,tk.line,&loop);
 			elf_ensure(fs->fn->xmemory == mem);
 		} break;
 		case TK_DO: { elf_lexone(fs);
 			Loop loop = {0};
 			langL_begindowhile(fs,tk.line,&loop);
-			elfY_loadstat(fs);
+			elf_fsloadstat(fs);
 			elf_taketk(fs,TK_WHILE);
 			lnodeid x = elf_fsloadexpr(fs);
 			langL_closedowhile(fs,tk.line,&loop,x);
@@ -679,21 +679,21 @@ void elfY_loadstat(elf_FileState *fs) {
 			elf_taketk(fs,TK_QMARK);
 			Select s = {0};
 			langL_beginif(fs,tk.line,&s,x,tk.type==TK_IFF?L_IFF:L_IF);
-			elfY_loadstat(fs);
+			elf_fsloadstat(fs);
 			while (!elf_testtk(fs,TK_NONE)) {
 				if (elf_picktk(fs,TK_ELIF)) {
 					x = elf_fsloadexpr(fs);
 					elf_taketk(fs,TK_QMARK);
 					langL_addelif(fs,fs->lasttk.line,&s,x);
-					elfY_loadstat(fs);
+					elf_fsloadstat(fs);
 				} else
 				if (elf_picktk(fs,TK_THEN)) {
 					langL_addthen(fs,fs->lasttk.line,&s);
-					elfY_loadstat(fs);
+					elf_fsloadstat(fs);
 				} else
 				if (elf_picktk(fs,TK_ELSE)) {
 					langL_addelse(fs,fs->lasttk.line,&s);
-					elfY_loadstat(fs);
+					elf_fsloadstat(fs);
 				} else break;
 			}
 			langL_closeif(fs,fs->lasttk.line,&s);
@@ -758,7 +758,7 @@ void elfY_loadstat(elf_FileState *fs) {
 			}
 			Loop loop = {0};
 			langL_beginrangedloop(fs,tk.line,&loop,i,lo,hi);
-			elfY_loadstat(fs);
+			elf_fsloadstat(fs);
 			langL_closerangedloop(fs,tk.line,&loop);
 			elfY_leavelevel(fs,tk.line);
 			fs->fn->xmemory = mem;
@@ -766,7 +766,7 @@ void elfY_loadstat(elf_FileState *fs) {
 		case TK_CURLY_LEFT: { elf_lexone(fs);
 			elf_fsenterlevel(fs);
 			while (!elfX_term(fs,TK_CURLY_RIGHT)) {
-				elfY_loadstat(fs);
+				elf_fsloadstat(fs);
 			}
 			elf_taketk(fs,TK_CURLY_RIGHT);
 			elfY_leavelevel(fs,fs->lasttk.line);

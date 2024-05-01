@@ -44,7 +44,7 @@ elf_api void elfweb_ini() {
 
 	elf.R.metatable_str = elf_newstrmetatab(&elf.R);
 	elf.R.metatable_tab = elf_newtabmetatab(&elf.R);
-	elf.M.globals = elf_locnewtab(&elf.R);
+	elf.M.globals = elf_newloctab(&elf.R);
 	netlib_load(&elf.R);
 	elflib_load(&elf.R);
 	tstlib_load(&elf.R);
@@ -60,7 +60,7 @@ elf_api int elfweb_loadcode(char *codename, char *contents) {
 	call.base = elf.R.top;
 	call.top = elf.R.top;
 	elf.R.call = &call;
-	elf_String *name = elf_locnewstr(&elf.R,codename);
+	elf_String *name = elf_newlocstr(&elf.R,codename);
 	elf_FileState fs = {0};
 	int result = elf_loadcode(&elf.R,&fs,name,0,0,contents);
 	elf.R.call = call.caller;

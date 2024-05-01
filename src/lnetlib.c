@@ -37,7 +37,7 @@ elf_api int netlib_close(elf_Runtime *R) {
 elf_api int netlib_listen(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	int error = listen(handle,SOMAXCONN);
-	elf_putint(R,error!=SOCKET_ERROR);
+	elf_locint(R,error!=SOCKET_ERROR);
 	return 1;
 }
 
@@ -45,7 +45,7 @@ elf_api int netlib_listen(elf_Runtime *R) {
 elf_api int netlib_accept(elf_Runtime *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	SOCKET client = accept(handle,NULL,NULL);
-	elf_putsys(R,(elf_Handle)client);
+	elf_locsys(R,(elf_Handle)client);
 	return 1;
 }
 
@@ -60,8 +60,8 @@ elf_api int netlib_pollclient(elf_Runtime *R) {
    if (FD_ISSET(handle,&ready)) {
       SOCKET client = accept(handle,NULL,NULL);
       elf_ensure(client != INVALID_SOCKET);
-		elf_putsys(R,(elf_Handle)client);
-   } else elf_putnil(R);
+		elf_locsys(R,(elf_Handle)client);
+   } else elf_locnil(R);
 	return 1;
 }
 
@@ -82,8 +82,8 @@ elf_api int netlib_tcpserver(elf_Runtime *R) {
 	SOCKET thesocket = socket(addrinfo->ai_family,addrinfo->ai_socktype,addrinfo->ai_protocol);
 	int error = bind(thesocket,addrinfo->ai_addr,addrinfo->ai_addrlen);
 	if(error != SOCKET_ERROR) {
-		elf_putsys(R,(elf_Handle)thesocket);
-	} else elf_putnil(R);
+		elf_locsys(R,(elf_Handle)thesocket);
+	} else elf_locnil(R);
 
 	return 1;
 }
@@ -106,8 +106,8 @@ elf_api int netlib_tcpclient(elf_Runtime *R) {
 
 	int error = connect(thesocket,addrinfo->ai_addr,addrinfo->ai_addrlen);
 	if(error != SOCKET_ERROR) {
-		elf_putsys(R,(elf_Handle)thesocket);
-	} else elf_putnil(R);
+		elf_locsys(R,(elf_Handle)thesocket);
+	} else elf_locnil(R);
 	return 1;
 }
 
@@ -120,7 +120,7 @@ elf_api int netlib_send(elf_Runtime *R) {
 	elf_int sent = 0;
 	sent += send(socket,(char*)&message,sizeof(message),0);
 	sent += send(socket,payload->c,payload->length,0);
-	elf_putint(R,sent);
+	elf_locint(R,sent);
 	return 1;
 }
 
@@ -129,7 +129,7 @@ elf_api int netlib_ioctl(elf_Runtime *R) {
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	long mode = 1;
 	int error = ioctlsocket(socket,FIONBIO,&mode);
-	elf_putint(R,error == 0);
+	elf_locint(R,error == 0);
 	return 1;
 }
 
@@ -141,7 +141,7 @@ elf_api int netlib_recv(elf_Runtime *R) {
 		if (message.length != 0) {
 			elf_int length = message.length;
 			elf_String *obj = elf_newstrlen(R,length);
-			elf_putstr(R,obj);
+			elf_locstr(R,obj);
 			char *cursor = obj->c;
 			do {
 				elf_int result = recv(socket,cursor,length,0);
@@ -165,8 +165,8 @@ elf_api int netlib_recv(elf_Runtime *R) {
 				}
 			} while (length != 0);
 			*cursor = 0;
-		} else elf_putnil(R);
-	} else elf_putnil(R);
+		} else elf_locnil(R);
+	} else elf_locnil(R);
 	return 1;
 }
 #else
@@ -185,16 +185,16 @@ elf_api int netlib_recv(elf_Runtime *R) { return 0; };
 
 elf_api void netlib_load(elf_Runtime *R) {
 	elf_Module *md = R->md;
-	lang_addglobal(md,elf_locnewstr(R,"listen"),lang_C(netlib_listen));
-	lang_addglobal(md,elf_locnewstr(R,"accept"),lang_C(netlib_accept));
-	lang_addglobal(md,elf_locnewstr(R,"pollclient"),lang_C(netlib_pollclient));
-	lang_addglobal(md,elf_locnewstr(R,"tcpserver"),lang_C(netlib_tcpserver));
-	lang_addglobal(md,elf_locnewstr(R,"tcpclient"),lang_C(netlib_tcpclient));
-	lang_addglobal(md,elf_locnewstr(R,"netlib_init"),lang_C(netlib_init));
-	lang_addglobal(md,elf_locnewstr(R,"netlib_close"),lang_C(netlib_close));
-	lang_addglobal(md,elf_locnewstr(R,"send"),lang_C(netlib_send));
-	lang_addglobal(md,elf_locnewstr(R,"recv"),lang_C(netlib_recv));
-	lang_addglobal(md,elf_locnewstr(R,"ioctl"),lang_C(netlib_ioctl));
+	lang_addglobal(md,elf_newlocstr(R,"listen"),elf_valbid(netlib_listen));
+	lang_addglobal(md,elf_newlocstr(R,"accept"),elf_valbid(netlib_accept));
+	lang_addglobal(md,elf_newlocstr(R,"pollclient"),elf_valbid(netlib_pollclient));
+	lang_addglobal(md,elf_newlocstr(R,"tcpserver"),elf_valbid(netlib_tcpserver));
+	lang_addglobal(md,elf_newlocstr(R,"tcpclient"),elf_valbid(netlib_tcpclient));
+	lang_addglobal(md,elf_newlocstr(R,"netlib_init"),elf_valbid(netlib_init));
+	lang_addglobal(md,elf_newlocstr(R,"netlib_close"),elf_valbid(netlib_close));
+	lang_addglobal(md,elf_newlocstr(R,"send"),elf_valbid(netlib_send));
+	lang_addglobal(md,elf_newlocstr(R,"recv"),elf_valbid(netlib_recv));
+	lang_addglobal(md,elf_newlocstr(R,"ioctl"),elf_valbid(netlib_ioctl));
 }
 
 

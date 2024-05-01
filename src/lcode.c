@@ -41,10 +41,10 @@ void langL_localdealloc(elf_FileState *fs, llocalid x) {
 lbyteid langL_addbyte(elf_FileState *fs, llineid line, lBytecode byte) {
 	elf_FileFunc *fn = fs->fn;
 	elf_Module *md = fs->md;
-	if (0) elf_bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
-
+	// elf_bytefpf(md,stdout,md->nbytes-fn->bytes,byte);
 	elf_varadd(md->lines,line);
 	elf_varadd(md->bytes,byte);
+	elf_varadd(md->track,0);
 	return md->nbytes ++;
 }
 
@@ -326,7 +326,7 @@ void langL_localload(elf_FileState *fs, llineid line, elf_bool reload, llocalid 
 	lNode v = fs->nodes[id];
 	elf_ensure(v.level <= fs->level);
 
-	if (line == 0) line = v.line;
+	if (v.line != 0) line = v.line;
 
 	elf_Module *md = fs->md;
 	elf_FileFunc *fn = fs->fn;
@@ -553,7 +553,7 @@ void langL_moveto(elf_FileState *fs, llineid line, lnodeid x, lnodeid y) {
 	elf_ensure(v.level <= fs->level);
 	elf_ensure(x >= 0);
 	elf_ensure(y >= 0);
-	if (line == 0) line = v.line;
+	if (v.line != 0) line = v.line;
 
 	/* keep local state, finally free any temporary locals */
 	llocalid mem = fs->fn->xmemory;

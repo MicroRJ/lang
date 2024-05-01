@@ -5,27 +5,36 @@
 */
 
 
-int fndfile(elf_Module *md, llineid line) {
-	elf_File *files = md->files;
-	int nfiles = elf_varlen(files);
-	for (int x = 0; x < nfiles; ++ x) {
-		if (line < files[x].lines) continue;
-		if (line > files[x].lines+files[x].nlines-1) continue;
-		return x;
-	}
-	return -1;
-}
+void elf_runini(elf_Runtime *R, elf_Module *M) {
+	R->M = M;
+	R->logging = lfalse;
+	R->stklen = 4096;
+	R->stk = R->top = elf_clearalloc(lHEAP,sizeof(elf_val)*R->stklen);
+	R->metatable_str = elf_newstrmetatab(R);
+	R->metatable_tab = elf_newtabmetatab(R);
+	elf_CallFrame Y = {0};
+	Y.base = R->top;
+	R->frame = &Y;
+	M->globals = elf_newloctab(R);
+	R->cache.__add = elf_newlocstr(R,"__add");
+	R->cache.__sub = elf_newlocstr(R,"__sub");
+	R->cache.__mul = elf_newlocstr(R,"__mul");
+	R->cache.__div = elf_newlocstr(R,"__div");
+	R->cache.__add1 = elf_newlocstr(R,"__add1");
+	R->cache.__sub1 = elf_newlocstr(R,"__sub1");
+	R->cache.__mul1 = elf_newlocstr(R,"__mul1");
+	R->cache.__div1 = elf_newlocstr(R,"__div1");
 
-
-void elf_throw(elf_Runtime *R, lbyteid id, char *error) {
-	elf_Module *md = R->md;
-	if (id == NO_BYTE) id = R->j;
-	llineid line = md->lines[id];
-	int fileid = fndfile(md,line);
-	if (fileid != -1) {
-		elf_File *file = &md->files[fileid];
-		elfX_error2(file->name,file->lines,line,error);
-	}
+	#if !defined(ELF_NOIMPL)
+	/* todo: eventually we'll load these from the
+	source code, each lib will be built independently,
+	or maybe we can add a flag so that we don't load
+	these libraries. */
+	netlib_load(R);
+	elflib_load(R);
+	tstlib_load(R);
+	crtlib_load(R);
+	#endif
 }
 
 
@@ -42,10 +51,12 @@ int elf_callfn(elf_Runtime *R, llocalid rxy, int nx, int ny) {
 }
 
 
-int elf_callex(elf_Runtime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
+/* todo: this should be different, rx should be the destination
+registers, and ry the input registers */
+int elf_callexx(elf_Runtime *R, elf_Object *obj, elf_val fn, llocalid rx, llocalid ry, int nx, int ny) {
 	elf_CallFrame *caller = R->call;
-	elf_val fn = caller->locals[rx];
-	elf_val *locals = caller->locals + rx + 1;
+	// elf_ensure(R->top - caller->locals+caller->cl->fn.nlocals > -1);
+	elf_val *locals = caller->locals + rx;
 	/* top always points to one past locals,
 	so far we only have nx argument locals,
 	top is later incremented to match nlocals */
@@ -87,12 +98,18 @@ int elf_callex(elf_Runtime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx
 		}
 	} else {
 		nyield = -1;
-		elf_throw(R,NO_BYTE,"not a function");
+		elf_throw(R,NO_BYTE,elf_tpf("'%s': is not a function",tag2s[fn.tag]));
 	}
 	/* finally restore stack */
 	R->call = caller;
 	R->top = call.top;
 	return nyield;
+}
+
+
+int elf_callex(elf_Runtime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
+	elf_CallFrame *caller = R->call;
+	return elf_callexx(R,obj,caller->locals[rx],rx+1,ry,nx,ny);
 }
 
 
@@ -132,10 +149,7 @@ int elf_loadexpr(elf_Runtime *R, elf_String *contents, llocalid rxy, int ny) {
 	p.bytes = fn.bytes;
 	p.nbytes = M->nbytes - fn.bytes;
 
-	/* base register becomes closure */
-	R->call->locals[rxy].tag = TAG_CLS;
-	R->call->locals[rxy].f   = elf_newcls(R,p);
-	return elf_callfn(R,rxy,0,ny);
+	return elf_callexx(R,lnil,elf_valcls(elf_newcls(R,p)),rxy,rxy,0,ny);
 }
 
 
@@ -165,7 +179,7 @@ int elf_loadcode(elf_Runtime *R, elf_FileState *fs, elf_String *filename, const 
 
 	elf_FileFunc fn = {0};
 	elfY_beginfn(fs,&fn,fs->tk.line);
-	while (!elf_testtk(fs,0)) elfY_loadstat(fs);
+	while (!elf_testtk(fs,0)) elf_fsloadstat(fs);
 	elfY_closefn(fs);
 
 	/* todo: this is temporary, please remove this or make
@@ -184,14 +198,8 @@ int elf_loadcode(elf_Runtime *R, elf_FileState *fs, elf_String *filename, const 
 	p.bytes = fn.bytes;
 	p.nbytes = M->nbytes - fn.bytes;
 
-	R->call->locals[rxy].tag   = TAG_CLS;
-	R->call->locals[rxy].x_cls = elf_newcls(R,p);
-	/* todo: come back to this */
-	// if (R->top <= R->call->locals) {
-		// ++ R->top;
-	// }
-	R->top = R->call->locals + rxy;
-	return elf_callfn(R,rxy,0,ny);
+	elf_val cls = elf_valcls(elf_newcls(R,p));
+	return elf_callexx(R,lnil,cls,rxy,rxy,0,ny);
 }
 
 
@@ -214,12 +222,11 @@ to recover from failed instructions?
 So any instructions that depend on a previous
 one are skipped?
 For instance, table:add(table:length()), here if
-table if nil or not even a table, you have to skip
+table is nil or not even a table, you have to skip
 the call instruction and its arguments. */
 int elf_run(elf_Runtime *R) {
 	/* todo: these names are deprecated */
 	elf_CallFrame *c = R->f;
-	elf_CallFrame *frame = R->frame;
 	elf_Module *md = R->md;
 	//
 	elf_CallFrame *call = R->call;
@@ -227,16 +234,15 @@ int elf_run(elf_Runtime *R) {
 	elf_Proto fn = cl->fn;
 	elf_CallFrame *caller = call->caller;
 	elf_val *locals = call->locals;
+	elf_ensure((elf_int)(R->top - locals) >= fn.nlocals);
 
-	while (c->j < fn.nbytes) {
-		elf_int jp = c->j ++;
+	while (call->j < fn.nbytes) {
+		elf_int jp = call->j ++;
 		elf_int bc = fn.bytes + jp;
 		lBytecode b = md->bytes[bc];
-
+		md->track[bc] ++;
 #if defined(_DEBUG)
-		if (R->logging || call->logging) {
-			elf_bytefpf(md,stdout,jp,b);
-		}
+		if (R->logging || call->logging) elf_bytefpf(md,stdout,jp,b);
 		if (R->debugbreak) elf_debugger("elf-run: debugger break");
 #endif
 
@@ -249,8 +255,7 @@ int elf_run(elf_Runtime *R) {
 	} break;
 	case BC_DELAY: {
 		/* todo: can we make this better */
-		ldelaylist *dl;
-		dl = elf_alloc(lHEAP,sizeof(ldelaylist));
+		ldelaylist *dl = elf_alloc(lHEAP,sizeof(ldelaylist));
 		dl->n = c->dl;
 		dl->j = c->j;
 		c->dl = dl;
@@ -269,211 +274,235 @@ int elf_run(elf_Runtime *R) {
 		call->ny = ny;
 		call->j = jp + b.x;
 	} break;
-			case BC_STKGET: {
-				langR_typecheck(R,bc,0,TAG_INT,locals[b.y].tag);
-				locals[b.x] = locals[locals[b.y].i];
-			} break;
-			case BC_STKLEN: {
-				locals[b.x].tag = TAG_INT;
-				locals[b.x].i   = R->top - locals;
-			} break;
-			case BC_LOADFILE: {
-				elf_FileState fs = {0};
-				elf_loadfile(R,&fs,lnil,b.x,b.y);
-			} break;
-			case BC_J: {
-				c->j = jp + b.i;
-			} break;
-			case BC_JZ: {
-				if (locals[b.y].i == 0) call->j = jp + b.x;
-			} break;
-			case BC_JNZ: {
-				if (locals[b.y].i != 0) call->j = jp + b.x;
-			} break;
-			case BC_LOADTHIS: {
-				locals[b.x].tag = elf_tttotag(call->obj->type);
-				locals[b.x].x_obj = call->obj;
-			} break;
-			case BC_RELOAD: {
-				locals[b.x] = locals[b.y];
-			} break;
-			case BC_LOADGLOBAL: {
-				locals[b.x] = md->g->v[b.y];
-			} break;
-			case BC_SETGLOBAL: {
-				md->g->v[b.x] = call->base[b.y];
-			} break;
-			case BC_LOADNIL: {
-				locals[b.x].tag = TAG_NIL;
-				locals[b.x].i   = 0;
-			} break;
-			case BC_LOADINT: {
-				locals[b.x].tag = TAG_INT;
-				locals[b.x].i   = md->ki[b.y];
-			} break;
-			case BC_LOADNUM: {
-				locals[b.x].tag = TAG_NUM;
-				locals[b.x].n   = md->kn[b.y];
-			} break;
-			case BC_LOADCACHED: {
-				elf_ensure(b.y >= 0 && b.y < fn.ncaches);
-				locals[b.x] = cl->caches[b.y];
-			} break;
-			case BC_CLOSURE: {
-				elf_ensure(b.y >= 0 && b.y < elf_varlen(md->p));
-				elf_Proto p = md->p[b.y];
-				elf_Closure *ncl = elf_newcls(R,p);
-				for (int i = 0; i < p.ncaches; ++i) {
-					ncl->caches[i] = locals[b.x+i];
-				}
-				locals[b.x].tag = TAG_CLS;
-				locals[b.x].f   = ncl;
-				// ncl->obj.gccolor = GC_WHITE;
-			} break;
-			case BC_TABLE: {
-				/* ensure the object is created before
-				we modify the value, because gc could
-				trigger and actually attempt to collect
-				this value */
-				elf_Table *tab = elf_newtab(R);
-				locals[b.x].tag = TAG_TAB;
-				locals[b.x].t   = tab;
-				// tab->obj.gccolor = GC_WHITE;
-			} break;
-			case BC_TYPEGUARD: {
-				langR_typecheck(R,bc,b.x,b.y,locals[b.x].tag);
-			} break;
-			case BC_INDEX: case BC_FIELD: {
-				if (locals[b.y].tag == TAG_STR) {
-					langR_typecheck(R,bc,0,TAG_INT,locals[b.z].tag);
-					locals[b.x].tag = TAG_INT;
-					locals[b.x].i   = locals[b.y].s->c[locals[b.z].i];
-				} else
-				if (locals[b.y].tag == TAG_TAB) {
-					locals[b.x] = elf_tablookup(locals[b.y].t,locals[b.z]);
-				} else locals[b.x] = (elf_val){TAG_NIL};
-			} break;
-			case BC_SETINDEX: case BC_SETFIELD: {
-				if (langR_typecheck(R,bc,b.x,TAG_TAB,locals[b.x].tag)) {
-					elf_tabset(locals[b.x].t,locals[b.y],locals[b.z]);
-				} else LNOBRANCH;
-			} break;
-			case BC_SETMETATABLE: {
-				elf_val xx = locals[b.x];
-				elf_val yy = locals[b.y];
-				if (elf_tagisobj(xx.tag) && elf_tagisobj(yy.tag)) {
-					xx.x_obj->metatable = yy.x_obj->metatable;
-				} else LNOBRANCH;
-			} break;
-			case BC_SETMETAFIELD: {
-				elf_val xx = locals[b.x];
-				if (elf_tagisobj(xx.tag)) {
-					elf_val yy = locals[b.y];
-					elf_val zz = locals[b.z];
-					elf_tabset(xx.x_obj->metatable,yy,zz);
-				} else elf_throw(R,bc,elf_tpf("'%s': not an object", tag2s[xx.tag]));
-			} break;
-			case BC_METAFIELD: {
-				elf_val *yy = &locals[b.y];
-				if (elf_tagisobj(yy->tag)) {
-					locals[b.x] = elf_tablookup(yy->j->metatable,locals[b.z]);
-				} else {
-					locals[b.x] = (elf_val){TAG_NIL};
-					elf_throw(R,bc,elf_tpf("'%s': not an object", tag2s[yy->tag]));
-				}
-			} break;
-			case BC_METACALL: {
-				R->j = bc;
-				elf_callex(R,locals[b.x].j,b.x+1,b.x,b.y,b.z);
-			} break;
-			case BC_CALL: {
-				R->j = bc;
-				elf_callfn(R,b.x,b.y,b.z);
-			} break;
-			case BC_ISNIL: {
-				elf_val x = locals[b.y];
-				elf_bool nan = x.tag != TAG_INT && x.tag != TAG_NUM;
-				locals[b.x].tag = TAG_INT;
-				locals[b.x].i   = x.tag == TAG_NIL || (nan && x.i == 0);
-			} break;
-			case BC_EQ: case BC_NEQ: {
-				elf_val x = locals[b.y];
-				elf_val y = locals[b.z];
-				elf_bool eq = lfalse;
-				/* todo: fix nil comparisons */
-				if (x.tag == TAG_NIL || y.tag == TAG_NIL) {
-					eq = tisnil(x) == tisnil(y);
-				} else
-				if (x.tag == TAG_STR && y.tag == TAG_STR) {
-					eq = elf_streq(x.s,y.s);
-				} else {
-					eq = x.i == y.i;
-				}
-				if (b.k == BC_NEQ) eq = !eq;
-
-				locals[b.x].tag = TAG_INT;
-				locals[b.x].i   = eq;
-			} break;
-
-
-			/* todo: make this better */
-			#define CASE_IBOP(OPNAME,OP) \
-			case OPNAME : {\
-				c->l[b.x].tag = TAG_INT;\
-				c->l[b.x].i   = elf_ntoi(c->l[b.y]) OP elf_ntoi(c->l[b.z]);\
-			} break
-
-			/* todo: make this better */
-			#define CASE_BOP(OPCODE,OP) \
-			case OPCODE : {\
-				if (c->l[b.y].tag == TAG_NUM || c->l[b.z].tag == TAG_NUM) {\
-					c->l[b.x].tag = TAG_NUM;\
-					c->l[b.x].n   = elf_iton(c->l[b.y]) OP elf_iton(c->l[b.z]);\
-				} else {\
-					c->l[b.x].tag = TAG_INT;\
-					c->l[b.x].i   = elf_ntoi(c->l[b.y]) OP elf_ntoi(c->l[b.z]);\
-				}\
-			} break
-
-			case BC_LTEQ: {
-				elf_val x = c->l[b.y];
-				elf_val y = c->l[b.z];
-				if (x.tag == TAG_NUM || y.tag == TAG_NUM) {
-					c->l[b.x].tag = TAG_INT;
-					c->l[b.x].i   = elf_iton(x) <= elf_iton(y);
-				} else {
-					c->l[b.x].tag = TAG_INT;
-					c->l[b.x].i   = elf_ntoi(x) <= elf_ntoi(y);
-				}
-			} break;
-			case BC_LT: {
-				elf_val x = c->l[b.y];
-				elf_val y = c->l[b.z];
-				if (x.tag == TAG_NUM || y.tag == TAG_NUM) {
-					c->l[b.x].tag = TAG_NUM;
-					c->l[b.x].n   = elf_iton(x) < elf_iton(y);
-				} else {
-					c->l[b.x].tag = TAG_INT;
-					c->l[b.x].i   = elf_ntoi(x) < elf_ntoi(y);
-				}
-			} break;
-
-			CASE_IBOP(BC_SHL,  <<);
-			CASE_IBOP(BC_SHR,  >>);
-			CASE_IBOP(BC_XOR,   ^);
-			CASE_IBOP(BC_MOD,   %);
-
-			CASE_BOP(BC_ADD,   +);
-			CASE_BOP(BC_SUB,   -);
-			CASE_BOP(BC_MUL,   *);
-			CASE_BOP(BC_DIV,   /);
-			#undef CASE_BOP
-
-			default: {
-
-				LNOBRANCH;
-			} break;
+	case BC_STKGET: {
+		langR_typecheck(R,bc,0,TAG_INT,locals[b.y].tag);
+		locals[b.x] = locals[locals[b.y].i];
+	} break;
+	case BC_STKLEN: {
+		locals[b.x].tag = TAG_INT;
+		locals[b.x].i   = R->top - locals;
+	} break;
+	case BC_LOADFILE: {
+		elf_FileState fs = {0};
+		elf_loadfile(R,&fs,lnil,b.x,b.y);
+	} break;
+	case BC_J: {
+		c->j = jp + b.i;
+	} break;
+	case BC_JZ: {
+		if (locals[b.y].i == 0) call->j = jp + b.x;
+	} break;
+	case BC_JNZ: {
+		if (locals[b.y].i != 0) call->j = jp + b.x;
+	} break;
+	case BC_LOADTHIS: {
+		locals[b.x].tag = elf_tttotag(call->obj->type);
+		locals[b.x].x_obj = call->obj;
+	} break;
+	case BC_RELOAD: {
+		locals[b.x] = locals[b.y];
+	} break;
+	case BC_LOADGLOBAL: {
+		locals[b.x] = md->g->v[b.y];
+	} break;
+	case BC_SETGLOBAL: {
+		md->g->v[b.x] = call->base[b.y];
+	} break;
+	case BC_LOADNIL: {
+		locals[b.x].tag = TAG_NIL;
+		locals[b.x].i   = 0;
+	} break;
+	case BC_LOADINT: {
+		locals[b.x].tag = TAG_INT;
+		locals[b.x].i   = md->ki[b.y];
+	} break;
+	case BC_LOADNUM: {
+		locals[b.x].tag = TAG_NUM;
+		locals[b.x].n   = md->kn[b.y];
+	} break;
+	case BC_LOADCACHED: {
+		elf_ensure(b.y >= 0 && b.y < fn.ncaches);
+		locals[b.x] = cl->caches[b.y];
+	} break;
+	case BC_CLOSURE: {
+		elf_ensure(b.y >= 0 && b.y < elf_varlen(md->p));
+		elf_Proto p = md->p[b.y];
+		elf_Closure *ncl = elf_newcls(R,p);
+		for (int i = 0; i < p.ncaches; ++i) {
+			ncl->caches[i] = locals[b.x+i];
 		}
+		locals[b.x].tag = TAG_CLS;
+		locals[b.x].f   = ncl;
+		// ncl->obj.gccolor = GC_WHITE;
+	} break;
+	case BC_TABLE: {
+		/* ensure objects are created, then the
+		local is renamed atomically, otherwise
+		gc could trigger in between think the
+		local is some other type */
+		elf_Table *tab = elf_newtab(R);
+		locals[b.x].tag = TAG_TAB;
+		locals[b.x].t   = tab;
+	} break;
+	case BC_TYPEGUARD: {
+		langR_typecheck(R,bc,b.x,b.y,locals[b.x].tag);
+	} break;
+	case BC_INDEX: case BC_FIELD: {
+		if (locals[b.y].tag == TAG_STR) {
+			langR_typecheck(R,bc,0,TAG_INT,locals[b.z].tag);
+			locals[b.x].tag = TAG_INT;
+			locals[b.x].i   = locals[b.y].s->c[locals[b.z].i];
+		} else
+		if (locals[b.y].tag == TAG_TAB) {
+			locals[b.x] = elf_tablookup(locals[b.y].t,locals[b.z]);
+		} else locals[b.x] = (elf_val){TAG_NIL};
+	} break;
+	case BC_SETINDEX: case BC_SETFIELD: {
+		if (langR_typecheck(R,bc,b.x,TAG_TAB,locals[b.x].tag)) {
+			elf_tabset(locals[b.x].t,locals[b.y],locals[b.z]);
+		} else LNOBRANCH;
+	} break;
+	case BC_SETMETATABLE: {
+		elf_val xx = locals[b.x];
+		elf_val yy = locals[b.y];
+		if (elf_tagisobj(xx.tag) && yy.tag == TAG_TAB) {
+			xx.x_obj->metatable = yy.x_tab;
+		} else LNOBRANCH;
+	} break;
+	case BC_SETMETAFIELD: {
+		elf_val xx = locals[b.x];
+		if (elf_tagisobj(xx.tag)) {
+			elf_val yy = locals[b.y];
+			elf_val zz = locals[b.z];
+			elf_tabset(xx.x_obj->metatable,yy,zz);
+		} else elf_throw(R,bc,elf_tpf("'%s': not an object", tag2s[xx.tag]));
+	} break;
+	case BC_METAFIELD: {
+		elf_val *yy = &locals[b.y];
+		if (elf_tagisobj(yy->tag)) {
+			locals[b.x] = elf_tablookup(yy->j->metatable,locals[b.z]);
+		} else {
+			locals[b.x] = (elf_val){TAG_NIL};
+			elf_throw(R,bc,elf_tpf("'%s': not an object", tag2s[yy->tag]));
+		}
+	} break;
+	case BC_METACALL: {
+		R->j = bc;
+		elf_callex(R,locals[b.x].x_obj,b.x+1,b.x,b.y,b.z);
+		elf_ensure((elf_int)(R->top - locals) >= fn.nlocals);
+	} break;
+	case BC_CALL: {
+		R->j = bc;
+		elf_callfn(R,b.x,b.y,b.z);
+		elf_ensure((elf_int)(R->top - locals) >= fn.nlocals);
+	} break;
+	case BC_ISNIL: {
+		elf_val x = locals[b.y];
+		elf_bool nan = x.tag != TAG_INT && x.tag != TAG_NUM;
+		locals[b.x].tag = TAG_INT;
+		locals[b.x].i   = x.tag == TAG_NIL || (nan && x.i == 0);
+	} break;
+	case BC_EQ: case BC_NEQ: {
+		elf_val x = locals[b.y];
+		elf_val y = locals[b.z];
+		elf_bool eq = lfalse;
+		/* todo: fix nil comparisons */
+		if ((x.tag == TAG_NIL) || (y.tag == TAG_NIL)) {
+			eq = elf_isnil(x) == elf_isnil(y);
+		} else if ((x.tag == TAG_STR) && (y.tag == TAG_STR)) {
+			eq = elf_streq(x.x_str,y.x_str);
+		} else eq = x.i == y.i;
+		if (b.k == BC_NEQ) eq = !eq;
+		locals[b.x].tag = TAG_INT;
+		locals[b.x].i   = eq;
+	} break;
+	/* todo: make this better */
+	#define CASE_IBOP(OPNAME,OP) \
+	case OPNAME : {\
+		locals[b.x].tag = TAG_INT;\
+		locals[b.x].x_int = elf_toint(c->l[b.y]) OP elf_toint(c->l[b.z]);\
+	} break
+	// case BC_ADD: {
+	// 	elf_val xx = locals[b.y];
+	// 	elf_val yy = locals[b.z];
+	// 	if ((xx.tag == TAG_NUM) || (yy.tag == TAG_NUM)) {
+	// 		locals[b.x].tag = TAG_NUM;
+	// 		locals[b.x].x_num = elf_tonum(xx) + elf_tonum(yy);
+	// 	} else if ((xx.tag == TAG_INT) || (yy.tag == TAG_INT)) {
+	// 		locals[b.x].tag = TAG_INT;
+	// 		locals[b.x].x_int = elf_toint(xx) + elf_toint(yy);
+	// 	} else if (elf_tagisobj(xx.tag) || elf_tagisobj(yy.tag)) {
+	// 		elf_ensure((elf_int)(R->top - locals) >= fn.nlocals);
+	// 		elf_val mfn = elf_tabget(xx.x_obj->metatable,elf_newlocstr(R,"__add"));
+	// 		if (mfn.tag == TAG_CLS) {
+	// 			locals[b.x] = yy;
+	// 			elf_loginfo("__add(%i,%i)",b.x,b.x);
+	// 			int ny = elf_callexx(R,xx.x_obj,mfn,b.x,b.x,1,1);
+	// 			if (ny < 1) elf_throw(R,bc,"function must return atleast one value");
+	// 		} else elf_throw(R,bc,elf_tpf("'%s': overload is %s, not a function","__add",tag2s[mfn.tag]));
+	// 	} else LNOBRANCH;
+	// } break;
+	/* todo: make this better */
+	#define CASE_BOP(OPCODE,OP,FN,FN1) \
+	case OPCODE : {\
+		elf_val xx = locals[b.y];\
+		elf_val yy = locals[b.z];\
+		if (elf_tagisobj(xx.tag)) {\
+			elf_String *mfname = FN;\
+			if (!elf_tagisobj(yy.tag)) mfname = FN1;\
+			elf_val mfield = elf_tabget(xx.x_obj->metatable,mfname);\
+			if (mfield.tag == TAG_CLS) {\
+				locals[b.x] = yy;\
+				int ny = elf_callexx(R,xx.x_obj,mfield,b.x,b.x,1,1);\
+				if (ny < 1) elf_throw(R,bc,"function must return atleast one value");\
+			} else elf_throw(R,bc,elf_tpf("'%s': overload is %s, not a function",mfname->c,tag2s[mfield.tag]));\
+		} else if ((xx.tag == TAG_NUM) || (yy.tag == TAG_NUM)) {\
+			locals[b.x].tag = TAG_NUM;\
+			locals[b.x].x_num = elf_tonum(xx) OP elf_tonum(yy);\
+		} else if ((xx.tag == TAG_INT) || (yy.tag == TAG_INT)) {\
+			locals[b.x].tag = TAG_INT;\
+			locals[b.x].x_int = elf_toint(xx) OP elf_toint(yy);\
+		} else LNOBRANCH;\
+	} break
+	case BC_LTEQ: {
+		elf_val xx = locals[b.y];
+		elf_val yy = locals[b.z];
+		if ((xx.tag == TAG_NUM) || (yy.tag == TAG_NUM)) {
+			locals[b.x].tag = TAG_INT;
+			locals[b.x].i   = elf_tonum(xx) <= elf_tonum(yy);
+		} else {
+			locals[b.x].tag = TAG_INT;
+			locals[b.x].i   = elf_toint(xx) <= elf_toint(yy);
+		}
+	} break;
+	case BC_LT: {
+		elf_val x = c->l[b.y];
+		elf_val y = c->l[b.z];
+		if (x.tag == TAG_NUM || y.tag == TAG_NUM) {
+			c->l[b.x].tag = TAG_NUM;
+			c->l[b.x].n   = elf_tonum(x) < elf_tonum(y);
+		} else {
+			c->l[b.x].tag = TAG_INT;
+			c->l[b.x].i   = elf_toint(x) < elf_toint(y);
+		}
+	} break;
+	CASE_IBOP(BC_SHL,  <<);
+	CASE_IBOP(BC_SHR,  >>);
+	CASE_IBOP(BC_XOR,   ^);
+	CASE_IBOP(BC_MOD,   %);
+	/* todo: could we cache these strings */
+	CASE_BOP(BC_ADD, +, R->cache.__add, R->cache.__add1);
+	CASE_BOP(BC_SUB, -, R->cache.__sub, R->cache.__sub1);
+	CASE_BOP(BC_MUL, *, R->cache.__mul, R->cache.__mul1);
+	CASE_BOP(BC_DIV, /, R->cache.__div, R->cache.__div1);
+	#undef CASE_BOP
+	default: {
+		LNOBRANCH;
+	} break;
+		}
+		elf_ensure((elf_int)(R->top - locals) >= fn.nlocals);
+		int BREAKPOINT;
+		BREAKPOINT = 0; (void) BREAKPOINT;
 	}
 
 	leave:

@@ -77,6 +77,10 @@ typedef struct elf_Runtime {
 	elf_bool debugbreak;
 	elf_Table *metatable_str;
 	elf_Table *metatable_tab;
+	struct {
+		elf_String *__add,*__sub,*__mul,*__div;
+		elf_String *__add1,*__sub1,*__mul1,*__div1;
+	} cache;
 	/* current byte */
 	elf_int j;
 	elf_bool logging;

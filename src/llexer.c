@@ -6,78 +6,10 @@
 
 
 
-elf_bool elf_chriseol(char x) {
-	return x == '\r' || x == '\n' || x == '\0';
-}
-
-
-/* finds line number and line loc from single source location */
-void elfX_getlocinfo(char *q, char *loc, int *linenum, char **lineloc) {
-	char *c = q;
-	int n = 0;
-	while (q < loc) {
-		while (!elf_chriseol(*q) && q < loc) q ++;
-		if (*q == 0) break;
-		if ((*q != '\n') || (c = ++ q, n ++, 1)) {
-			if ((*q == '\r') && (c = ++ q, n ++, 1)) {
-				if (*q == '\n') c = ++ q;
-			} else q ++;
-		}
-	}
-
-	if (linenum != 0) *linenum = n + 1;
-	if (lineloc != 0) *lineloc = c;
-}
-
-
-/* diagnostics function for syntax errors */
-void elfX_error2(char *filename, char *contents, char *loc, char const *fmt, ...) {
-	int linenum;
-	char *lineloc;
-	elfX_getlocinfo(contents,loc,&linenum,&lineloc);
-
-	/* skip initial blank characters for optimal gimmicky */
-	while (*lineloc == '\t' || *lineloc == ' ') {
-		lineloc += 1;
-	}
-
-	char u[0x40];
-
-	int underline = loc - lineloc;
-	if (underline >= sizeof(u)) {
-		underline = sizeof(u)-1;
-		lineloc = loc - underline;
-	}
-
-	int linelen = 0;
-	for (;; ++ linelen) {
-		if (lineloc[linelen] == '\0') break;
-		if (lineloc[linelen] == '\r') break;
-		if (lineloc[linelen] == '\n') break;
-	}
-
-	for (int i = 0; i < underline; ++ i) {
-		u[i] = lineloc[i] == '\t' ? '\t' : '-';
-	}
-	u[underline]='^';
-
-	if (fmt !=  0) {
-		char b[0x1000];
-		va_list v;
-		va_start(v,fmt);
-		stbsp_vsnprintf(b,sizeof(b),fmt,v);
-		va_end(v);
-		printf("%s [%i:%lli]: %s\n",filename,linenum,(elf_int)(1+loc-lineloc),b);
-	}
-	printf("| %.*s\n",linelen,lineloc);
-	printf("| %.*s\n",underline+1,u);
-}
-
-
 void elf_lineerror(elf_FileState *fs, char *loc, char const *fmt, ...) {
 	int linenum;
 	char *lineloc;
-	elfX_getlocinfo(fs->contents,loc,&linenum,&lineloc);
+	elf_getlinelocinfo(fs->contents,loc,&linenum,&lineloc);
 
 	/* skip initial blank characters for optimal gimmicky */
 	while (*lineloc == '\t' || *lineloc == ' ') {

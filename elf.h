@@ -9,7 +9,7 @@
 
 
 #if !defined(PLATFORM_DESKTOP) && !defined(PLATFORM_WEB)
-#error ELF: No Platform Defined
+#error elf-lang: No Platform Defined
 #endif
 
 
@@ -114,6 +114,7 @@
 
 
 typedef struct elf_Runtime elf_Runtime;
+typedef struct elf_Module elf_Module;
 typedef struct elf_FileState elf_FileState;
 typedef struct elf_Table elf_Table;
 typedef struct elf_String elf_String;
@@ -127,45 +128,19 @@ typedef struct elf_Closure elf_Closure;
 #include "src/lmem.h"
 #include "src/elf-sys.h"
 #include "src/llog.h"
-
-
-void elf_debugger(char *message) {
-	sys_consolelog(ELF_LOGDBUG,"debugger: ");
-	sys_consolelog(ELF_LOGDBUG,message);
-	sys_consolelog(ELF_LOGDBUG,"end");
-	sys_debugger();
-}
-
-
 #include "src/elf-obj.h"
-#include "src/lapi.h"
+#include "src/elf-aux.h"
+#include "src/elf-byte.h"
+#include "src/elf-mod.h"
+#include "src/elf-api.h"
 #include "src/ltoken.h"
-#include "src/lbyte.h"
-#include "src/lmodule.h"
 #include "src/elf-run.h"
-
-void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b);
-
 #include "src/elf-str.h"
 #include "src/larray.h"
 #include "src/elf-tab.h"
 #include "src/lnode.h"
 #include "src/lcode.h"
 #include "src/lfile.h"
-
-elf_int elf_clocktime();
-elf_num elf_timediffs(elf_int begin);
-void elf_register(elf_Runtime *, char *, lBinding fn);
-
-
-elf_num elf_iton(elf_val v) {
-	return v.tag == TAG_INT ? (elf_num) v.i : v.n;
-}
-
-
-elf_int elf_ntoi(elf_val v) {
-	return v.tag == TAG_NUM ? (elf_int) v.n : v.i;
-}
 
 
 #include "src/elf-sys.c"
@@ -174,7 +149,8 @@ elf_int elf_ntoi(elf_val v) {
 #include "src/llog.c"
 #include "src/elf-obj.c"
 #include "src/lgc.c"
-#include "src/lmodule.c"
+#include "src/elf-mod.c"
+#include "src/elf-aux.c"
 #include "src/elf-str.c"
 #include "src/larray.c"
 #include "src/elf-tab.c"
@@ -183,36 +159,7 @@ elf_int elf_ntoi(elf_val v) {
 #include "src/lnode.c"
 #include "src/lcode.c"
 #include "src/lfile.c"
-
-#include "src/elf-run.c"
-#include "src/lapi.c"
-
-
-
-void elf_registerint(elf_Runtime *R, char *name, int val) {
-	lang_addglobal(R->M,elf_locnewstr(R,name),elf_valint(val));
-}
-
-
-void elf_register(elf_Runtime *R, char *name, lBinding fn) {
-	lang_addglobal(R->M,elf_locnewstr(R,name),lang_C(fn));
-}
-
-
-void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b) {
-	elf_tabset(obj,elf_valstr(elf_newstr(R,name)),lang_C(b));
-}
-
-
-elf_int elf_clocktime() {
-	return sys_clocktime();
-}
-
-
-elf_num elf_timediffs(elf_int begin) {
-	/* todo: clockhz can be cached */
-	return (sys_clocktime() - begin) / (elf_num) sys_clockhz();
-}
+#include "src/elf-api.c"
 
 
 #if !defined(ELF_NOIMPL)
@@ -222,6 +169,9 @@ elf_num elf_timediffs(elf_int begin) {
 # include "src/lcrtlib.c"
 # include "src/lnetlib.c"
 #endif
+
+
+#include "src/elf-run.c"
 
 
 #if !defined(ELF_KEEPWARNINGS)

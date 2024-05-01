@@ -6,7 +6,7 @@
 
 
 elf_Table *elf_newtabmetatab(elf_Runtime *R) {
-	elf_Table *tab = elf_locnewtab(R);
+	elf_Table *tab = elf_newloctab(R);
 	elf_tabmfld(R,tab,"length",elf_tablength_);
 	elf_tabmfld(R,tab,"tally",elf_tabtally_);
 	elf_tabmfld(R,tab,"haskey",elf_tabhaskey_);
@@ -183,15 +183,20 @@ elf_val elf_tablookup(elf_Table *table, elf_val k) {
 }
 
 
+elf_val elf_tabget(elf_Table *tab, elf_String *key) {
+	return elf_tablookup(tab,elf_valstr(key));
+}
+
+
 elf_num elf_tabgetnum(elf_Table *tab, elf_String *key) {
 	elf_val val = elf_tablookup(tab,elf_valstr(key));
-	return elf_iton(val);
+	return elf_tonum(val);
 }
 
 
 elf_int elf_tabgetint(elf_Table *tab, elf_String *key) {
 	elf_val val = elf_tablookup(tab,elf_valstr(key));
-	return elf_ntoi(val);
+	return elf_toint(val);
 }
 
 
@@ -238,14 +243,14 @@ void elf_tabadd(elf_Table *table, elf_val v) {
 
 int elf_tablength_(elf_Runtime *R) {
 	elf_Table *tab = (elf_Table*) elf_getthis(R);
-	elf_putint(R,elf_varlen(tab->v));
+	elf_locint(R,elf_varlen(tab->v));
 	return 1;
 }
 
 
 int elf_tabtally_(elf_Runtime *R) {
 	elf_Table *tab = (elf_Table*) elf_getthis(R);
-	elf_putint(R,elf_varlen(tab->v));
+	elf_locint(R,elf_varlen(tab->v));
 	return 1;
 }
 
@@ -254,7 +259,7 @@ int elf_tabhaskey_(elf_Runtime *c) {
 	elf_ensure(c->f->x == 1);
 	elf_Table *table = (elf_Table*) elf_getthis(c);
 	elf_val k = elf_getval(c,0);
-	elf_putint(c,elf_tabslotiskey(table,elf_tabhashin(table,k)));
+	elf_locint(c,elf_tabslotiskey(table,elf_tabhashin(table,k)));
 	return 1;
 }
 
@@ -263,14 +268,14 @@ int elf_tablookup_(elf_Runtime *c) {
 	elf_ensure(c->f->x == 1);
 	elf_val k = elf_getval(c,0);
 	elf_Table *table = (elf_Table*) c->f->obj;
-	elf_putval(c,elf_tablookup(table,k));
+	elf_locval(c,elf_tablookup(table,k));
 	return 1;
 }
 
 
 int elf_tabcollisions_(elf_Runtime *c) {
 	elf_Table *table = (elf_Table*) c->f->obj;
-	elf_putint(c,table->ncollisions);
+	elf_locint(c,table->ncollisions);
 	return 1;
 }
 
@@ -287,7 +292,7 @@ int elf_tabidx_(elf_Runtime *R) {
 	elf_ensure(R->call->x >= 1);
 	elf_Table *tab = (elf_Table *)elf_getthis(R);
 	elf_int idx = elf_getint(R,0);
-	elf_putval(R,tab->v[idx]);
+	elf_locval(R,tab->v[idx]);
 	return 1;
 }
 
@@ -295,8 +300,8 @@ int elf_tabidx_(elf_Runtime *R) {
 int elf_tabxrem_(elf_Runtime *R) {
 	elf_ensure(R->call->x >= 1);
 	elf_Table *tab = (elf_Table *)elf_getthis(R);
-	elf_int idx = elf_getint(R,0);
 	elf_int min = elf_arrdecmin(tab->array);
+	elf_int idx = elf_getint(R,0);
 	if (idx != min) {
 		tab->array[idx] = tab->array[min];
 	}

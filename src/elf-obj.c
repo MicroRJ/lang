@@ -33,20 +33,20 @@ elf_valtag elf_tttotag(elf_objty type) {
 }
 
 
-int tisnil(elf_val x) {
+int elf_isnil(elf_val x) {
 	return (x.tag == TAG_NIL) || (!ttisnumeric(x.tag) && (x.p == lnil));
 }
 
 
 
-elf_api elf_val lang_T(elf_Table *t) {
+elf_api elf_val elf_valtab(elf_Table *t) {
 	elf_val v = (elf_val){TAG_TAB};
 	v.t = t;
 	return v;
 }
 
 
-elf_api elf_val lang_C(lBinding c) {
+elf_api elf_val elf_valbid(lBinding c) {
 	elf_val v = (elf_val){TAG_BID};
 	v.c = c;
 	return v;
@@ -67,7 +67,7 @@ elf_api elf_val elf_valstr(elf_String *s) {
 }
 
 
-elf_api elf_val lang_F(elf_Closure *f) {
+elf_api elf_val elf_valcls(elf_Closure *f) {
 	elf_val v = (elf_val){TAG_CLS};
 	v.f = f;
 	return v;

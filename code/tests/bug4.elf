@@ -1,0 +1,6 @@
+
+load "code/games/shooter/vec.elf"
+
+for i in 0..1000 ? {
+	let x = vec3(0,0,0)
+}

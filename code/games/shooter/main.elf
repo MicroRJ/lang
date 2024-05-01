@@ -13,34 +13,37 @@ if _chdir("code/games/shooter") ? {
 load "vec.elf"
 load "rnd.lang"
 
-
 UP    = vec3( 0, 1, 0)
 LEFT  = vec3(-1, 0, 0)
 RIGHT = vec3( 1, 0, 0)
 DOWN  = vec3( 0,-1, 0)
 
+
+
 PlayerController = fun(entity) ? {
 	let move = vec3(0,0,0)
-	if elf.ray.IsKeyDown('W') ? move = move:add(DOWN)
-	if elf.ray.IsKeyDown('A') ? move = move:add(LEFT)
-	if elf.ray.IsKeyDown('S') ? move = move:add(UP)
-	if elf.ray.IsKeyDown('D') ? move = move:add(RIGHT)
+	if elf.ray.IsKeyDown('W') ? move = move + DOWN
+	if elf.ray.IsKeyDown('A') ? move = move + LEFT
+	if elf.ray.IsKeyDown('S') ? move = move + UP
+	if elf.ray.IsKeyDown('D') ? move = move + RIGHT
 	/* todo: */
-	entity.pos = entity.pos:add(move:norm():mul1(4))
+	entity.pos = entity.pos + move:norm():mul1(500 * elf.ray.GetFrameTime())
 }
+
+
 EnemyController = fun(entity) ? {
 	let pos = entity.pos
-	let diftoplayer = Player.pos:sub(pos)
+	let diftoplayer = Player.pos - pos
 	let distoplayer = diftoplayer:len()
 	let facing = diftoplayer:norm()
-	let target = diftoplayer:sub(facing:mul(64.))
+	let target = diftoplayer - facing * 64.
 	if timediffs(entity.lastimpulse) > .5 ? {
 		entity.lastimpulse = clocktime()
 		let imp = rnddir2(-PI,+PI,target:norm())
-		entity.vel = entity.vel:add(imp:mul1(10))
+		entity.vel = entity.vel + imp * 300. * elf.ray.GetFrameTime()
 	}
-	entity.pos = pos:add(entity.vel)
-	entity.vel = entity.vel:mul1(.9)
+	entity.pos = pos + entity.vel
+	entity.vel = entity.vel * .9
 	entity.facing = facing:clone()
 	/* only fire if we are facing the player, and we can see it */
 	entity.firing = ntoi(distoplayer < 512)
@@ -85,7 +88,7 @@ DrawEntity = fun(entity) ? {
 }
 Player = NewEntity(vec2(0,0),700)
 Player.controller = PlayerController
-for i in 0..3 ? {
+for i in 0..0 ? {
 	NewEntity(vec2(rnd(-20,+20),rnd(-20,+128)))
 }
 Particles = {}
@@ -93,24 +96,40 @@ Fire = fun(entity) ? {
 	let firerate = entity.firerate
 	let lastfire = entity.lastfire
 	if timediffs(lastfire) > (1./(firerate/60.)) ? {
+		// let pan = Camera.target:sub(entity.pos):div(1024.,720.)
+
+		/* Note: the object should get deallocated, and the sound
+		should keep playing in the audio buffer until is done, which
+		is what we want... */
+		let sound = elf.ray.LoadSoundAlias(Sounds.Gun);
+		elf.ray.PlaySound(sound)
+		elf.ray.SetSoundVolume(sound,.01)
+		elf.ray.SetSoundPitch(sound,1. + rnd(-10000/2,10000)/(10000.*3.))
+		// elf.ray.SetSoundPan(sound,pan.x-.5)
+
 		entity.lastfire = clocktime()
 		Particles:add({
 			"from" = entity,
 			"pos" = entity.pos:clone(),
-			"vel" = entity.facing:mul1(3000),
+			"vel" = entity.facing * 3000,
 		})
 	}
 }
 
-
-
+/* Init */
 elf.ray.InitWindow(1024,720,"shooter")
 finally elf.ray.CloseWindow()
+
+elf.ray.InitAudioDevice()
+finally elf.ray.CloseAudioDevice()
 
 log("Loading Assets: ...")
 Textures = {
 	Player = elf.ray.LoadTexture("assets/Atlas.png"),
 	Background = elf.ray.LoadTexture("assets/background.png"),
+}
+Sounds = {
+	Gun = elf.ray.LoadSound("assets/gun.wav")
 }
 log("Done")
 
@@ -132,6 +151,12 @@ ShakeCamera = fun (mag) ? {
 }
 
 elf.ray.SetTargetFPS(60);
+// while elf.ray.WindowShouldClose() == false ? {
+// 	elf.ray.BeginDrawing()
+// 		elf.ray.ClearBackground(elf.ray.DARKGRAY)
+// 		elf.ray.DrawFPS(0,0)
+// 	elf.ray.EndDrawing()
+// }
 
 /* Main Loop */
 while elf.ray.WindowShouldClose() == false ? {
@@ -163,12 +188,12 @@ while elf.ray.WindowShouldClose() == false ? {
 	for i in Particles:length() ? {
 		let bullet = Particles:idx(i)
 		if bullet != nil ? {
-			let bulpos = bullet.pos:add(bullet.vel:mul1(delta))
-			bullet.vel = bullet.vel:mul1(0.999)
+			let bulpos = bullet.pos + bullet.vel * delta
+			bullet.vel = bullet.vel * 0.999
 			bullet.pos = bulpos
-			// if bulpos:sub(bullet.from.xyz):len() > 1024 ? {
-			// 	Particles:xrem(i) i = i - 1
-			// }
+			if bulpos:sub(bullet.from.pos):len() > 1024 ? {
+				Particles:xrem(i) i = i - 1
+			}
 		}
 	}
 
@@ -190,10 +215,11 @@ while elf.ray.WindowShouldClose() == false ? {
 					DrawEntity(entity)
 				}
 			}
-			let buf = ftemp()
-			fpf(buf,"fps: ", elf.ray.GetFPS(), " ngc: ", elf.GCN(), " mgc: ", elf.GCM()/1024/1024)
-			elf.ray.DrawText(freadall(buf),0,0,20,elf.ray.RED);
-			fclose(buf)
+			elf.ray.DrawFPS(0,0)
+			// let buf = ftemp()
+			// fpf(buf,"fps: ", elf.ray.GetFPS(), " bullets: ", Particles:length(), " ngc: ", elf.GCN(), " mgc: ", elf.GCM()/1024/1024)
+			// elf.ray.DrawText(freadall(buf),0,0,20,elf.ray.RED);
+			// fclose(buf)
 		elf.ray.EndMode2D()
 	elf.ray.EndDrawing()
 }

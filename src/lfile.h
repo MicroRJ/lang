@@ -98,4 +98,4 @@ typedef struct elf_FileState {
 
 lnodeid elf_fsloadexpr(elf_FileState *fs);
 lnodeid elf_fsloadunary(elf_FileState *fs);
-void elfY_loadstat(elf_FileState *fs);
+void elf_fsloadstat(elf_FileState *fs);

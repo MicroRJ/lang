@@ -12,8 +12,12 @@ of objects, so that's something we have to
 take into account, and most of the time you
 make small allocations tightly, so that's where
 most of the spikes occur */
-#define L_GC_THRESHOLD_MIN (elf_int) MEGABYTES(1)
-#define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(16)
+#define L_GC_THRESHOLD_MIN (elf_int) MEGABYTES(2)
+#define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(8)
+
+
+#define L_GC_OBJNUM_THRESHOLD_MIN (elf_int) 512
+#define L_GC_OBJNUM_THRESHOLD_MAX (elf_int) 8192
 
 
 void elf_collect(elf_Runtime *fs);
@@ -37,6 +41,9 @@ void *elf_newobj(elf_Runtime *R, elf_objty type, elf_int tell) {
 	if (R->gcthreshold <= 0) {
 		R->gcthreshold = L_GC_THRESHOLD_MIN;
 	}
+	if (elf_varlen(R->gc) > L_GC_OBJNUM_THRESHOLD_MAX) {
+		elf_collect(R);
+	} else
 	if (R->gcmemory >= R->gcthreshold) {
 		R->gcthreshold *= 2;
 		if (R->gcthreshold > L_GC_THRESHOLD_MAX) {

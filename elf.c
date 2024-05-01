@@ -11,17 +11,6 @@
 
 int main(int n, char **c) {
 	(void) n;
-
-	#if defined(_DEBUG)
-	sys_consolelog(ELF_LOGDBUG,"COMPILER CHECK:");
-	int *var = {0};
-	elf_varadd(var,1);
-	if (var[0] != 1) sys_consolelog(ELF_LOGERROR,"FAILED: var.add!\n");
-	if (elf_varlen(var) != 1) sys_consolelog(ELF_LOGERROR,"FAILED: 'var.len!\n");
-	int arr[1] = {1};
-	if (arr[0] != 1) sys_consolelog(ELF_LOGERROR,"FAILED: arr!\n");
-	#endif
-
 	if (n == 1) {
 		printf("\n\tUSAGE: elf.exe [options] file...\n");
 		return 0;
@@ -29,45 +18,60 @@ int main(int n, char **c) {
 
 	elf_inimem();
 	elf_Module M = {0};
-	elf_Runtime R = {{&M}};
-	R.logging = lfalse;
-	R.stklen = 4096;
-	R.stk = R.top = elf_clearalloc(lHEAP,sizeof(elf_val)*R.stklen);
-	R.metatable_str = elf_newstrmetatab(&R);
-	R.metatable_tab = elf_newtabmetatab(&R);
-	elf_CallFrame root = {0};
-	root.base = R.top;
-	R.frame = &root;
-	M.g = elf_locnewtab(&R);
-	/* todo: eventually we'll load these from the
-	source code, each lib will be built independently,
-	or maybe we can add a flag so that we don't load
-	these libraries. */
-	netlib_load(&R);
-	elflib_load(&R);
-	tstlib_load(&R);
-	crtlib_load(&R);
+	elf_Runtime R = {0};
+	elf_runini(&R,&M);
 
 	elf_CallFrame frame = {0};
 	frame.base = R.top;
 	R.frame = &frame;
 
-	/* todo: mark this as trap to figure out why
-	gc is freeing this up! */
-	elf_String *filename = elf_locnewstr(&R,c[1]);
-	filename->obj.gccolor = GC_PINK;
+	elf_bool dump = lfalse;
+	FILE *dumpf = lnil;
+	char *codefile = "unnamed";
+	char *contents = lnil;
+	#define ISOP(N) (!strncmp(c[i],"--"N,2+sizeof(N)-1))
+	#define ISARG() (strncmp(c[i],"--",2))
+	#define HASARG() ((i+1<n) && strncmp(c[i+1],"--",2))
+	#define GETARG(E) (HASARG() ? c[++i] : E)
+
+	for (int i = 1; i < n; ++i) {
+		if (ISARG()) {
+			codefile = c[i];
+		} else if (ISOP("dump")) {
+			elf_loginfo("--dump: dumping module");
+			dump = ltrue;
+			char *filename = GETARG(0);
+			if (filename != lnil) {
+				if (!strcmp(filename,"stdout")) {
+					dumpf = stdout;
+				} else dumpf = fopen(filename,"wb");
+				if (dumpf == lnil) {
+					elf_logerror("'%s': file specified could not be opened for writting",filename);
+				}
+			}
+		} else if (ISOP("code")) {
+			elf_loginfo("--code: evaluating code (use string)");
+			contents = GETARG(0);
+			goto leave;
+		}
+	}
+
 	elf_FileState fs = {0};
-	elf_loadfile(&R,&fs,filename,0,0);
+	elf_loadfile(&R,&fs,elf_newlocstr(&R,codefile),0,0);
+	leave:
+	if (contents != lnil) {
+		elf_FileState fs = {0};
+		elf_loadcode(&R,&fs,elf_newlocstr(&R,codefile),0,0,contents);
+	}
 
-#if !defined(PLATFORM_WEB)
-	FILE *file;
-	fopen_s(&file,elf_tpf("%s.module.ignore",filename->c),"wb");
-	if (file != lnil) lang_dumpmodule(&M,file);
-	fclose(file);
-#endif
-
+	if (dump) {
+		if (dump && !dumpf) {
+			dumpf = fopen(elf_tpf("%s.module.ignore",codefile),"wb");
+		}
+		if (dumpf != lnil) lang_dumpmodule(&M,dumpf);
+		if (dumpf != lnil) fclose(dumpf);
+	}
 	sys_consolelog(ELF_LOGINFO,"exited");
-
 	return 0;
 }
 

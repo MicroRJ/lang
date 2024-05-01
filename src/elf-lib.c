@@ -6,19 +6,19 @@
 
 
 int elflib_GCM(elf_Runtime *R) {
-	elf_putint(R,R->gcmemory);
+	elf_locint(R,R->gcmemory);
 	return 1;
 }
 
 
 int elflib_GCT(elf_Runtime *R) {
-	elf_putint(R,R->gcthreshold);
+	elf_locint(R,R->gcthreshold);
 	return 1;
 }
 
 
 int elflib_GCN(elf_Runtime *R) {
-	elf_putint(R,elf_varlen(R->gc));
+	elf_locint(R,elf_varlen(R->gc));
 	return 1;
 }
 
@@ -28,8 +28,8 @@ int elflib_GCN(elf_Runtime *R) {
 int elflib_iton(elf_Runtime *R) {
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_INT) {
-		elf_putnum(R,(elf_num)v.i);
-	} else elf_putnum(R,v.n);
+		elf_locnum(R,(elf_num)v.i);
+	} else elf_locnum(R,v.n);
 	return 1;
 }
 
@@ -37,8 +37,8 @@ int elflib_iton(elf_Runtime *R) {
 int elflib_ntoi(elf_Runtime *R) {
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_NUM) {
-		elf_putint(R,(elf_int)v.n);
-	} else elf_putint(R,v.i);
+		elf_locint(R,(elf_int)v.n);
+	} else elf_locint(R,v.i);
 	return 1;
 }
 
@@ -65,9 +65,9 @@ int elflib_libfn(elf_Runtime *rt) {
 	elf_String *name = elf_getstr(rt,1);
 	lBinding fn = (lBinding) sys_libfn(lib,name->c);
 	if (fn != lnil) {
-		elf_putbinding(rt,fn);
+		elf_locbinding(rt,fn);
 	} else {
-		elf_putnil(rt);
+		elf_locnil(rt);
 	}
 	return 1;
 }
@@ -83,8 +83,8 @@ int elflib_loadlib(elf_Runtime *R) {
 	elf_Closure *callback = elf_getcls(R,1);
 	elf_Handle lib = sys_loadlib(name->c);
 	if (lib != lnil) {
-		elf_putsys(R,lib);
-	} else elf_putnil(R);
+		elf_locsys(R,lib);
+	} else elf_locnil(R);
 	return 1;
 }
 
@@ -95,11 +95,11 @@ int elflib_exec(elf_Runtime *R) {
 	STARTUPINFO si = {sizeof(si)};
 	PROCESS_INFORMATION pi = {0};
 	int result = CreateProcess(NULL,cmd->c,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi);
-	elf_putint(R,result);
+	elf_locint(R,result);
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 #else
-	elf_putint(R,0);
+	elf_locint(R,0);
 #endif
 	return 1;
 }
@@ -113,8 +113,8 @@ int elflib_freadall(elf_Runtime *R) {
 		fseek(file,0,SEEK_SET);
 		elf_String *buf = elf_newstrlen(R,size);
 		fread(buf->c,1,size,file);
-		elf_putstr(R,buf);
-	} else elf_putnil(R);
+		elf_locstr(R,buf);
+	} else elf_locnil(R);
 	return 1;
 }
 
@@ -126,7 +126,7 @@ int elflib_ftemp(elf_Runtime *R) {
 #else
 	tmpfile_s(&file);
 #endif
-	elf_putsys(R,(elf_Handle)file);
+	elf_locsys(R,(elf_Handle)file);
 	return 1;
 }
 
@@ -135,7 +135,7 @@ int elflib_workdir(elf_Runtime *rt) {
 	elf_logerror("this function is deprecated");
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
-	elf_locnewstr(rt,buf);
+	elf_newlocstr(rt,buf);
 	if (rt->f->x == 1) {
 		elf_String *s = elf_getstr(rt,0);
 		sys_setpwd(s->c);
@@ -147,7 +147,7 @@ int elflib_workdir(elf_Runtime *rt) {
 int elflib_pwd(elf_Runtime *rt) {
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
-	elf_locnewstr(rt,buf);
+	elf_newlocstr(rt,buf);
 	return 1;
 }
 
@@ -165,7 +165,7 @@ int elflib_fpf(elf_Runtime *rt) {
 	for (int i = 1; i < rt->f->x; i ++) {
 		wrote += elf_valfpf(file,elf_getval(rt,i),lfalse);
 	}
-	elf_putint(rt,wrote);
+	elf_locint(rt,wrote);
 	return 1;
 }
 
@@ -197,7 +197,7 @@ elf_api int elflib_sleep(elf_Runtime *rt) {
 
 
 elf_api int elflib_clocktime(elf_Runtime *rt) {
-	elf_putint(rt,sys_clocktime());
+	elf_locint(rt,sys_clocktime());
 	return 1;
 }
 
@@ -205,7 +205,7 @@ elf_api int elflib_clocktime(elf_Runtime *rt) {
 elf_api int elflib_timediffs(elf_Runtime *rt) {
 	elf_ensure(rt->f->x == 1);
 	elf_int i = elf_getint(rt,0);
-	elf_putnum(rt,(sys_clocktime() - i) / (elf_num) sys_clockhz());
+	elf_locnum(rt,(sys_clocktime() - i) / (elf_num) sys_clockhz());
 	return 1;
 }
 
@@ -232,16 +232,16 @@ void elflib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *
 		elf_String *name = elf_newstr(R,f.cFileName);
 		elf_String *path = elf_newstr(R,elf_tpf("%s\\%s",d->c,f.cFileName));
 
-		llocalid base = elf_putcls(R,cl);
-		elf_Table *file = elf_locnewtab(R);
-		elf_puttab(R,flags);
+		llocalid base = elf_loccls(R,cl);
+		elf_Table *file = elf_newloctab(R);
+		elf_loctab(R,flags);
 		elf_tabsetstrfld(file,keyname,name);
 		elf_tabsetstrfld(file,keypath,path);
 		elf_tabsetintfld(file,keyisdir,isdir);
 
 		int r = elf_callfn(R,base,2,1);
 		if ((r > 0) && elf_getint(R,base)) {
-			elf_tabset(list,elf_valstr(path),lang_T(file));
+			elf_tabset(list,elf_valstr(path),elf_valtab(file));
 			if (isdir) {
 				elflib_listdir_(R,path,list,flags,cl);
 			}
@@ -257,20 +257,20 @@ void elflib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *
 			}
 			elf_bool isdir = (entry->d_type & DT_DIR) != lfalse;
 			elf_val *top = elf_gettop(R);
-			elf_String *name = elf_locnewstr(R,entry->d_name);
-			elf_String *path = elf_locnewstr(R,elf_tpf("%s/%s",d->c,entry->d_name));
+			elf_String *name = elf_newlocstr(R,entry->d_name);
+			elf_String *path = elf_newlocstr(R,elf_tpf("%s/%s",d->c,entry->d_name));
 
-			llocalid base = elf_putcls(R,cl);
+			llocalid base = elf_loccls(R,cl);
 			/* file and flags arguments */
-			elf_Table *file = elf_locnewtab(R);
-			elf_puttab(R,flags);
+			elf_Table *file = elf_newloctab(R);
+			elf_loctab(R,flags);
 			elf_tabsetstrfld(file,keyname,name);
 			elf_tabsetstrfld(file,keypath,path);
 			elf_tabsetintfld(file,keyisdir,isdir);
 
 			int r = elf_callfn(R,base,2,1);
 			if ((r > 0) && elf_getint(R,base)) {
-				elf_tabset(list,elf_valstr(path),lang_T(file));
+				elf_tabset(list,elf_valstr(path),elf_valtab(file));
 				if (isdir) {
 					elflib_listdir_(R,path,list,flags,cl);
 				}
@@ -287,14 +287,14 @@ elf_api int elflib_listdir(elf_Runtime *R) {
 	elf_ensure(R->frame->x == 2);
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */
-	keyname = elf_locnewstr(R,"name");
-	keypath = elf_locnewstr(R,"path");
-	keyisdir = elf_locnewstr(R,"isdir");
+	keyname = elf_newlocstr(R,"name");
+	keypath = elf_newlocstr(R,"path");
+	keyisdir = elf_newlocstr(R,"isdir");
 	elf_Closure *cl = elf_getcls(R,1);
 	elf_String *dir = elf_getstr(R,0);
-	elf_Table *flags = elf_locnewtab(R);
+	elf_Table *flags = elf_newloctab(R);
 	/* push list last to serve as return value */
-	elf_Table *list = elf_locnewtab(R);
+	elf_Table *list = elf_newloctab(R);
 	elflib_listdir_(R,dir,list,flags,cl);
 	return 1;
 }
