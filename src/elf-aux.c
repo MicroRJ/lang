@@ -16,17 +16,17 @@ void elf_debugger(char *message) {
 }
 
 
-void elf_registerint(elf_Runtime *R, char *name, int val) {
+void elf_registerint(elf_ThreadState *R, char *name, int val) {
 	lang_addglobal(R->M,elf_newlocstr(R,name),elf_valint(val));
 }
 
 
-void elf_register(elf_Runtime *R, char *name, lBinding fn) {
+void elf_register(elf_ThreadState *R, char *name, lBinding fn) {
 	lang_addglobal(R->M,elf_newlocstr(R,name),elf_valbid(fn));
 }
 
 
-void elf_tabmfld(elf_Runtime *R, elf_Table *obj, char *name, lBinding b) {
+void elf_tabmfld(elf_ThreadState *R, elf_Table *obj, char *name, lBinding b) {
 	elf_tabset(obj,elf_valstr(elf_newstr(R,name)),elf_valbid(b));
 }
 
@@ -42,13 +42,17 @@ elf_num elf_timediffs(elf_int begin) {
 }
 
 
-int elf_fndlinefile(elf_Module *md, llineid line) {
+int elf_fndfilebyline(elf_Module *md, llineid line) {
 	elf_File *files = md->files;
 	int nfiles = elf_varlen(files);
 	for (int x = 0; x < nfiles; ++ x) {
-		if (line < files[x].lines) continue;
-		if (line > files[x].lines+files[x].nlines-1) continue;
-		return x;
+		elf_File fl = files[x];
+		if ((elf_int)(line - fl.lines) < fl.nlines) {
+			return x;
+		}
+		// if (line < fl.lines) continue;
+		// if (line > fl.lines+fl.nlines-1) continue;
+		// return x;
 	}
 	return -1;
 }
@@ -121,14 +125,22 @@ void elf_lineerror2(char *filename, char *contents, char *loc, char const *fmt, 
 }
 
 
-void elf_throw(elf_Runtime *R, lbyteid id, char *error) {
+void elf_throw(elf_ThreadState *R, lbyteid id, char *error) {
 	elf_Module *md = R->md;
 	if (id == NO_BYTE) id = R->j;
 	llineid line = md->lines[id];
-	int fileid = elf_fndlinefile(md,line);
+	int fileid = elf_fndfilebyline(md,line);
 	if (fileid != -1) {
 		elf_File *file = &md->files[fileid];
 		elf_lineerror2(file->name,file->lines,line,error);
 	}
-	// elf_debugger("runtime throw");
+	elf_debugger("runtime throw");
+}
+
+
+int elf_tycheck(elf_ThreadState *R, lbyteid id, llocalid loc, elf_valtag x, elf_valtag y) {
+	if (x != y) {
+		elf_throw(R,id,elf_tpf("$%i, expected %s, instead got %s",loc,tag2s[x],tag2s[y]));
+	}
+	return x == y;
 }

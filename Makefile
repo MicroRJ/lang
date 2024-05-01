@@ -31,8 +31,8 @@ src/elf-tab.h \
 src/elf-web.c \
 src/elf-api.c \
 src/elf-api.h \
-src/larray.c \
-src/larray.h \
+src/elf-var.c \
+src/elf-var.h \
 src/elf-byte.h \
 src/lcode.c \
 src/lcode.h \
@@ -65,7 +65,7 @@ src/elf-sys.c \
 src/elf-sys.h \
 src/ltest.c \
 src/ltoken.h \
-src/ltype.h \
+src/elf-tys.h \
 src/lwasm.c
 
 #  --preload-file code/examples --preload-file code/tests
@@ -82,8 +82,9 @@ all: build/elf.exe build/lgilib.dll build/raylib.dll tests/web_emul.exe
 build/elf.exe: elf.h elf.c $(SRC)
 	$(CC) $(CFLAGS) elf.c -o build/elf.exe -I.
 # winmm.lib
+WINLIBS = shell32.lib Gdi32.lib winmm.lib
 build/raylib.dll: elf.h $(SRC) elf-ray/raylib.c
-	$(CC) $(CFLAGS) elf-ray/raylib.c -o $(OUT)/raylib.dll -I. -Ielf-ray/raylib/src /link /DLL shell32.lib Gdi32.lib elf-ray/libraylib.lib
+	$(CC) $(CFLAGS) elf-ray/raylib.c -o $(OUT)/raylib.dll -I. -Ielf-ray/raylib/src /link /DLL $(WINLIBS) elf-ray/libraylib.lib
 build/lgilib.dll: elf.h $(SRC)
 	$(CC) $(CFLAGS) elf-lgi/lgilib.c -o build/lgilib.dll -I. -Ielf-lgi/lgi /link /DLL
 tests/web_emul.exe: elf.h tests/web_emul.c elf-web.c $(SRC)

@@ -15,55 +15,55 @@
 #endif
 
 
-int crtlib_floor(elf_Runtime *R) {
+int crtlib_floor(elf_ThreadState *R) {
 	elf_locnum(R,floor(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_sqrt(elf_Runtime *R) {
+int crtlib_sqrt(elf_ThreadState *R) {
 	elf_locnum(R,sqrt(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_sin(elf_Runtime *R) {
+int crtlib_sin(elf_ThreadState *R) {
 	elf_locnum(R,sin(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_cos(elf_Runtime *R) {
+int crtlib_cos(elf_ThreadState *R) {
 	elf_locnum(R,cos(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_tan(elf_Runtime *R) {
+int crtlib_tan(elf_ThreadState *R) {
 	elf_locnum(R,tan(elf_getnum(R,0)));
 	return 1;
 }
 
 
-int crtlib_atan2(elf_Runtime *R) {
+int crtlib_atan2(elf_ThreadState *R) {
 	elf_locnum(R,atan2(elf_getnum(R,0),elf_getnum(R,1)));
 	return 1;
 }
 
 
-int crtlib_abort(elf_Runtime *rt) {
+int crtlib_abort(elf_ThreadState *rt) {
 	if(1) abort();
 	return 0;
 }
 
 
-int crtlib_exit(elf_Runtime *rt) {
+int crtlib_exit(elf_ThreadState *rt) {
 	if(1) exit(elf_getint(rt,0));
 	return 0;
 }
 
 
-int crtlib__chdir(elf_Runtime *rt) {
+int crtlib__chdir(elf_ThreadState *rt) {
 	elf_String *name = elf_getstr(rt,0);
 #if defined(PLATFORM_WEB)
 	elf_locint(rt,chdir(name->c));
@@ -74,7 +74,7 @@ int crtlib__chdir(elf_Runtime *rt) {
 }
 
 
-int crtlib_fopen(elf_Runtime *c) {
+int crtlib_fopen(elf_ThreadState *c) {
 	elf_String *name = elf_getstr(c,0);
 	elf_String *flags = elf_getstr(c,1);
 	FILE *file = lnil;
@@ -88,14 +88,14 @@ int crtlib_fopen(elf_Runtime *c) {
 }
 
 
-int crtlib_fclose(elf_Runtime *c) {
+int crtlib_fclose(elf_ThreadState *c) {
 	elf_Handle file = elf_getsys(c,0);
 	fclose(file);
 	return 0;
 }
 
 
-int crtlib_fsize(elf_Runtime *c) {
+int crtlib_fsize(elf_ThreadState *c) {
 	elf_Handle file = elf_getsys(c,0);
 	fseek(file,0,SEEK_END);
 	elf_locint(c,ftell(file));
@@ -105,31 +105,31 @@ int crtlib_fsize(elf_Runtime *c) {
 
 #if defined(_MSC_VER)
 
-int crtlib__getch(elf_Runtime *rt) {
+int crtlib__getch(elf_ThreadState *rt) {
 	elf_locint(rt,_getch());
 	return 1;
 }
 
 
-int crtlib__getpid(elf_Runtime *rt) {
+int crtlib__getpid(elf_ThreadState *rt) {
 	elf_locint(rt,_getpid());
 	return 1;
 }
 
 
-int crtlib_time(elf_Runtime *rt) {
+int crtlib_time(elf_ThreadState *rt) {
 	elf_locint(rt,time(0));
 	return 1;
 }
 
 
-int crtlib_clock(elf_Runtime *rt) {
+int crtlib_clock(elf_ThreadState *rt) {
 	elf_locint(rt,clock());
 	return 1;
 }
 
 
-int crtlib__strdate(elf_Runtime *rt) {
+int crtlib__strdate(elf_ThreadState *rt) {
 	char buf[128];
 	_strdate_s(buf,sizeof(buf));
 	elf_newlocstr(rt,buf);
@@ -137,7 +137,7 @@ int crtlib__strdate(elf_Runtime *rt) {
 }
 
 
-int crtlib__strtime(elf_Runtime *rt) {
+int crtlib__strtime(elf_ThreadState *rt) {
 	char buf[128];
 	_strtime_s(buf,sizeof(buf));
 	elf_newlocstr(rt,buf);
@@ -145,21 +145,21 @@ int crtlib__strtime(elf_Runtime *rt) {
 }
 
 
-int crtlib__unlink(elf_Runtime *rt) {
+int crtlib__unlink(elf_ThreadState *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_locint(rt,_unlink(name->c));
 	return 1;
 }
 
 
-int crtlib__unlock_file(elf_Runtime *rt) {
+int crtlib__unlock_file(elf_ThreadState *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	_unlock_file(file);
 	return 0;
 }
 
 
-int crtlib__write(elf_Runtime *rt) {
+int crtlib__write(elf_ThreadState *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	elf_String *buf = elf_getstr(rt,1);
 	elf_locint(rt,_write((elf_int)file,buf->c,buf->length));
@@ -167,28 +167,28 @@ int crtlib__write(elf_Runtime *rt) {
 }
 
 
-int crtlib__close(elf_Runtime *rt) {
+int crtlib__close(elf_ThreadState *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	elf_locint(rt,_close((int)(elf_int)file));
 	return 1;
 }
 
 
-int crtlib__commit(elf_Runtime *rt) {
+int crtlib__commit(elf_ThreadState *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	elf_locint(rt,_commit((int)(elf_int)file));
 	return 1;
 }
 
 
-int crtlib__chdrive(elf_Runtime *rt) {
+int crtlib__chdrive(elf_ThreadState *rt) {
 	elf_int letter = elf_getint(rt,0);
 	elf_locint(rt,_chdrive(letter));
 	return 1;
 }
 
 
-int crtlib__chmode(elf_Runtime *rt) {
+int crtlib__chmode(elf_ThreadState *rt) {
 	elf_String *name = elf_getstr(rt,0);
 	elf_int mode = elf_getint(rt,1);
 	elf_locint(rt,_chmod(name->c,mode));
@@ -196,14 +196,14 @@ int crtlib__chmode(elf_Runtime *rt) {
 }
 
 
-int crtlib__execl(elf_Runtime *rt) {
+int crtlib__execl(elf_ThreadState *rt) {
 	elf_String *cl = elf_getstr(rt,0);
 	elf_locint(rt,_execl(cl->c,0,0));
 	return 1;
 }
 
 
-int crtlib_system(elf_Runtime *rt) {
+int crtlib_system(elf_ThreadState *rt) {
 	elf_String *cl = elf_getstr(rt,0);
 	elf_locint(rt,system(cl->c));
 	return 1;
@@ -211,7 +211,7 @@ int crtlib_system(elf_Runtime *rt) {
 #else
 
 #define DEFSTUB(NAME) \
-int NAME(elf_Runtime *R) {\
+int NAME(elf_ThreadState *R) {\
 	elf_logerror(XSTRINGIFY(NAME)"(): not implemented for this platform");\
 	return 0;\
 }
@@ -233,7 +233,7 @@ DEFSTUB(crtlib__execl)
 DEFSTUB(crtlib_system)
 #endif
 
-elf_api void crtlib_load(elf_Runtime *rt) {
+elf_api void crtlib_load(elf_ThreadState *rt) {
 	elf_Module *md = rt->md;
 
 	lang_addglobal(md,elf_newlocstr(rt,"floor"),elf_valbid(crtlib_floor));
@@ -243,9 +243,9 @@ elf_api void crtlib_load(elf_Runtime *rt) {
 	lang_addglobal(md,elf_newlocstr(rt,"tan"),elf_valbid(crtlib_tan));
 	lang_addglobal(md,elf_newlocstr(rt,"atan2"),elf_valbid(crtlib_atan2));
 
-	lang_addglobal(md,elf_newlocstr(rt,"stderr"),lang_H(stderr));
-	lang_addglobal(md,elf_newlocstr(rt,"stdout"),lang_H(stdout));
-	lang_addglobal(md,elf_newlocstr(rt,"stdin"),lang_H(stdin));
+	lang_addglobal(md,elf_newlocstr(rt,"stderr"),elf_valsys(stderr));
+	lang_addglobal(md,elf_newlocstr(rt,"stdout"),elf_valsys(stdout));
+	lang_addglobal(md,elf_newlocstr(rt,"stdin"),elf_valsys(stdin));
 
 
 	lang_addglobal(md,elf_newlocstr(rt,"abort"),elf_valbid(crtlib_abort));

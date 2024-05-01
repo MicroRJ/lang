@@ -18,7 +18,7 @@ int main(int n, char **c) {
 
 	elf_inimem();
 	elf_Module M = {0};
-	elf_Runtime R = {0};
+	elf_ThreadState R = {0};
 	elf_runini(&R,&M);
 
 	elf_CallFrame frame = {0};
@@ -56,12 +56,16 @@ int main(int n, char **c) {
 		}
 	}
 
+	elf_String *filename = elf_newlocstr(&R,codefile);
+	filename->obj.gccolor = GC_PINK;
 	elf_FileState fs = {0};
-	elf_loadfile(&R,&fs,elf_newlocstr(&R,codefile),0,0);
+	elf_loadfile(&R,&fs,filename,0,0);
 	leave:
 	if (contents != lnil) {
+		elf_String *filename = elf_newlocstr(&R,codefile);
+		filename->obj.gccolor = GC_PINK;
 		elf_FileState fs = {0};
-		elf_loadcode(&R,&fs,elf_newlocstr(&R,codefile),0,0,contents);
+		elf_loadcode(&R,&fs,filename,0,0,contents);
 	}
 
 	if (dump) {

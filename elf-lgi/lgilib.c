@@ -4,7 +4,7 @@
 ** lgi Bindings For elf
 */
 
-#define ELF_NOIMPL
+#define ELF_NOLIBS
 #define ELF_KEEPWARNINGS
 #define ELF_KEEPWINDOWS
 #include <elf.h>
@@ -13,45 +13,45 @@
 
 
 
-elf_libfundecl int lgilib_wasButtonDown(elf_Runtime *R) {
+elf_libfundecl int lgilib_wasButtonDown(elf_ThreadState *R) {
 	elf_locint(R,lgi_wasButtonDown((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_isButtonDown(elf_Runtime *R) {
+elf_libfundecl int lgilib_isButtonDown(elf_ThreadState *R) {
 	elf_locint(R,lgi_isButtonDown((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_isButtonReleased(elf_Runtime *R) {
+elf_libfundecl int lgilib_isButtonReleased(elf_ThreadState *R) {
 	elf_locint(R,lgi_isButtonReleased((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_isButtonPressed(elf_Runtime *R) {
+elf_libfundecl int lgilib_isButtonPressed(elf_ThreadState *R) {
 	elf_locint(R,lgi_isButtonPressed((int) elf_getint(R,0)));
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_time(elf_Runtime *rt) {
+elf_libfundecl int lgilib_time(elf_ThreadState *rt) {
 	elf_num time = lgi.Time.totalSeconds;
 	elf_locnum(rt,time);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_deltatime(elf_Runtime *rt) {
+elf_libfundecl int lgilib_deltatime(elf_ThreadState *rt) {
 	elf_num time = lgi.Time.deltaSeconds;
 	elf_locnum(rt,time);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_initWindowed(elf_Runtime *rt) {
+elf_libfundecl int lgilib_initWindowed(elf_ThreadState *rt) {
 	int windowWidth = (int) elf_getint(rt,0);
 	int windowHeight = (int) elf_getint(rt,1);
 	elf_String *name = elf_getstr(rt,2);
@@ -60,14 +60,14 @@ elf_libfundecl int lgilib_initWindowed(elf_Runtime *rt) {
 }
 
 
-elf_libfundecl int lgilib_binddeftex(elf_Runtime *R) {
+elf_libfundecl int lgilib_binddeftex(elf_ThreadState *R) {
 	(void) R;
 	lgi_bindTexture(0,lgi.whiteTexture,lgi_True);
 	return 0;
 }
 
 
-elf_libfundecl int lgilib_loadtexture(elf_Runtime *R) {
+elf_libfundecl int lgilib_loadtexture(elf_ThreadState *R) {
 	elf_String *filename = elf_getstr(R,0);
 	lgi_Texture *texture = lgi_loadTexture(filename->c);
 	elf_locsys(R,(elf_Handle)texture);
@@ -75,21 +75,21 @@ elf_libfundecl int lgilib_loadtexture(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_gettexturewidth(elf_Runtime *R) {
+elf_libfundecl int lgilib_gettexturewidth(elf_ThreadState *R) {
 	lgi_Texture *texture = (lgi_Texture *) elf_getsys(R,0);
 	elf_locint(R,texture->size_x);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_gettextureheight(elf_Runtime *R) {
+elf_libfundecl int lgilib_gettextureheight(elf_ThreadState *R) {
 	lgi_Texture *texture = (lgi_Texture *) elf_getsys(R,0);
 	elf_locint(R,texture->size_y);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_bindtexture(elf_Runtime *R) {
+elf_libfundecl int lgilib_bindtexture(elf_ThreadState *R) {
 	// lgi_bindProgram(lgi.defaultProgram);
 	lgi_Texture *tex = (lgi_Texture *) elf_getsys(R,0);
 	lgi_bindTexture(0,tex,lgi_True);
@@ -97,7 +97,7 @@ elf_libfundecl int lgilib_bindtexture(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_beginvertices(elf_Runtime *R) {
+elf_libfundecl int lgilib_beginvertices(elf_ThreadState *R) {
 	int ni = (int) elf_getint(R,0);
 	int nv = (int) elf_getint(R,1);
 	lgi_beginVertexArray(ni,nv);
@@ -105,14 +105,14 @@ elf_libfundecl int lgilib_beginvertices(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_closevertices(elf_Runtime *R) {
+elf_libfundecl int lgilib_closevertices(elf_ThreadState *R) {
 	(void) R;
 	lgi_endVertexArray();
 	return 0;
 }
 
 
-elf_libfundecl int lgilib_addnidx(elf_Runtime *R) {
+elf_libfundecl int lgilib_addnidx(elf_ThreadState *R) {
 	int num = R->call->x;
 	lgi_ASSERT(lgi.State.index_tally + num < lgi_DEFAULT_INDEX_BUFFER_LENGTH);
 	for(int i=0; i<num; i+=1) {
@@ -125,7 +125,7 @@ elf_libfundecl int lgilib_addnidx(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_attrrgba(elf_Runtime *R) {
+elf_libfundecl int lgilib_attrrgba(elf_ThreadState *R) {
 	lgi.State.attr.r = (float) elf_getnum(R,0);
 	lgi.State.attr.g = (float) elf_getnum(R,1);
 	lgi.State.attr.b = (float) elf_getnum(R,2);
@@ -134,7 +134,7 @@ elf_libfundecl int lgilib_attrrgba(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_attrxyzw(elf_Runtime *R) {
+elf_libfundecl int lgilib_attrxyzw(elf_ThreadState *R) {
 	lgi.State.attr.x = (float) elf_getnum(R,0);
 	lgi.State.attr.y = (float) elf_getnum(R,1);
 	lgi.State.attr.z = (float) elf_getnum(R,2);
@@ -143,14 +143,14 @@ elf_libfundecl int lgilib_attrxyzw(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_attruv(elf_Runtime *R) {
+elf_libfundecl int lgilib_attruv(elf_ThreadState *R) {
 	lgi.State.attr.u = (float) elf_getnum(R,0);
 	lgi.State.attr.v = (float) elf_getnum(R,1);
 	return 0;
 }
 
 
-elf_libfundecl int lgilib_attrxyuv(elf_Runtime *R) {
+elf_libfundecl int lgilib_attrxyuv(elf_ThreadState *R) {
 	lgi.State.attr.x = (float) elf_getnum(R,0);
 	lgi.State.attr.y = (float) elf_getnum(R,1);
 	lgi.State.attr.u = (float) elf_getnum(R,2);
@@ -159,7 +159,7 @@ elf_libfundecl int lgilib_attrxyuv(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_pushvertex(elf_Runtime *R) {
+elf_libfundecl int lgilib_pushvertex(elf_ThreadState *R) {
 	(void) R;
 	lgi_Vertex vertex = lgi.State.attr;
 	lgi.State.vertex_array[
@@ -169,7 +169,7 @@ elf_libfundecl int lgilib_pushvertex(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_setsampler(elf_Runtime *R) {
+elf_libfundecl int lgilib_setsampler(elf_ThreadState *R) {
 	lgi_Texture *tex = (lgi_Texture *) elf_getsys(R,0);
 	elf_String *sampler = elf_getstr(R,1);
 	if (S_eq(sampler->c,"linear"))  {
@@ -182,14 +182,14 @@ elf_libfundecl int lgilib_setsampler(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_tick(elf_Runtime *rt) {
+elf_libfundecl int lgilib_tick(elf_ThreadState *rt) {
 	int r = lgi_tick();
 	elf_locint(rt,r);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_drawline(elf_Runtime *R) {
+elf_libfundecl int lgilib_drawline(elf_ThreadState *R) {
 	float r = (float) elf_getnum(R,0);
 	float g = (float) elf_getnum(R,1);
 	float b = (float) elf_getnum(R,2);
@@ -205,7 +205,7 @@ elf_libfundecl int lgilib_drawline(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_drawQuad(elf_Runtime *rt) {
+elf_libfundecl int lgilib_drawQuad(elf_ThreadState *rt) {
 	elf_ensure(elf_stklen(rt) == 8);
 	float r = (float) elf_getnum(rt,0);
 	float g = (float) elf_getnum(rt,1);
@@ -221,7 +221,7 @@ elf_libfundecl int lgilib_drawQuad(elf_Runtime *rt) {
 }
 
 
-elf_libfundecl int lgilib_drawQuadUV(elf_Runtime *R) {
+elf_libfundecl int lgilib_drawQuadUV(elf_ThreadState *R) {
 	elf_ensure(elf_stklen(R) == 9);
 	float r = (float) elf_getnum(R,0);
 	float g = (float) elf_getnum(R,1);
@@ -237,49 +237,49 @@ elf_libfundecl int lgilib_drawQuadUV(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int lgilib_clearBackground(elf_Runtime *rt) {
+elf_libfundecl int lgilib_clearBackground(elf_ThreadState *rt) {
 	(void) rt;
 	lgi_clearBackground(lgi_BLACK);
 	return 0;
 }
 
 
-elf_libfundecl int lgilib_testKey(elf_Runtime *R) {
+elf_libfundecl int lgilib_testKey(elf_ThreadState *R) {
 	int key = (int) elf_getint(R,0);
 	elf_locint(R,lgi_testKey(key));
 	return 1;
 }
 
-elf_libfundecl int lgilib_iskeydown(elf_Runtime *R) {
+elf_libfundecl int lgilib_iskeydown(elf_ThreadState *R) {
 	int key = (int) elf_getint(R,0);
 	elf_locint(R,GetKeyState(key)>>15);
 	return 1;
 }
 
-elf_libfundecl int lgilib_isshiftdown(elf_Runtime *R) {
+elf_libfundecl int lgilib_isshiftdown(elf_ThreadState *R) {
 	elf_locint(R,lgi.Input.Keyboard.is_shft);
 	return 1;
 }
 
-elf_libfundecl int lgilib_getcursorx(elf_Runtime *rt) {
+elf_libfundecl int lgilib_getcursorx(elf_ThreadState *rt) {
 	elf_locint(rt,lgi.Input.Mice.xcursor);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_getcursory(elf_Runtime *rt) {
+elf_libfundecl int lgilib_getcursory(elf_ThreadState *rt) {
 	elf_locint(rt,lgi.Input.Mice.ycursor);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_getSizeX(elf_Runtime *rt) {
+elf_libfundecl int lgilib_getSizeX(elf_ThreadState *rt) {
 	elf_locint(rt,lgi.Window.size_x);
 	return 1;
 }
 
 
-elf_libfundecl int lgilib_getSizeY(elf_Runtime *rt) {
+elf_libfundecl int lgilib_getSizeY(elf_ThreadState *rt) {
 	elf_locint(rt,lgi.Window.size_y);
 	return 1;
 }

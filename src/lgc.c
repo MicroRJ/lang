@@ -20,20 +20,20 @@ most of the spikes occur */
 #define L_GC_OBJNUM_THRESHOLD_MAX (elf_int) 8192
 
 
-void elf_collect(elf_Runtime *fs);
+void elf_collect(elf_ThreadState *fs);
 
 
-void elf_gcpause(elf_Runtime *fs) {
+void elf_gcpause(elf_ThreadState *fs) {
 	fs->gcflags = ltrue;
 }
 
 
-void elf_gcresume(elf_Runtime *fs) {
+void elf_gcresume(elf_ThreadState *fs) {
 	fs->gcflags = lfalse;
 }
 
 
-void *elf_newobj(elf_Runtime *R, elf_objty type, elf_int tell) {
+void *elf_newobj(elf_ThreadState *R, elf_objty type, elf_int tell) {
 	/* this is temporary! */
 	if (R != 0) {
 		R->gcmemory += tell;
@@ -73,17 +73,17 @@ void *elf_newobj(elf_Runtime *R, elf_objty type, elf_int tell) {
 }
 
 
-void elf_remobj(elf_Runtime *fs, elf_int i) {
+void elf_remobj(elf_ThreadState *fs, elf_int i) {
 	elf_Object **gc = fs->gc;
 	if (gc == 0) return;
 	elf_int n = elf_varlen(gc);
 	elf_ensure(i >= 0 && i < n);
 	gc[i] = gc[n-1];
-	((Array*)(gc))[-1].min --;
+	((elf_var*)(gc))[-1].min --;
 }
 
 
-void elf_delobj(elf_Runtime *R, elf_Object *obj) {
+void elf_delobj(elf_ThreadState *R, elf_Object *obj) {
 	if (obj != lnil) {
 		R->gcmemory -= obj->tell;
 		if (obj->type == OBJ_TAB) {
@@ -144,7 +144,7 @@ elf_bool elf_markval(elf_val *v) {
 }
 
 
-elf_int elf_markall(elf_Runtime *R) {
+elf_int elf_markall(elf_ThreadState *R) {
 	elf_int num = elf_markobj((elf_Object*)R->M->g);
 	for (elf_val *val = R->stk; val < R->top; ++ val) {
 		num += elf_markval(val);
@@ -153,7 +153,7 @@ elf_int elf_markall(elf_Runtime *R) {
 }
 
 
-void elf_collect(elf_Runtime *R) {
+void elf_collect(elf_ThreadState *R) {
 	elf_int num = elf_markall(R);
 #if defined(LLOGGING)
 	elf_int time_ = elf_clocktime();

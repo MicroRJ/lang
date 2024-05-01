@@ -1,6 +1,10 @@
 
-load "code/games/shooter/vec.elf"
+obj_add = fun() ? pf("add")
+let metatable = {
+	__add = obj_add
+}
+
 
 for i in 0..1000 ? {
-	let x = vec3(0,0,0)
+	let object = __of(metatable,{})
 }

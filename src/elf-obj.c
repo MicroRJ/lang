@@ -6,8 +6,13 @@
 
 
 
-elf_bool ttisnumeric(elf_valtag tag) {
-	return tag == TAG_NUM || tag == TAG_INT;
+elf_bool elf_tagisnumeric(elf_valtag tag) {
+	return (tag == TAG_NUM) || (tag == TAG_INT);
+}
+
+
+int elf_valisnil(elf_val x) {
+	return (x.tag == TAG_NIL) || (!elf_tagisnumeric(x.tag) && (x.p == lnil));
 }
 
 
@@ -22,7 +27,7 @@ elf_bool elf_tagisobj(elf_valtag tag) {
 }
 
 
-elf_valtag elf_tttotag(elf_objty type) {
+elf_valtag elf_objtotag(elf_objty type) {
 	switch(type) {
 		case OBJ_CLOSURE: return TAG_CLS;
 		case OBJ_TAB: return TAG_TAB;
@@ -33,42 +38,36 @@ elf_valtag elf_tttotag(elf_objty type) {
 }
 
 
-int elf_isnil(elf_val x) {
-	return (x.tag == TAG_NIL) || (!ttisnumeric(x.tag) && (x.p == lnil));
-}
-
-
-
-elf_api elf_val elf_valtab(elf_Table *t) {
-	elf_val v = (elf_val){TAG_TAB};
-	v.t = t;
+elf_api elf_val elf_valtab(elf_Table *tab) {
+	elf_val v = LITC(elf_val){TAG_TAB};
+	v.x_tab = tab;
 	return v;
 }
 
 
 elf_api elf_val elf_valbid(lBinding c) {
-	elf_val v = (elf_val){TAG_BID};
+	elf_val v = LITC(elf_val){TAG_BID};
 	v.c = c;
 	return v;
 }
 
 
-elf_api elf_val lang_H(elf_Handle h) {
-	elf_val v = (elf_val){TAG_SYS};
+elf_api elf_val elf_valsys(elf_Handle h) {
+	elf_val v = LITC(elf_val){TAG_SYS};
 	v.h = h;
 	return v;
 }
 
 
 elf_api elf_val elf_valstr(elf_String *s) {
-	elf_val v = (elf_val){TAG_STR};
+	elf_val v = LITC(elf_val){TAG_STR};
 	v.s = s;
 	return v;
 }
 
 
 elf_api elf_val elf_valcls(elf_Closure *f) {
-	elf_val v = (elf_val){TAG_CLS};
+	elf_val v = LITC(elf_val){TAG_CLS};
 	v.f = f;
 	return v;
 }

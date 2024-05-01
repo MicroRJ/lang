@@ -27,7 +27,7 @@ int main(int n, char **c) {
 
 
 struct {
-	elf_Runtime R;
+	elf_ThreadState R;
 	elf_Module M;
 	elf_CallFrame C;
 } elf_globaldecl elf = {{&elf.M}};

@@ -5,7 +5,7 @@
 */
 
 
-void elf_runini(elf_Runtime *R, elf_Module *M) {
+void elf_runini(elf_ThreadState *R, elf_Module *M) {
 	R->M = M;
 	R->logging = lfalse;
 	R->stklen = 4096;
@@ -25,7 +25,7 @@ void elf_runini(elf_Runtime *R, elf_Module *M) {
 	R->cache.__mul1 = elf_newlocstr(R,"__mul1");
 	R->cache.__div1 = elf_newlocstr(R,"__div1");
 
-	#if !defined(ELF_NOIMPL)
+	#if !defined(ELF_NOLIBS)
 	/* todo: eventually we'll load these from the
 	source code, each lib will be built independently,
 	or maybe we can add a flag so that we don't load
@@ -38,22 +38,15 @@ void elf_runini(elf_Runtime *R, elf_Module *M) {
 }
 
 
-int langR_typecheck(elf_Runtime *R, lbyteid id, llocalid loc, elf_valtag x, elf_valtag y) {
-	if (x != y) {
-		elf_throw(R,id,elf_tpf("$%i, expected %s, instead got %s",loc,tag2s[x],tag2s[y]));
-	}
-	return x == y;
-}
 
-
-int elf_callfn(elf_Runtime *R, llocalid rxy, int nx, int ny) {
+int elf_callfn(elf_ThreadState *R, llocalid rxy, int nx, int ny) {
 	return elf_callex(R,lnil,rxy,rxy,nx,ny);
 }
 
 
 /* todo: this should be different, rx should be the destination
 registers, and ry the input registers */
-int elf_callexx(elf_Runtime *R, elf_Object *obj, elf_val fn, llocalid rx, llocalid ry, int nx, int ny) {
+int elf_callexx(elf_ThreadState *R, elf_Object *obj, elf_val fn, llocalid rx, llocalid ry, int nx, int ny) {
 	elf_CallFrame *caller = R->call;
 	// elf_ensure(R->top - caller->locals+caller->cl->fn.nlocals > -1);
 	elf_val *locals = caller->locals + rx;
@@ -107,13 +100,13 @@ int elf_callexx(elf_Runtime *R, elf_Object *obj, elf_val fn, llocalid rx, llocal
 }
 
 
-int elf_callex(elf_Runtime *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
+int elf_callex(elf_ThreadState *R, elf_Object *obj, llocalid rx, llocalid ry, int nx, int ny) {
 	elf_CallFrame *caller = R->call;
 	return elf_callexx(R,obj,caller->locals[rx],rx+1,ry,nx,ny);
 }
 
 
-int elf_loadexpr(elf_Runtime *R, elf_String *contents, llocalid rxy, int ny) {
+int elf_loadexpr(elf_ThreadState *R, elf_String *contents, llocalid rxy, int ny) {
 	elf_Module *M = R->M;
 	elf_FileState fs = {0};
 	fs.R = R;
@@ -154,7 +147,7 @@ int elf_loadexpr(elf_Runtime *R, elf_String *contents, llocalid rxy, int ny) {
 
 
 
-int elf_loadcode(elf_Runtime *R, elf_FileState *fs, elf_String *filename, const llocalid rxy, int ny, char *contents) {
+int elf_loadcode(elf_ThreadState *R, elf_FileState *fs, elf_String *filename, const llocalid rxy, int ny, char *contents) {
 	if (filename == lnil) {
 	/* todo: don't like this */
 	 	filename = elf_checkstr(R,rxy);
@@ -203,7 +196,7 @@ int elf_loadcode(elf_Runtime *R, elf_FileState *fs, elf_String *filename, const 
 }
 
 
-int elf_loadfile(elf_Runtime *R, elf_FileState *fs, elf_String *name, llocalid x, int y) {
+int elf_loadfile(elf_ThreadState *R, elf_FileState *fs, elf_String *name, llocalid x, int y) {
 	if (name == lnil) {
 		name = elf_checkstr(R,x);
 	}
@@ -224,7 +217,7 @@ one are skipped?
 For instance, table:add(table:length()), here if
 table is nil or not even a table, you have to skip
 the call instruction and its arguments. */
-int elf_run(elf_Runtime *R) {
+int elf_run(elf_ThreadState *R) {
 	/* todo: these names are deprecated */
 	elf_CallFrame *c = R->f;
 	elf_Module *md = R->md;
@@ -242,7 +235,7 @@ int elf_run(elf_Runtime *R) {
 		lBytecode b = md->bytes[bc];
 		md->track[bc] ++;
 #if defined(_DEBUG)
-		if (R->logging || call->logging) elf_bytefpf(md,stdout,jp,b);
+		if (R->logging || call->logging) elf_bytefpf(stdout,md,-1,jp,b);
 		if (R->debugbreak) elf_debugger("elf-run: debugger break");
 #endif
 
@@ -275,7 +268,7 @@ int elf_run(elf_Runtime *R) {
 		call->j = jp + b.x;
 	} break;
 	case BC_STKGET: {
-		langR_typecheck(R,bc,0,TAG_INT,locals[b.y].tag);
+		elf_tycheck(R,bc,0,TAG_INT,locals[b.y].tag);
 		locals[b.x] = locals[locals[b.y].i];
 	} break;
 	case BC_STKLEN: {
@@ -296,7 +289,7 @@ int elf_run(elf_Runtime *R) {
 		if (locals[b.y].i != 0) call->j = jp + b.x;
 	} break;
 	case BC_LOADTHIS: {
-		locals[b.x].tag = elf_tttotag(call->obj->type);
+		locals[b.x].tag = elf_objtotag(call->obj->type);
 		locals[b.x].x_obj = call->obj;
 	} break;
 	case BC_RELOAD: {
@@ -345,11 +338,11 @@ int elf_run(elf_Runtime *R) {
 		locals[b.x].t   = tab;
 	} break;
 	case BC_TYPEGUARD: {
-		langR_typecheck(R,bc,b.x,b.y,locals[b.x].tag);
+		elf_tycheck(R,bc,b.x,b.y,locals[b.x].tag);
 	} break;
 	case BC_INDEX: case BC_FIELD: {
 		if (locals[b.y].tag == TAG_STR) {
-			langR_typecheck(R,bc,0,TAG_INT,locals[b.z].tag);
+			elf_tycheck(R,bc,0,TAG_INT,locals[b.z].tag);
 			locals[b.x].tag = TAG_INT;
 			locals[b.x].i   = locals[b.y].s->c[locals[b.z].i];
 		} else
@@ -358,7 +351,7 @@ int elf_run(elf_Runtime *R) {
 		} else locals[b.x] = (elf_val){TAG_NIL};
 	} break;
 	case BC_SETINDEX: case BC_SETFIELD: {
-		if (langR_typecheck(R,bc,b.x,TAG_TAB,locals[b.x].tag)) {
+		if (elf_tycheck(R,bc,b.x,TAG_TAB,locals[b.x].tag)) {
 			elf_tabset(locals[b.x].t,locals[b.y],locals[b.z]);
 		} else LNOBRANCH;
 	} break;
@@ -408,7 +401,7 @@ int elf_run(elf_Runtime *R) {
 		elf_bool eq = lfalse;
 		/* todo: fix nil comparisons */
 		if ((x.tag == TAG_NIL) || (y.tag == TAG_NIL)) {
-			eq = elf_isnil(x) == elf_isnil(y);
+			eq = elf_valisnil(x) == elf_valisnil(y);
 		} else if ((x.tag == TAG_STR) && (y.tag == TAG_STR)) {
 			eq = elf_streq(x.x_str,y.x_str);
 		} else eq = x.i == y.i;

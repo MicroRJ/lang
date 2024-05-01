@@ -71,6 +71,10 @@
 #endif
 
 
+/* ... */
+#define LITC(xx) (xx)
+
+
 #define XSTRINGIFY_(xx) #xx
 #define XSTRINGIFY(xx) XSTRINGIFY_(xx)
 
@@ -113,7 +117,7 @@
 #define lnil ("nil",(Ptr)(0))
 
 
-typedef struct elf_Runtime elf_Runtime;
+typedef struct elf_ThreadState elf_ThreadState;
 typedef struct elf_Module elf_Module;
 typedef struct elf_FileState elf_FileState;
 typedef struct elf_Table elf_Table;
@@ -122,7 +126,7 @@ typedef struct elf_Object elf_Object;
 typedef struct elf_Closure elf_Closure;
 
 
-#include "src/ltype.h"
+#include "src/elf-tys.h"
 #include "src/lerror.h"
 #include "src/ldebug.h"
 #include "src/lmem.h"
@@ -136,7 +140,7 @@ typedef struct elf_Closure elf_Closure;
 #include "src/ltoken.h"
 #include "src/elf-run.h"
 #include "src/elf-str.h"
-#include "src/larray.h"
+#include "src/elf-var.h"
 #include "src/elf-tab.h"
 #include "src/lnode.h"
 #include "src/lcode.h"
@@ -152,7 +156,7 @@ typedef struct elf_Closure elf_Closure;
 #include "src/elf-mod.c"
 #include "src/elf-aux.c"
 #include "src/elf-str.c"
-#include "src/larray.c"
+#include "src/elf-var.c"
 #include "src/elf-tab.c"
 #include "src/lfunc.c"
 #include "src/llexer.c"
@@ -162,7 +166,7 @@ typedef struct elf_Closure elf_Closure;
 #include "src/elf-api.c"
 
 
-#if !defined(ELF_NOIMPL)
+#if !defined(ELF_NOLIBS)
 # include "src/ltest.c"
 # include "src/elf-lib.c"
 # include "src/elf-web.c"

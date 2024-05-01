@@ -2,20 +2,21 @@
 #include "raylib.h"
 
 #define ELF_KEEPWARNINGS
-#define ELF_NOIMPL
+#define ELF_NOLIBS
 #include "elf.h"
+
 
 
 #define PACK(xx) ((xx.r<<24)|(xx.g<<16)|(xx.b<<8)|(xx.a<<0))
 #define UNPACK(xx) CLITERAL(Color){((xx>>24)&0xff),((xx>>16)&0xff),((xx>>8)&0xff),((xx>>0)&0xff)}
 
 
-void timeBeginPeriod(int x) {
-}
+// void timeBeginPeriod(int x) {
+// }
 
 
-void timeEndPeriod(int x) {
-}
+// void timeEndPeriod(int x) {
+// }
 
 
 
@@ -25,81 +26,81 @@ typedef struct SoundObj {
 } SoundObj;
 
 
-elf_libfundecl int raylib_IsAudioDeviceReady(elf_Runtime *R) {
+elf_libfundecl int raylib_IsAudioDeviceReady(elf_ThreadState *R) {
 	elf_locint(R,IsAudioDeviceReady());
 	return 1;
 }
 
 
-elf_libfundecl int raylib_CloseAudioDevice(elf_Runtime *R) {
+elf_libfundecl int raylib_CloseAudioDevice(elf_ThreadState *R) {
 	CloseAudioDevice();
 	return 0;
 }
 
 
-elf_libfundecl int raylib_InitAudioDevice(elf_Runtime *R) {
+elf_libfundecl int raylib_InitAudioDevice(elf_ThreadState *R) {
 	InitAudioDevice();
 	return 0;
 }
 
 
-elf_libfundecl int raylib_IsSoundPlaying(elf_Runtime *R) {
+elf_libfundecl int raylib_IsSoundPlaying(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	elf_locint(R,IsSoundPlaying(obj->sound));
 	return 1;
 }
 
 
-elf_libfundecl int raylib_PlaySound(elf_Runtime *R) {
+elf_libfundecl int raylib_PlaySound(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
-	PlaySound(obj->sound);
+	PlayAudioBuffer(obj->sound.stream.buffer);
 	return 0;
 }
 
 
-elf_libfundecl int raylib_PauseSound(elf_Runtime *R) {
+elf_libfundecl int raylib_PauseSound(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	PauseSound(obj->sound);
 	return 0;
 }
 
 
-elf_libfundecl int raylib_ResumeSound(elf_Runtime *R) {
+elf_libfundecl int raylib_ResumeSound(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	ResumeSound(obj->sound);
 	return 0;
 }
 
 
-elf_libfundecl int raylib_SetSoundVolume(elf_Runtime *R) {
+elf_libfundecl int raylib_SetSoundVolume(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	SetSoundVolume(obj->sound,elf_getnum(R,1));
 	return 0;
 }
 
 
-elf_libfundecl int raylib_SetSoundPitch(elf_Runtime *R) {
+elf_libfundecl int raylib_SetSoundPitch(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	SetSoundPitch(obj->sound,elf_getnum(R,1));
 	return 0;
 }
 
 
-elf_libfundecl int raylib_SetSoundPan(elf_Runtime *R) {
+elf_libfundecl int raylib_SetSoundPan(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	SetSoundPan(obj->sound,elf_getnum(R,1));
 	return 0;
 }
 
 
-elf_libfundecl int raylib_IsSoundReady(elf_Runtime *R) {
+elf_libfundecl int raylib_IsSoundReady(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	elf_locint(R,IsSoundReady(obj->sound));
 	return 1;
 }
 
 
-elf_libfundecl int raylib_LoadSoundAlias(elf_Runtime *R) {
+elf_libfundecl int raylib_LoadSoundAlias(elf_ThreadState *R) {
 	SoundObj *obj = (SoundObj *) elf_getobj(R,0);
 	SoundObj *alias = (SoundObj *) elf_newlocobj(R,sizeof(SoundObj));
 	alias->sound = LoadSoundAlias(obj->sound);
@@ -108,7 +109,7 @@ elf_libfundecl int raylib_LoadSoundAlias(elf_Runtime *R) {
 
 
 
-elf_libfundecl int raylib_LoadSound(elf_Runtime *R) {
+elf_libfundecl int raylib_LoadSound(elf_ThreadState *R) {
  	Wave wave = LoadWave(elf_getstr(R,0)->c);
 	Sound sound = LoadSoundFromWave(wave);
 	SoundObj *obj = (SoundObj *) elf_newlocobj(R,sizeof(SoundObj));
@@ -118,54 +119,54 @@ elf_libfundecl int raylib_LoadSound(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_GetFPS(elf_Runtime *R) {
+elf_libfundecl int raylib_GetFPS(elf_ThreadState *R) {
 	elf_locint(R,GetFPS());
 	return 1;
 }
 
 
-elf_libfundecl int raylib_IsKeyDown(elf_Runtime *R) {
+elf_libfundecl int raylib_IsKeyDown(elf_ThreadState *R) {
 	elf_locint(R,IsKeyDown(elf_getint(R,0)));
 	return 1;
 }
 
 
-elf_libfundecl int raylib_GetFrameTime(elf_Runtime *R) {
+elf_libfundecl int raylib_GetFrameTime(elf_ThreadState *R) {
 	elf_locnum(R,GetFrameTime());
 	return 1;
 }
 
 
-elf_libfundecl int raylib_IsMouseButtonDown(elf_Runtime *R) {
+elf_libfundecl int raylib_IsMouseButtonDown(elf_ThreadState *R) {
 	elf_locint(R,IsMouseButtonDown(elf_getint(R,0)));
 	return 1;
 }
 
-elf_libfundecl int raylib_IsMouseButtonReleased(elf_Runtime *R) {
+elf_libfundecl int raylib_IsMouseButtonReleased(elf_ThreadState *R) {
 	elf_locint(R,IsMouseButtonReleased(elf_getint(R,0)));
 	return 1;
 }
 
-elf_libfundecl int raylib_IsMouseButtonUp(elf_Runtime *R) {
+elf_libfundecl int raylib_IsMouseButtonUp(elf_ThreadState *R) {
 	elf_locint(R,IsMouseButtonUp(elf_getint(R,0)));
 	return 1;
 }
 
 
-elf_libfundecl int raylib_WindowShouldClose(elf_Runtime *R) {
+elf_libfundecl int raylib_WindowShouldClose(elf_ThreadState *R) {
 	elf_locint(R,WindowShouldClose());
 	return 1;
 }
 
 
-elf_libfundecl int raylib_CloseWindow(elf_Runtime *R) {
+elf_libfundecl int raylib_CloseWindow(elf_ThreadState *R) {
 	(void) R;
 	CloseWindow();
 	return 0;
 }
 
 
-elf_libfundecl int raylib_InitWindow(elf_Runtime *R) {
+elf_libfundecl int raylib_InitWindow(elf_ThreadState *R) {
 	int width = {(int)elf_getint(R,0)};
 	int height = {(int)elf_getint(R,1)};
 	char *title = {elf_getstr(R,2)->c};
@@ -174,7 +175,7 @@ elf_libfundecl int raylib_InitWindow(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_SetGameLoopFn(elf_Runtime *R) {
+elf_libfundecl int raylib_SetGameLoopFn(elf_ThreadState *R) {
 	#if defined(PLATFORM_WEB)
 	// emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
 	#endif
@@ -182,37 +183,37 @@ elf_libfundecl int raylib_SetGameLoopFn(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_GetMouseX(elf_Runtime *R) {
+elf_libfundecl int raylib_GetMouseX(elf_ThreadState *R) {
 	elf_locint(R,GetMouseX());
 	return 1;
 }
 
 
-elf_libfundecl int raylib_GetMouseY(elf_Runtime *R) {
+elf_libfundecl int raylib_GetMouseY(elf_ThreadState *R) {
 	elf_locint(R,GetMouseY());
 	return 1;
 }
 
 
-elf_libfundecl int raylib_SetTargetFPS(elf_Runtime *R) {
+elf_libfundecl int raylib_SetTargetFPS(elf_ThreadState *R) {
 	SetTargetFPS(elf_getint(R,0));
 	return 0;
 }
 
 
-elf_libfundecl int raylib_EndDrawing(elf_Runtime *R) {
+elf_libfundecl int raylib_EndDrawing(elf_ThreadState *R) {
 	EndDrawing();
 	return 0;
 }
 
 
-elf_libfundecl int raylib_BeginDrawing(elf_Runtime *R) {
+elf_libfundecl int raylib_BeginDrawing(elf_ThreadState *R) {
 	BeginDrawing();
 	return 0;
 }
 
 
-Vector2 raylib_tab2vec2(elf_Runtime *R, elf_Table *tab) {
+Vector2 raylib_tab2vec2(elf_ThreadState *R, elf_Table *tab) {
 	return CLITERAL(Vector2) {
 		elf_tabgetnum(tab,elf_newlocstr(R,"x")),
 		elf_tabgetnum(tab,elf_newlocstr(R,"y")),
@@ -220,7 +221,7 @@ Vector2 raylib_tab2vec2(elf_Runtime *R, elf_Table *tab) {
 }
 
 
-elf_Table *raylib_putvec2(elf_Runtime *R, Vector2 vec) {
+elf_Table *raylib_putvec2(elf_ThreadState *R, Vector2 vec) {
 	elf_Table *tab = elf_newloctab(R);
 	elf_tabsetnumfld(tab,elf_newlocstr(R,"x"),vec.x);
 	elf_tabsetnumfld(tab,elf_newlocstr(R,"y"),vec.y);
@@ -229,7 +230,7 @@ elf_Table *raylib_putvec2(elf_Runtime *R, Vector2 vec) {
 }
 
 
-Camera2D raylib_tab2cam2d(elf_Runtime *R, elf_Table *tab) {
+Camera2D raylib_tab2cam2d(elf_ThreadState *R, elf_Table *tab) {
 	Camera2D result = {0};
 	result.offset = raylib_tab2vec2(R,elf_tabgettab(tab,elf_newlocstr(R,"offset")));
 	result.target = raylib_tab2vec2(R,elf_tabgettab(tab,elf_newlocstr(R,"target")));
@@ -239,34 +240,34 @@ Camera2D raylib_tab2cam2d(elf_Runtime *R, elf_Table *tab) {
 }
 
 
-elf_libfundecl int raylib_BeginMode2D(elf_Runtime *R) {
+elf_libfundecl int raylib_BeginMode2D(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 1);
 	BeginMode2D(raylib_tab2cam2d(R,elf_gettab(R,0)));
 	return 0;
 }
 
 
-elf_libfundecl int raylib_EndMode2D(elf_Runtime *R) {
+elf_libfundecl int raylib_EndMode2D(elf_ThreadState *R) {
 	EndMode2D();
 	return 0;
 }
 
 
-elf_libfundecl int raylib_GetWorldToScreen2D(elf_Runtime *R) {
+elf_libfundecl int raylib_GetWorldToScreen2D(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 2);
 	raylib_putvec2(R,GetWorldToScreen2D(raylib_tab2vec2(R,elf_gettab(R,1)),raylib_tab2cam2d(R,elf_gettab(R,0))));
 	return 1;
 }
 
 
-elf_libfundecl int raylib_GetScreenToWorld2D(elf_Runtime *R) {
+elf_libfundecl int raylib_GetScreenToWorld2D(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 2);
 	raylib_putvec2(R,GetScreenToWorld2D(raylib_tab2vec2(R,elf_gettab(R,1)),raylib_tab2cam2d(R,elf_gettab(R,0))));
 	return 1;
 }
 
 
-elf_libfundecl int raylib_SetShapesTexture(elf_Runtime *R) {
+elf_libfundecl int raylib_SetShapesTexture(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 5);
 	elf_Table *textab = elf_gettab(R,0);
 	Texture2D tex = CLITERAL(Texture2D) {
@@ -284,13 +285,13 @@ elf_libfundecl int raylib_SetShapesTexture(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_DrawFPS(elf_Runtime *R) {
+elf_libfundecl int raylib_DrawFPS(elf_ThreadState *R) {
 	DrawFPS(elf_getint(R,0),elf_getint(R,1));
 	return 0;
 }
 
 
-elf_libfundecl int raylib_DrawRectangle(elf_Runtime *R) {
+elf_libfundecl int raylib_DrawRectangle(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 5);
 	elf_int color = elf_getint(R,4);
 	DrawRectangle(
@@ -300,7 +301,7 @@ elf_libfundecl int raylib_DrawRectangle(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_DrawRectanglePro(elf_Runtime *R) {
+elf_libfundecl int raylib_DrawRectanglePro(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 8);
 	Rectangle rec = CLITERAL(Rectangle) {
 		elf_getnum(R,0),elf_getnum(R,1),
@@ -316,7 +317,7 @@ elf_libfundecl int raylib_DrawRectanglePro(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_LoadTexture(elf_Runtime *R) {
+elf_libfundecl int raylib_LoadTexture(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 1);
 	char *filename = elf_getstr(R,0)->c;
 	if (filename != lnil) {
@@ -333,7 +334,7 @@ elf_libfundecl int raylib_LoadTexture(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_ClearBackground(elf_Runtime *R) {
+elf_libfundecl int raylib_ClearBackground(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 1);
 	elf_int color = elf_getint(R,0);
   	ClearBackground(UNPACK(color));
@@ -341,7 +342,7 @@ elf_libfundecl int raylib_ClearBackground(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_DrawText(elf_Runtime *R) {
+elf_libfundecl int raylib_DrawText(elf_ThreadState *R) {
 	elf_ensure(R->call->nx == 5);
 	char *text = elf_getstr(R,0)->c;
 	float posx = elf_getnum(R,1);
@@ -353,7 +354,7 @@ elf_libfundecl int raylib_DrawText(elf_Runtime *R) {
 }
 
 
-elf_libfundecl int raylib_load(elf_Runtime *R) {
+elf_libfundecl int raylib_load(elf_ThreadState *R) {
 	elf_loginfo("raylib: loading...");
 
 	elf_register(R,"elf.ray.IsAudioDeviceReady",raylib_IsAudioDeviceReady);

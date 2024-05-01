@@ -61,7 +61,7 @@ typedef struct elf_FileFunc {
 typedef struct elf_FileState {
 
 	union { elf_Module  *M,*md; };
-	union { elf_Runtime *R,*rt; };
+	union { elf_ThreadState *R,*rt; };
 
 	char *filename;
 	char *linechar;

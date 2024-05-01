@@ -6,7 +6,7 @@
 
 
 lnodeid elf_nodexyz(elf_FileState *fs, llineid line, lnodeop k, lnodety t, lnodeid x, lnodeid y, lnodeid *z) {
-	if (langA_varmin(fs->nodes) <= fs->nnodes) {
+	if (elf_varmin(fs->nodes) <= fs->nnodes) {
 		elf_varaddi(fs->nodes,1);
 	}
 	lNode *nd = fs->nodes + fs->nnodes;
@@ -182,7 +182,7 @@ elf_val elf_nodetolitval(elf_FileState *fs, lnodeid id) {
 			elf_arrfori(nd.z) {
 				elf_nodelitapply(fs,tab,nd.z[i]);
 			}
-			return lang_H(tab);
+			return elf_valsys(tab);
 		}
 		default: LNOBRANCH;
 	}

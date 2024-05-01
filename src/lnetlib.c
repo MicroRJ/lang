@@ -21,20 +21,20 @@ typedef struct LMSG {
 
 
 
-elf_api int netlib_init(elf_Runtime *R) {
+elf_api int netlib_init(elf_ThreadState *R) {
 	WSADATA data;
 	WSAStartup(MAKEWORD(2,2),&data);
 	return 0;
 }
 
 
-elf_api int netlib_close(elf_Runtime *R) {
+elf_api int netlib_close(elf_ThreadState *R) {
 	WSACleanup();
 	return 0;
 }
 
 
-elf_api int netlib_listen(elf_Runtime *R) {
+elf_api int netlib_listen(elf_ThreadState *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	int error = listen(handle,SOMAXCONN);
 	elf_locint(R,error!=SOCKET_ERROR);
@@ -42,7 +42,7 @@ elf_api int netlib_listen(elf_Runtime *R) {
 }
 
 
-elf_api int netlib_accept(elf_Runtime *R) {
+elf_api int netlib_accept(elf_ThreadState *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	SOCKET client = accept(handle,NULL,NULL);
 	elf_locsys(R,(elf_Handle)client);
@@ -50,7 +50,7 @@ elf_api int netlib_accept(elf_Runtime *R) {
 }
 
 
-elf_api int netlib_pollclient(elf_Runtime *R) {
+elf_api int netlib_pollclient(elf_ThreadState *R) {
 	SOCKET handle = (SOCKET) elf_getsys(R,0);
 	fd_set ready;
 	FD_ZERO(&ready);
@@ -66,7 +66,7 @@ elf_api int netlib_pollclient(elf_Runtime *R) {
 }
 
 
-elf_api int netlib_tcpserver(elf_Runtime *R) {
+elf_api int netlib_tcpserver(elf_ThreadState *R) {
 	elf_String *addrnameS = elf_getstr(R,0);
 	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
@@ -89,7 +89,7 @@ elf_api int netlib_tcpserver(elf_Runtime *R) {
 }
 
 
-elf_api int netlib_tcpclient(elf_Runtime *R) {
+elf_api int netlib_tcpclient(elf_ThreadState *R) {
 	elf_String *addrnameS = elf_getstr(R,0);
 	elf_String *addrportS = elf_getstr(R,1);
 	char *addrname = addrnameS ? addrnameS->c : 0;
@@ -112,7 +112,7 @@ elf_api int netlib_tcpclient(elf_Runtime *R) {
 }
 
 
-elf_api int netlib_send(elf_Runtime *R) {
+elf_api int netlib_send(elf_ThreadState *R) {
 	/* todo: make this a class? */
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	elf_String *payload = elf_getstr(R,1);
@@ -125,7 +125,7 @@ elf_api int netlib_send(elf_Runtime *R) {
 }
 
 
-elf_api int netlib_ioctl(elf_Runtime *R) {
+elf_api int netlib_ioctl(elf_ThreadState *R) {
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	long mode = 1;
 	int error = ioctlsocket(socket,FIONBIO,&mode);
@@ -134,7 +134,7 @@ elf_api int netlib_ioctl(elf_Runtime *R) {
 }
 
 
-elf_api int netlib_recv(elf_Runtime *R) {
+elf_api int netlib_recv(elf_ThreadState *R) {
 	SOCKET socket = (SOCKET) elf_getsys(R,0);
 	LMSG message = {0};
 	if (recv(socket,(char*)&message,sizeof(message),0) != -1) {
@@ -170,20 +170,20 @@ elf_api int netlib_recv(elf_Runtime *R) {
 	return 1;
 }
 #else
-elf_api int netlib_init(elf_Runtime *R) { return 0; };
-elf_api int netlib_close(elf_Runtime *R) { return 0; };
-elf_api int netlib_listen(elf_Runtime *R) { return 0; };
-elf_api int netlib_accept(elf_Runtime *R) { return 0; };
-elf_api int netlib_pollclient(elf_Runtime *R) { return 0; };
-elf_api int netlib_tcpserver(elf_Runtime *R) { return 0; };
-elf_api int netlib_tcpclient(elf_Runtime *R) { return 0; };
-elf_api int netlib_send(elf_Runtime *R) { return 0; };
-elf_api int netlib_ioctl(elf_Runtime *R) { return 0; };
-elf_api int netlib_recv(elf_Runtime *R) { return 0; };
+elf_api int netlib_init(elf_ThreadState *R) { return 0; };
+elf_api int netlib_close(elf_ThreadState *R) { return 0; };
+elf_api int netlib_listen(elf_ThreadState *R) { return 0; };
+elf_api int netlib_accept(elf_ThreadState *R) { return 0; };
+elf_api int netlib_pollclient(elf_ThreadState *R) { return 0; };
+elf_api int netlib_tcpserver(elf_ThreadState *R) { return 0; };
+elf_api int netlib_tcpclient(elf_ThreadState *R) { return 0; };
+elf_api int netlib_send(elf_ThreadState *R) { return 0; };
+elf_api int netlib_ioctl(elf_ThreadState *R) { return 0; };
+elf_api int netlib_recv(elf_ThreadState *R) { return 0; };
 #endif
 
 
-elf_api void netlib_load(elf_Runtime *R) {
+elf_api void netlib_load(elf_ThreadState *R) {
 	elf_Module *md = R->md;
 	lang_addglobal(md,elf_newlocstr(R,"listen"),elf_valbid(netlib_listen));
 	lang_addglobal(md,elf_newlocstr(R,"accept"),elf_valbid(netlib_accept));

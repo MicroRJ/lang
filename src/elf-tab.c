@@ -5,7 +5,7 @@
 */
 
 
-elf_Table *elf_newtabmetatab(elf_Runtime *R) {
+elf_Table *elf_newtabmetatab(elf_ThreadState *R) {
 	elf_Table *tab = elf_newloctab(R);
 	elf_tabmfld(R,tab,"length",elf_tablength_);
 	elf_tabmfld(R,tab,"tally",elf_tabtally_);
@@ -22,7 +22,7 @@ elf_Table *elf_newtabmetatab(elf_Runtime *R) {
 }
 
 
-elf_Table *elf_newtablen(elf_Runtime *R, elf_int ntotal) {
+elf_Table *elf_newtablen(elf_ThreadState *R, elf_int ntotal) {
 	elf_Table *table = elf_newobj(R,OBJ_TAB,sizeof(elf_Table));
 	if (R) table->obj.metatable = R->metatable_tab;
 
@@ -33,7 +33,7 @@ elf_Table *elf_newtablen(elf_Runtime *R, elf_int ntotal) {
 }
 
 
-elf_Table *elf_newtab(elf_Runtime *R) {
+elf_Table *elf_newtab(elf_ThreadState *R) {
 	return elf_newtablen(R,4);
 }
 
@@ -241,21 +241,21 @@ void elf_tabadd(elf_Table *table, elf_val v) {
 /* metatable */
 
 
-int elf_tablength_(elf_Runtime *R) {
+int elf_tablength_(elf_ThreadState *R) {
 	elf_Table *tab = (elf_Table*) elf_getthis(R);
 	elf_locint(R,elf_varlen(tab->v));
 	return 1;
 }
 
 
-int elf_tabtally_(elf_Runtime *R) {
+int elf_tabtally_(elf_ThreadState *R) {
 	elf_Table *tab = (elf_Table*) elf_getthis(R);
 	elf_locint(R,elf_varlen(tab->v));
 	return 1;
 }
 
 
-int elf_tabhaskey_(elf_Runtime *c) {
+int elf_tabhaskey_(elf_ThreadState *c) {
 	elf_ensure(c->f->x == 1);
 	elf_Table *table = (elf_Table*) elf_getthis(c);
 	elf_val k = elf_getval(c,0);
@@ -264,7 +264,7 @@ int elf_tabhaskey_(elf_Runtime *c) {
 }
 
 
-int elf_tablookup_(elf_Runtime *c) {
+int elf_tablookup_(elf_ThreadState *c) {
 	elf_ensure(c->f->x == 1);
 	elf_val k = elf_getval(c,0);
 	elf_Table *table = (elf_Table*) c->f->obj;
@@ -273,14 +273,14 @@ int elf_tablookup_(elf_Runtime *c) {
 }
 
 
-int elf_tabcollisions_(elf_Runtime *c) {
+int elf_tabcollisions_(elf_ThreadState *c) {
 	elf_Table *table = (elf_Table*) c->f->obj;
 	elf_locint(c,table->ncollisions);
 	return 1;
 }
 
 
-int elf_tabadd_(elf_Runtime *R) {
+int elf_tabadd_(elf_ThreadState *R) {
 	elf_ensure(R->call->x >= 1);
 	elf_Table *tab = (elf_Table *) R->call->obj;
 	elf_tabadd(tab,elf_getval(R,0));
@@ -288,7 +288,7 @@ int elf_tabadd_(elf_Runtime *R) {
 }
 
 
-int elf_tabidx_(elf_Runtime *R) {
+int elf_tabidx_(elf_ThreadState *R) {
 	elf_ensure(R->call->x >= 1);
 	elf_Table *tab = (elf_Table *)elf_getthis(R);
 	elf_int idx = elf_getint(R,0);
@@ -297,10 +297,10 @@ int elf_tabidx_(elf_Runtime *R) {
 }
 
 
-int elf_tabxrem_(elf_Runtime *R) {
+int elf_tabxrem_(elf_ThreadState *R) {
 	elf_ensure(R->call->x >= 1);
 	elf_Table *tab = (elf_Table *)elf_getthis(R);
-	elf_int min = elf_arrdecmin(tab->array);
+	elf_int min = elf_vardec(tab->array);
 	elf_int idx = elf_getint(R,0);
 	if (idx != min) {
 		tab->array[idx] = tab->array[min];
@@ -309,7 +309,7 @@ int elf_tabxrem_(elf_Runtime *R) {
 }
 
 
-int elf_tabput_(elf_Runtime *c) {
+int elf_tabput_(elf_ThreadState *c) {
 	int n = c->f->x;
 
 	elf_ensure(n >= 1 && n <= 2);
@@ -325,7 +325,7 @@ int elf_tabput_(elf_Runtime *c) {
 }
 
 
-int elf_tabforeach_(elf_Runtime *R) {
+int elf_tabforeach_(elf_ThreadState *R) {
 	elf_ensure(R->frame->x == 1);
 	elf_Table *table = (elf_Table *) R->frame->obj;
 	elf_checkcl(R,0);
@@ -370,7 +370,7 @@ void elf_tabunload(FILE *io, elf_Table *tab, int level) {
 }
 
 
-int elf_tabunload_(elf_Runtime *R) {
+int elf_tabunload_(elf_ThreadState *R) {
 	elf_Handle io = elf_getsys(R,0);
 	elf_tabunload(io,(elf_Table*)elf_getthis(R),0);
 	return 0;

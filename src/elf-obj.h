@@ -10,6 +10,16 @@ typedef enum elf_gccolor {
 } elf_gccolor;
 
 
+
+/* first object tag must be OBJECT, all other
+objects come after it */
+#define TAGLIST(_) \
+_(NIL) _(GCD) _(SYS) \
+_(INT) _(NUM) _(BID) \
+_(OBJ) _(CLS) _(STR) _(TAB) /* end */
+
+
+
 typedef enum elf_objty {
 	OBJ_NONE = 0,
 	OBJ_CLOSURE,
@@ -33,13 +43,6 @@ typedef struct elf_Object {
 #endif
 } elf_Object;
 
-
-/* first object tag must be OBJECT, all other
-objects come after it */
-#define TAGLIST(_) \
-_(NIL) _(GCD) _(SYS) \
-_(INT) _(NUM) _(BID) \
-_(OBJ) _(CLS) _(STR) _(TAB) /* end */
 
 
 #define TAGENUM(NAME) XFUSE(TAG_,NAME),

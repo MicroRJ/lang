@@ -5,7 +5,7 @@
 */
 
 
-elf_Table *elf_newstrmetatab(elf_Runtime *R) {
+elf_Table *elf_newstrmetatab(elf_ThreadState *R) {
 	elf_Table *tab = elf_newloctab(R);
 	elf_tabmfld(R,tab,"length",langS_length_);
 	elf_tabmfld(R,tab,"match",langS_match_);
@@ -15,7 +15,7 @@ elf_Table *elf_newstrmetatab(elf_Runtime *R) {
 }
 
 
-elf_String *elf_newstrlen(elf_Runtime *R, elf_int length) {
+elf_String *elf_newstrlen(elf_ThreadState *R, elf_int length) {
 	elf_String *obj = elf_newobj(R,OBJ_STRING,sizeof(elf_String)+length+1);
 	if (R) obj->obj.metatable = R->metatable_str;
 	obj->length = length;
@@ -25,7 +25,7 @@ elf_String *elf_newstrlen(elf_Runtime *R, elf_int length) {
 }
 
 
-elf_String *elf_newstr(elf_Runtime *R, char *junk) {
+elf_String *elf_newstr(elf_ThreadState *R, char *junk) {
 	int length = S_length(junk);
 	elf_String *obj = elf_newstrlen(R,length);
 	langM_copy(obj->c,junk,length);
@@ -90,13 +90,13 @@ char *S_copy(Alloc *allocator, char const *string) {
 }
 
 
-int langS_length_(elf_Runtime *c) {
+int langS_length_(elf_ThreadState *c) {
 	elf_locint(c,((elf_String*)c->f->obj)->length);
 	return 1;
 }
 
 
-int langS_append_(elf_Runtime *R) {
+int langS_append_(elf_ThreadState *R) {
 	elf_String *s = (elf_String*) elf_getthis(R);
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_INT) {
@@ -110,7 +110,7 @@ int langS_append_(elf_Runtime *R) {
 }
 
 
-int langS_match_(elf_Runtime *R) {
+int langS_match_(elf_ThreadState *R) {
 	elf_String *s = (elf_String*) elf_getthis(R);
 	elf_String *p = elf_getstr(R,0);
 	elf_locint(R,S_match(p->string,s->string));
@@ -118,7 +118,7 @@ int langS_match_(elf_Runtime *R) {
 }
 
 
-int langS_hash_(elf_Runtime *c) {
+int langS_hash_(elf_ThreadState *c) {
 	elf_String *s = (elf_String*) c->f->obj;
 	elf_locint(c,s->hash);
 	return 1;

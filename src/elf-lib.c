@@ -5,19 +5,19 @@
 */
 
 
-int elflib_GCM(elf_Runtime *R) {
+int elflib_GCM(elf_ThreadState *R) {
 	elf_locint(R,R->gcmemory);
 	return 1;
 }
 
 
-int elflib_GCT(elf_Runtime *R) {
+int elflib_GCT(elf_ThreadState *R) {
 	elf_locint(R,R->gcthreshold);
 	return 1;
 }
 
 
-int elflib_GCN(elf_Runtime *R) {
+int elflib_GCN(elf_ThreadState *R) {
 	elf_locint(R,elf_varlen(R->gc));
 	return 1;
 }
@@ -25,7 +25,7 @@ int elflib_GCN(elf_Runtime *R) {
 
 
 
-int elflib_iton(elf_Runtime *R) {
+int elflib_iton(elf_ThreadState *R) {
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_INT) {
 		elf_locnum(R,(elf_num)v.i);
@@ -34,7 +34,7 @@ int elflib_iton(elf_Runtime *R) {
 }
 
 
-int elflib_ntoi(elf_Runtime *R) {
+int elflib_ntoi(elf_ThreadState *R) {
 	elf_val v = elf_getval(R,0);
 	if (v.tag == TAG_NUM) {
 		elf_locint(R,(elf_int)v.n);
@@ -43,7 +43,7 @@ int elflib_ntoi(elf_Runtime *R) {
 }
 
 
-int elflib_loadexpr(elf_Runtime *R) {
+int elflib_loadexpr(elf_ThreadState *R) {
 	elf_String *contents = elf_getstr(R,0);
 	elf_loadexpr(R,contents,R->call->ry,R->call->ny);
 	/* no need to do hoisting */
@@ -51,7 +51,7 @@ int elflib_loadexpr(elf_Runtime *R) {
 }
 
 
-int elflib_loadfile(elf_Runtime *R) {
+int elflib_loadfile(elf_ThreadState *R) {
 	elf_String *filename = elf_getstr(R,0);
 	elf_FileState fs = {0};
 	elf_loadfile(R,&fs,filename,R->call->ry,R->call->ny);
@@ -60,7 +60,7 @@ int elflib_loadfile(elf_Runtime *R) {
 }
 
 
-int elflib_libfn(elf_Runtime *rt) {
+int elflib_libfn(elf_ThreadState *rt) {
 	elf_Handle lib = elf_getsys(rt,0);
 	elf_String *name = elf_getstr(rt,1);
 	lBinding fn = (lBinding) sys_libfn(lib,name->c);
@@ -78,7 +78,7 @@ int elflib_libfn(elf_Runtime *rt) {
 // void emscripten_dlopen(const char *filename, int flags, void* user_data, em_dlopen_callback onsuccess, em_arg_callback_func onerror);
 
 
-int elflib_loadlib(elf_Runtime *R) {
+int elflib_loadlib(elf_ThreadState *R) {
 	elf_String *name = elf_getstr(R,0);
 	elf_Closure *callback = elf_getcls(R,1);
 	elf_Handle lib = sys_loadlib(name->c);
@@ -89,7 +89,7 @@ int elflib_loadlib(elf_Runtime *R) {
 }
 
 
-int elflib_exec(elf_Runtime *R) {
+int elflib_exec(elf_ThreadState *R) {
 #if defined(_WIN32)
 	elf_String *cmd = elf_getstr(R,0);
 	STARTUPINFO si = {sizeof(si)};
@@ -105,7 +105,7 @@ int elflib_exec(elf_Runtime *R) {
 }
 
 
-int elflib_freadall(elf_Runtime *R) {
+int elflib_freadall(elf_ThreadState *R) {
 	FILE *file = (FILE*) elf_getsys(R,0);
 	if (file != 0) {
 		fseek(file,0,SEEK_END);
@@ -119,7 +119,7 @@ int elflib_freadall(elf_Runtime *R) {
 }
 
 
-int elflib_ftemp(elf_Runtime *R) {
+int elflib_ftemp(elf_ThreadState *R) {
 	FILE *file = {0};
 #if defined(PLATFORM_WEB)
 	file = tmpfile();
@@ -131,7 +131,7 @@ int elflib_ftemp(elf_Runtime *R) {
 }
 
 
-int elflib_workdir(elf_Runtime *rt) {
+int elflib_workdir(elf_ThreadState *rt) {
 	elf_logerror("this function is deprecated");
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
@@ -144,7 +144,7 @@ int elflib_workdir(elf_Runtime *rt) {
 }
 
 
-int elflib_pwd(elf_Runtime *rt) {
+int elflib_pwd(elf_ThreadState *rt) {
 	char buf[MAX_PATH];
 	sys_pwd(sizeof(buf),buf);
 	elf_newlocstr(rt,buf);
@@ -152,14 +152,14 @@ int elflib_pwd(elf_Runtime *rt) {
 }
 
 
-int elflib_setpwd(elf_Runtime *rt) {
+int elflib_setpwd(elf_ThreadState *rt) {
 	elf_String *s = elf_getstr(rt,0);
 	sys_setpwd(s->c);
 	return 0;
 }
 
 
-int elflib_fpf(elf_Runtime *rt) {
+int elflib_fpf(elf_ThreadState *rt) {
 	elf_Handle file = elf_getsys(rt,0);
 	int wrote = 0;
 	for (int i = 1; i < rt->f->x; i ++) {
@@ -170,7 +170,7 @@ int elflib_fpf(elf_Runtime *rt) {
 }
 
 
-int elflib_lpf(elf_Runtime *rt) {
+int elflib_lpf(elf_ThreadState *rt) {
 	for (int i = 0; i < rt->f->x; i ++) {
 		if (i != 0) fprintf(stdout,"\n");
 		elf_valfpf(stdout,elf_getval(rt,i),lfalse);
@@ -180,7 +180,7 @@ int elflib_lpf(elf_Runtime *rt) {
 }
 
 
-int elflib_pf(elf_Runtime *rt) {
+int elflib_pf(elf_ThreadState *rt) {
 	for (int i = 0; i < rt->f->x; i ++) {
 		elf_valfpf(stdout,elf_getval(rt,i),lfalse);
 	}
@@ -189,20 +189,20 @@ int elflib_pf(elf_Runtime *rt) {
 }
 
 
-elf_api int elflib_sleep(elf_Runtime *rt) {
+elf_api int elflib_sleep(elf_ThreadState *rt) {
 	elf_ensure(rt->f->x == 1);
 	sys_sleep(elf_getint(rt,0));
 	return 0;
 }
 
 
-elf_api int elflib_clocktime(elf_Runtime *rt) {
+elf_api int elflib_clocktime(elf_ThreadState *rt) {
 	elf_locint(rt,sys_clocktime());
 	return 1;
 }
 
 
-elf_api int elflib_timediffs(elf_Runtime *rt) {
+elf_api int elflib_timediffs(elf_ThreadState *rt) {
 	elf_ensure(rt->f->x == 1);
 	elf_int i = elf_getint(rt,0);
 	elf_locnum(rt,(sys_clocktime() - i) / (elf_num) sys_clockhz());
@@ -220,7 +220,7 @@ elf_globaldecl elf_String *keyname;
 elf_globaldecl elf_String *keypath;
 elf_globaldecl elf_String *keyisdir;
 
-void elflib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *flags, elf_Closure *cl) {
+void elflib_listdir_(elf_ThreadState *R, elf_String *d, elf_Table *list, elf_Table *flags, elf_Closure *cl) {
 #if defined(PLATFORM_DESKTOP)
 	WIN32_FIND_DATAA f;
 	HANDLE h = FindFirstFileA(elf_tpf("%s\\*",d->c),&f);
@@ -283,7 +283,7 @@ void elflib_listdir_(elf_Runtime *R, elf_String *d, elf_Table *list, elf_Table *
 }
 
 
-elf_api int elflib_listdir(elf_Runtime *R) {
+elf_api int elflib_listdir(elf_ThreadState *R) {
 	elf_ensure(R->frame->x == 2);
 	/* push these keys temporarily so they won't
 	be gc'd and also to to avoid creating them so often  */
@@ -301,7 +301,7 @@ elf_api int elflib_listdir(elf_Runtime *R) {
 
 
 /* todo: can we do this from code */
-elf_api void elflib_load(elf_Runtime *R) {
+elf_api void elflib_load(elf_ThreadState *R) {
 #if defined(PLATFORM_WEB)
 	elf_registerint(R,"elf.PLATFORM_WEB",1);
 #endif

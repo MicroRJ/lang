@@ -5,7 +5,7 @@
 */
 
 
-elf_api elf_Closure *elf_newcls(elf_Runtime *rt, elf_Proto fn) {
+elf_api elf_Closure *elf_newcls(elf_ThreadState *rt, elf_Proto fn) {
 	elf_ensure(fn.ncaches >= 0);
 
 	elf_int length = sizeof(elf_Closure) + sizeof(elf_val) * (fn.ncaches-1);

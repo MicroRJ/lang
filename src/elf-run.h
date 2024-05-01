@@ -32,8 +32,7 @@ typedef struct elf_CallFrame {
 	};
 	/* todo: rename top to regress */
 	elf_val *top;
-	/* -- next instruction index, not really
-	- used now, but I guess for coroutines? */
+	/* next instruction index */
 	elf_int j;
 	llocalid rx,ry;
 	/* x and y names are deprecated */
@@ -49,17 +48,30 @@ typedef struct elf_CallFrame {
 	- can hoist the return values. */
 	union { int nx,x; };
 	union { int ny,y; };
-	/* -- list of delayed jumps to be executed
-	- on return, 'finally' statements produce
-	- these. */
+	/* list of delayed jumps to be executed
+	on return, 'finally' statements produce
+	these. */
 	ldelaylist *dl;
-
 	elf_bool logging;
 } elf_CallFrame;
 
 
+typedef struct elf_Runtime {
+	union { elf_Module *M, *md; };
+	/* these should be safe to access
+	multi-threaded */
+	elf_Table *metatable_str;
+	elf_Table *metatable_tab;
+	struct {
+		elf_String *__add,*__sub,*__mul,*__div;
+		elf_String *__add1,*__sub1,*__mul1,*__div1;
+	} cache;
+} elf_Runtime;
+
+
+/* todo: implement */
 typedef struct lThread {
-	union { elf_Runtime *R, *rt; };
+	union { elf_ThreadState *R, *rt; };
 	union { elf_Module  *M, *md; };
 	union { elf_CallFrame *call; };
 	union { elf_val *stk;      };
@@ -68,7 +80,8 @@ typedef struct lThread {
 	lbyteid  curbyte;
 } lThread;
 
-typedef struct elf_Runtime {
+
+typedef struct elf_ThreadState {
 	union { elf_Module *M, *md; };
 	union { elf_val *stk,*s; };
 	llocalid stklen;
@@ -88,6 +101,6 @@ typedef struct elf_Runtime {
 	elf_bool     gcflags;
 	elf_int      gcmemory;
 	elf_int      gcthreshold;
-} elf_Runtime;
+} elf_ThreadState;
 
 
