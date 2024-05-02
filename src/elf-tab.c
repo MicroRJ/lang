@@ -155,6 +155,11 @@ void elf_tabsetnumfld(elf_Table *tab, elf_String *key, elf_num val) {
 }
 
 
+void elf_tabsettabfld(elf_Table *tab, elf_String *key, elf_Table *val) {
+	elf_tabset(tab,elf_valstr(key),elf_valtab(val));
+}
+
+
 void elf_tabset(elf_Table *table, elf_val k, elf_val v) {
 	elf_tabcheckthreshold(table);
 	elf_int slot = elf_tabhashin(table,k);

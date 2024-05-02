@@ -5,9 +5,9 @@
 */
 
 
-typedef enum elf_gccolor {
+typedef enum elf_objgc {
 	GC_BLACK = 0, GC_WHITE, GC_PINK, GC_RED,
-} elf_gccolor;
+} elf_objgc;
 
 
 
@@ -35,7 +35,7 @@ typedef struct elf_Object {
 	int headtrap;
 #endif
 	elf_objty type;
-	elf_gccolor gccolor;
+	elf_objgc gccolor;
 	elf_int tell;
 	elf_Table *metatable;
 #if defined(_DEBUG)
@@ -86,8 +86,7 @@ typedef struct elf_Closure {
    whole prototype here, we can instead store an
    index into the proto table. */
 	elf_Proto   fn;
-   /* current instruction index (coroutines) */
-	int       j;
+	lbyteid     j;
    /* allocated past this point */
 	elf_val caches[1];
 } elf_Closure;

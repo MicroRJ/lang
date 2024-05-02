@@ -91,6 +91,8 @@ typedef struct elf_ThreadState {
 	elf_Table *metatable_str;
 	elf_Table *metatable_tab;
 	struct {
+		elf_String *x,*y,*z,*w;
+		elf_String *width,*height;
 		elf_String *__add,*__sub,*__mul,*__div;
 		elf_String *__add1,*__sub1,*__mul1,*__div1;
 	} cache;

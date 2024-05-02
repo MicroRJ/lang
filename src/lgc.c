@@ -12,12 +12,12 @@ of objects, so that's something we have to
 take into account, and most of the time you
 make small allocations tightly, so that's where
 most of the spikes occur */
-#define L_GC_THRESHOLD_MIN (elf_int) MEGABYTES(2)
-#define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(8)
+#define L_GC_THRESHOLD_MIN (elf_int) MEGABYTES(1)
+#define L_GC_THRESHOLD_MAX (elf_int) MEGABYTES(512)
 
 
-#define L_GC_OBJNUM_THRESHOLD_MIN (elf_int) 512
-#define L_GC_OBJNUM_THRESHOLD_MAX (elf_int) 8192
+#define L_GC_OBJNUM_THRESHOLD_MIN (elf_int) (8192*1)
+#define L_GC_OBJNUM_THRESHOLD_MAX (elf_int) (8192*512)
 
 
 void elf_collect(elf_ThreadState *fs);

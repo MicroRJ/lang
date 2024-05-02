@@ -10,10 +10,12 @@ abs = fun(x,y) ? { if x < 0 ? leave -x else leave x }
 min = fun(x,y) ? { if x < y ? leave x else leave y }
 max = fun(x,y) ? { if x > y ? leave x else leave y }
 
-/* @deprecated */
 lerp = fun(x,y,z) ? (y + x * (z - y))
 unlerp = fun(x,y,z) ? ((x - y) / (z - y))
 map = fun(x,y,z,w,v) ? lerp(unlerp(x,y,z),w,v)
+
+slerp = fun(t,x,y) ? (sin((1-t)*))
+
 
 mix = fun(x,y,z) ? (y + x * (z - y))
 unmix = fun(x,y,z) ? ((x - y) / (z - y))
@@ -71,7 +73,9 @@ vec3_metatab = fun() ? ({
 		leave vec3(this.y,-this.x,0.)
 	}
 })
+
 vec3__ = vec3_metatab()
+
 /* todo: make this better */
 vec3 = fun(x,y,z) ? __of(vec3__,{"x"=x,"y"=y,"z"=z})
 vec2 = fun(x,y) ? vec3(x,y,.0)

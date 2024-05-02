@@ -45,7 +45,6 @@
 #endif
 
 
-/* todo: remove deps */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -144,7 +143,7 @@ typedef struct elf_Closure elf_Closure;
 #include "src/elf-tab.h"
 #include "src/lnode.h"
 #include "src/lcode.h"
-#include "src/lfile.h"
+#include "src/elf-file.h"
 
 
 #include "src/elf-sys.c"
@@ -162,7 +161,7 @@ typedef struct elf_Closure elf_Closure;
 #include "src/llexer.c"
 #include "src/lnode.c"
 #include "src/lcode.c"
-#include "src/lfile.c"
+#include "src/elf-file.c"
 #include "src/elf-api.c"
 
 

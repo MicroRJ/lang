@@ -1,5 +1,4 @@
 
-
 log ?= elf.pf
 if load "code/ray.elf" != true ? {
 	leave false
@@ -19,7 +18,6 @@ RIGHT = vec3( 1, 0, 0)
 DOWN  = vec3( 0,-1, 0)
 
 
-
 PlayerController = fun(entity) ? {
 	let move = vec3(0,0,0)
 	if elf.ray.IsKeyDown('W') ? move = move + DOWN
@@ -27,20 +25,34 @@ PlayerController = fun(entity) ? {
 	if elf.ray.IsKeyDown('S') ? move = move + UP
 	if elf.ray.IsKeyDown('D') ? move = move + RIGHT
 	/* todo: */
-	entity.pos = entity.pos + move:norm():mul1(500 * elf.ray.GetFrameTime())
+	let speedmodifier = entity.speedmodifier
+	if entity.firing ? {
+		speedmodifier = speedmodifier * .5
+	}
+	entity.facing = entity.facing:mix(entity.tofacing,.2)
+	entity.pos = entity.pos + move:norm() * entity.speed * speedmodifier * elf.ray.GetFrameTime()
+	if move:len() != 0. ? {
+		let time = elf.ray.GetTime()
+		if time - entity.laststep > .512 ? {
+			entity.laststep = time
+			let sound = elf.ray.LoadSoundAlias(Sounds.FootStep);
+			elf.ray.PlaySound(sound)
+			elf.ray.SetSoundVolume(sound,.01)
+			elf.ray.SetSoundPitch(sound,1. + rnd(-10000/2,10000)/(10000.*3.))
+		}
+	}
 }
-
-
 EnemyController = fun(entity) ? {
 	let pos = entity.pos
 	let diftoplayer = Player.pos - pos
 	let distoplayer = diftoplayer:len()
 	let facing = diftoplayer:norm()
 	let target = diftoplayer - facing * 64.
-	if timediffs(entity.lastimpulse) > .5 ? {
-		entity.lastimpulse = clocktime()
-		let imp = rnddir2(-PI,+PI,target:norm())
-		entity.vel = entity.vel + imp * 300. * elf.ray.GetFrameTime()
+	let time = elf.ray.GetTime()
+	if time - entity.lastimpulse > .5 ? {
+		entity.lastimpulse = time
+		let imp = rnddir2(-PI,+PI,target:norm()) * entity.speed * elf.ray.GetFrameTime()
+		entity.vel = entity.vel + imp
 	}
 	entity.pos = pos + entity.vel
 	entity.vel = entity.vel * .9
@@ -58,17 +70,24 @@ NewEntity = fun(pos,fr) ? {
 	fr ?= 50
 	let entity = ({
 		controller = EnemyController,
+		experience = 0,
 		pos = pos,
+		speed = 300.,
+		armor = .0,
+		speedmodifier = 1.,
+		damagemodifier = 1.,
+		bulletspeed = 1000.,
 		vel = vec(),
 		facing = UP,
 		tofacing = UP,
 		firing = false,
 		firerate = fr,
 		lastfire = 0,
+		laststep = 0,
 		ulttimer = 0,
 		health = 100,
 		muscleflashduration = .032,
-		lastimpulse = clocktime(),
+		lastimpulse = 0,
 	})
 	Entities:add(entity)
 	leave entity
@@ -77,41 +96,54 @@ DrawEntity = fun(entity) ? {
 	let firerate = entity.firerate
 	/* todo: little bloom or fadein/out effect? */
 	let firing = entity.firing
+	let time = elf.ray.GetTime()
 	if firing == true ? {
 		let muscleflashduration = entity.muscleflashduration
-		Fire(entity)
-		firing = timediffs(entity.lastfire) < muscleflashduration
+		Pew(entity)
+		firing = time - entity.lastfire < muscleflashduration
 	}
 	let facingangle = 90 - todeg(entity.facing:angle())
 	elf.ray.SetShapesTexture(Textures.Player,firing*48,0,48,48)
 	elf.ray.DrawRectanglePro(entity.pos.x,entity.pos.y,128,128,64,64,facingangle,elf.ray.WHITE)
+	elf.ray.DrawCircleLines(entity.pos.x,entity.pos.y,32,elf.ray.WHITE)
+	elf.ray.SetShapesTexture({},0,0,0,0)
+	elf.ray.DrawRectangle(entity.pos.x-32,entity.pos.y+32,64,4,elf.ray.WHITE)
+	let width = remix(iton(entity.health),0.,100.,0.,64.)
+	elf.ray.DrawRectangle(entity.pos.x-32,entity.pos.y+32,width,4,elf.ray.GREEN)
 }
 Player = NewEntity(vec2(0,0),700)
+Player.armor = .8
+Player.damagemodifier = 2.
 Player.controller = PlayerController
-for i in 0..0 ? {
-	NewEntity(vec2(rnd(-20,+20),rnd(-20,+128)))
-}
+Player.bulletspeed = 5000.
+Player.speed = 500.
 Particles = {}
-Fire = fun(entity) ? {
+Pew = fun(entity) ? {
+	let time = elf.ray.GetTime()
 	let firerate = entity.firerate
 	let lastfire = entity.lastfire
-	if timediffs(lastfire) > (1./(firerate/60.)) ? {
-		// let pan = Camera.target:sub(entity.pos):div(1024.,720.)
+	if time - lastfire > (1./(firerate/60.)) ? {
+		if entity == Player ? {
+			/* add some recoil */
+			let imp = rnddir2(-PI,+PI,entity.facing) * .2
+			entity.tofacing = (entity.tofacing + imp):norm()
+		}
 
+		// let pan = Camera.target:sub(entity.pos):div(1024.,720.)
 		/* Note: the object should get deallocated, and the sound
-		should keep playing in the audio buffer until is done, which
-		is what we want... */
+		should keep playing in the audio buffer until is done,
+		which is what we want... */
 		let sound = elf.ray.LoadSoundAlias(Sounds.Gun);
 		elf.ray.PlaySound(sound)
 		elf.ray.SetSoundVolume(sound,.01)
 		elf.ray.SetSoundPitch(sound,1. + rnd(-10000/2,10000)/(10000.*3.))
 		// elf.ray.SetSoundPan(sound,pan.x-.5)
 
-		entity.lastfire = clocktime()
+		entity.lastfire = time
 		Particles:add({
 			"from" = entity,
 			"pos" = entity.pos:clone(),
-			"vel" = entity.facing * 3000,
+			"vel" = entity.facing * entity.bulletspeed,
 		})
 	}
 }
@@ -130,6 +162,7 @@ Textures = {
 }
 Sounds = {
 	Gun = elf.ray.LoadSound("assets/gun.wav")
+	FootStep = elf.ray.LoadSound("assets/footstep.wav")
 }
 log("Done")
 
@@ -157,24 +190,62 @@ elf.ray.SetTargetFPS(60);
 // 		elf.ray.DrawFPS(0,0)
 // 	elf.ray.EndDrawing()
 // }
+round = 0
+timeincurrentmode = 0
+timelaststatech = 0
+COUNTDOWN = fun() ? {
+	if timeincurrentmode < 1 ? {
+		elf.ray.GuiDrawText("3",64,Window,elf.ray.TEXT_ALIGN_CENTER,elf.ray.WHITE)
+	} elif timeincurrentmode < 2 ? {
+		elf.ray.GuiDrawText("2",64,Window,elf.ray.TEXT_ALIGN_CENTER,elf.ray.WHITE)
+	} elif timeincurrentmode < 3 ? {
+		elf.ray.GuiDrawText("1",64,Window,elf.ray.TEXT_ALIGN_CENTER,elf.ray.WHITE)
+	} else leave SPAWNWAVE
+	leave COUNTDOWN
+}
+SPAWNWAVE = fun() ? {
+	round = round + 1
+	let n = 3*round
+	for i in n ? {
+		NewEntity(vec2(rnd(-512,+512),rnd(-512,+512)))
+	}
+	targetxp = n * 10
+	leave PLAYING
+}
+PLAYING = fun() ? {
+	if Player.experience >= targetxp ? {
+		Player.experience = 0
+		leave YOUWIN
+	} else {
+		elf.ray.GuiProgressBar(2,Window.height-18,Window.width-2,16,"","",Player.experience,0,targetxp)
+	}
+	leave PLAYING
+}
+YOUWIN = fun() ? {
+	elf.ray.GuiDrawText("You Win!",64,Window,elf.ray.TEXT_ALIGN_CENTER,elf.ray.WHITE)
+	elf.ray.GuiProgressBar(2,Window.height-18,Window.width-2,16,"","",5.-timeincurrentmode,0.,5.)
+	if timeincurrentmode > 5 ? {
+		leave COUNTDOWN
+	}
+	leave YOUWIN
+}
+overheadstate = COUNTDOWN
 
 /* Main Loop */
 while elf.ray.WindowShouldClose() == false ? {
 	let delta = elf.ray.GetFrameTime()
-
+	let time = elf.ray.GetTime()
 	let cursor = vec2(elf.ray.GetMouseX(),elf.ray.GetMouseY())
 	let playeronscreen = elf.ray.GetWorldToScreen2D(Camera,Player.pos)
-	Player.facing = cursor:sub(playeronscreen):norm()
+	Player.tofacing = Player.tofacing:mix(cursor:sub(playeronscreen):norm(),.1)
 	if elf.ray.IsMouseButtonDown(0) ? {
 		Player.firing = true
-		ShakeCamera(50.)
+		// ShakeCamera(50.)
 	} else Player.firing = false
 
 	for i in Entities:length() ? {
 		let entity = Entities:idx(i)
-		if entity != nil ? {
-			entity.controller(entity)
-		}
+		entity.controller(entity)
 	}
 
 	/* Update camera */
@@ -188,12 +259,49 @@ while elf.ray.WindowShouldClose() == false ? {
 	for i in Particles:length() ? {
 		let bullet = Particles:idx(i)
 		if bullet != nil ? {
-			let bulpos = bullet.pos + bullet.vel * delta
+			let alive = true
+			let hit = false
+			let newpos = bullet.pos + bullet.vel * delta
 			bullet.vel = bullet.vel * 0.999
-			bullet.pos = bulpos
-			if bulpos:sub(bullet.from.pos):len() > 1024 ? {
+
+			/* check whether the bullet is too far away
+			from where it was fired, in which case remove it */
+			if newpos:sub(bullet.from.pos):len() > 1024 ? {
 				Particles:xrem(i) i = i - 1
+				alive = false
+				/* otherwise check for collisions (this is an incredibly slow approach) */
+			} else for j in Entities:length() ? {
+				let entity = Entities:idx(j)
+				if bullet.from != entity ? {
+					let entpos = entity.pos
+					let dif = entpos - newpos
+					/* do simple check first, otherwise
+					prioritize player bullet hits, let's
+					just say the player has *evasion */
+					if dif:len() < 32 ? {
+						hit = true
+					} elif bullet.from == Player ? {
+						let dir = (bullet.pos - newpos):norm()
+						hit = elf.ray.RayCollisionSphereHit(newpos,dir,entity.pos,32)
+					}
+
+					if hit == true ? {
+						if entity.health > 1 ? {
+							entity.health = entity.health - (10. * bullet.from.damagemodifier)*(1.-entity.armor)
+							entity.vel = entity.vel + dif:norm() * 10.
+						} else {
+							if entity != Player ? {
+								Entities:xrem(j) j = j - 1
+								Player.experience = Player.experience + 10
+							}
+						}
+						Particles:xrem(i) i = i - 1
+						/* todo: breaks! */
+						j = 100000000
+					}
+				}
 			}
+			bullet.pos = newpos
 		}
 	}
 
@@ -221,46 +329,19 @@ while elf.ray.WindowShouldClose() == false ? {
 			// elf.ray.DrawText(freadall(buf),0,0,20,elf.ray.RED);
 			// fclose(buf)
 		elf.ray.EndMode2D()
+
+		Window = {x=0,y=0,width=elf.ray.GetScreenWidth(),height=elf.ray.GetScreenHeight()}
+		elf.ray.GuiEnable()
+			timeincurrentmode = time - timelaststatech
+			let prevstate = overheadstate
+			overheadstate = overheadstate()
+			if prevstate != overheadstate ? {
+				timelaststatech = time
+				timeincurrentmode = 0
+			}
+		elf.ray.GuiDisable()
+
 	elf.ray.EndDrawing()
 }
 
 leave 0
-
-
-// elf.audio.play("welcome.mp3")
-// let sound = elf.audio.newsound("welcome.mp3")
-// let thread = elf.threads.create(fun() ? {
-// })
-// thread:launch()
-// thread:join()
-// elf.threads.post()
-// elf.sys.timediffs()
-// elf.sys.closehandles()
-//
-// let file = elf.sys.file("filename.png","rbw")
-// file:read()
-// file:write()
-//
-// elf.win32.Sleep()
-// elf.win32.CreateThread()
-// elf.win32.CreateWindow()
-// elf.console.write()
-// elf.console.read()
-// /* the first window created is the main window */
-/* not sure if video, or vio, for video io */
-// elf.video.window(720,720,"Welcome")
-// elf.video.resize(720,720)
-// elf.video.nologo()
-// /* a target can be a window or texture */
-// elf.video.target(elf.video.MAINWINDOW)
-// elf.video.camera({})
-// elf.video.mode3d()
-// elf.video.mode2d()
-// elf.video.clear()
-// elf.video.clearcolor()
-// elf.video.colormode()
-// elf.video.loadshader()
-// elf.video.bindshader()
-// elf.video.loadtexture()
-// elf.video.bindtexture()
-//

@@ -133,7 +133,7 @@ int _gtable(elf_ThreadState *c) {
 }
 
 
-char *gccolor2s(elf_gccolor c) {
+char *gccolor2s(elf_objgc c) {
 	return
 	c == GC_BLACK ? "black" :
 	c == GC_WHITE ? "white" :

@@ -16,6 +16,12 @@ void elf_runini(elf_ThreadState *R, elf_Module *M) {
 	Y.base = R->top;
 	R->frame = &Y;
 	M->globals = elf_newloctab(R);
+	R->cache.x = elf_newlocstr(R,"x");
+	R->cache.y = elf_newlocstr(R,"y");
+	R->cache.z = elf_newlocstr(R,"z");
+	R->cache.w = elf_newlocstr(R,"w");
+	R->cache.width = elf_newlocstr(R,"width");
+	R->cache.height = elf_newlocstr(R,"height");
 	R->cache.__add = elf_newlocstr(R,"__add");
 	R->cache.__sub = elf_newlocstr(R,"__sub");
 	R->cache.__mul = elf_newlocstr(R,"__mul");
@@ -335,7 +341,7 @@ int elf_run(elf_ThreadState *R) {
 		local is some other type */
 		elf_Table *tab = elf_newtab(R);
 		locals[b.x].tag = TAG_TAB;
-		locals[b.x].t   = tab;
+		locals[b.x].x_tab = tab;
 	} break;
 	case BC_TYPEGUARD: {
 		elf_tycheck(R,bc,b.x,b.y,locals[b.x].tag);
@@ -347,7 +353,7 @@ int elf_run(elf_ThreadState *R) {
 			locals[b.x].i   = locals[b.y].s->c[locals[b.z].i];
 		} else
 		if (locals[b.y].tag == TAG_TAB) {
-			locals[b.x] = elf_tablookup(locals[b.y].t,locals[b.z]);
+			locals[b.x] = elf_tablookup(locals[b.y].x_tab,locals[b.z]);
 		} else locals[b.x] = (elf_val){TAG_NIL};
 	} break;
 	case BC_SETINDEX: case BC_SETFIELD: {

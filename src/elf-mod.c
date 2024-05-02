@@ -30,11 +30,14 @@ lglobalid lang_addproto(elf_Module *M, elf_Proto p) {
 
 int elf_valfpf(FILE *file, elf_val v, elf_bool quotes);
 void elf_bytefpf(FILE *io, elf_Module *md, elf_int fid, lbyteid id, lBytecode b) {
-	elf_File codefile = md->files[fid];
-	int linenum;
-	elf_getlinelocinfo(codefile.lines,md->lines[id],&linenum,0);
 
-	fprintf(io,"%s %04i: \t",codefile.name,linenum);
+	if (fid != -1) {
+		elf_File codefile = md->files[fid];
+		int linenum;
+		elf_getlinelocinfo(codefile.lines,md->lines[id],&linenum,0);
+		fprintf(io,"%s %04i: \t",codefile.name,linenum);
+	}
+
 	fprintf(io,"%08i %04i\t%s"
 	, md->track[id],	id, lang_bytename(b.k));
 	if (lang_byteclass(b.k) == BC_CLASS_XYZ) {

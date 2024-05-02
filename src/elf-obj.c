@@ -5,7 +5,6 @@
 */
 
 
-
 elf_bool elf_tagisnumeric(elf_valtag tag) {
 	return (tag == TAG_NUM) || (tag == TAG_INT);
 }
