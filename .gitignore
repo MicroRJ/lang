@@ -1,7 +1,6 @@
 .vs
 .vscode/*
-buid
-build/web
+buid/*
 *.exe
 *.pdb
 *.obj
